@@ -141,7 +141,7 @@ public class Port {
 		String voiceText = "";
 		RF_ContainerInfo containerInfo = tools.GetContainerInfo(tag);
 
-		if (containerInfo == null) {
+		if (containerInfo == null) { 
 
 			tools.SignalTower(gate, GlobleVar.RedOn, tag.getReader_IP());
 			tools.Subtitle(gate, "該車輛沒有進廠紀錄", tag.getReader_IP());
