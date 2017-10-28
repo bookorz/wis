@@ -139,51 +139,51 @@ public class Port {
 
 	public void PortBind(RF_Gate_Setting gate, RF_Tag_History tag) {
 		String voiceText = "";
-		RF_ContainerInfo containerInfo = tools.GetContainerInfo(tag);
+		RF_ContainerInfo container = tools.GetContainerInfo(tag);
 
-		if (containerInfo == null) { 
+		if (container == null) { 
 
 			tools.SignalTower(gate, GlobleVar.RedOn, tag.getReader_IP());
 			tools.Subtitle(gate, "該車輛沒有進廠紀錄", tag.getReader_IP());
 			tools.SetGateError(tag, GlobleVar.NonEntryRecord,
 					tools.ConvertGateStr(tag) + "，" + tools.ConvertCarStr(tag) + tag.getTag_ID() + "沒有進廠紀錄");
-		} else if (!containerInfo.getGate().equals("0")) {
+		} else if (!container.getGate().equals("0")) {
 			tools.SignalTower(gate, GlobleVar.RedOn, tag.getReader_IP());
-			tools.Subtitle(gate, "靠碼頭失敗，該車輛目前被綁定在" + tools.ConvertGateStr(containerInfo, tag.getReader_IP()),
+			tools.Subtitle(gate, "靠碼頭失敗，該車輛目前被綁定在" + tools.ConvertGateStr(container, tag.getReader_IP()),
 					tag.getReader_IP());
 			tools.SetGateError(tag, GlobleVar.BindingError,
 					tag.getTag_ID() + "無法綁定於" + tools.ConvertGateStr(tag) + "，因目前被綁定在" + tools.ConvertGateStr(tag));
 		} else {
 			// Bind start
-			containerInfo.setFab(tag.getFab());
-			containerInfo.setArea(tag.getArea());
-			containerInfo.setGate(tag.getGate());
-			containerInfo.setManual_Bind(false);
+			container.setFab(tag.getFab());
+			container.setArea(tag.getArea());
+			container.setGate(tag.getGate());
+			container.setManual_Bind(false);
 			// Update container object
-			tools.UpdateContainerInfo(containerInfo, tag.getReader_IP());
+			tools.UpdateContainerInfo(container, tag.getReader_IP());
 			// Clear all pallet by this car ID
 			tools.DeletePalletByCarID(tag);
 			tools.SignalTowerAutoOff(gate, GlobleVar.GreenOn, 5, tag.getReader_IP());
-			tools.Subtitle(gate, tools.ConvertCarStr(tag) + "進入:" + containerInfo.getContainer_ID(),
+			tools.Subtitle(gate, tools.ConvertCarStr(tag) + "進入:" + container.getContainer_ID(),
 					tag.getReader_IP());
 
-			if (containerInfo.getCar_Type().equals(GlobleVar.TruckStr)) {
-				if (containerInfo.getReason() != null) {
-					if (containerInfo.getReason().equals("Delivery")) {
-						voiceText = "廠商" + containerInfo.getSource() + " " + containerInfo.getVendor_Name() + "運輸已停靠"
-								+ tools.ConvertGateStr(containerInfo, tag.getReader_IP()) + " 請同仁收貨";
-					} else if (containerInfo.getReason().equals("Receive")) {
-						voiceText = containerInfo.getVendor_Name() + "運輸已停靠"
-								+ tools.ConvertGateStr(containerInfo, tag.getReader_IP()) + " 請同仁出貨";
+			if (container.getCar_Type().equals(GlobleVar.TruckStr)) {
+				if (container.getReason() != null) {
+					if (container.getReason().equals("Delivery")) {
+						voiceText = "廠商" + container.getSource() + " " + container.getVendor_Name() + "運輸已停靠"
+								+ tools.ConvertGateStr(container, tag.getReader_IP()) + " 請同仁收貨";
+					} else if (container.getReason().equals("Receive")) {
+						voiceText = container.getVendor_Name() + "運輸已停靠"
+								+ tools.ConvertGateStr(container, tag.getReader_IP()) + " 請同仁出貨";
 					}
 				}
-			} else if (containerInfo.getCar_Type().equals(GlobleVar.ContainerStr)) {
-				if (containerInfo.getContainer_Status().equals("NonEmpty")) {
-					voiceText = containerInfo.getVendor_Name() + "運輸重櫃已停靠"
-							+ tools.ConvertGateStr(containerInfo, tag.getReader_IP()) + " 請同仁卸貨";
+			} else if (container.getCar_Type().equals(GlobleVar.ContainerStr)) {
+				if (container.getContainer_Status().equals("NonEmpty")) {
+					voiceText = container.getVendor_Name() + "運輸重櫃已停靠"
+							+ tools.ConvertGateStr(container, tag.getReader_IP()) + " 請同仁卸貨";
 				} else {
-					voiceText = containerInfo.getVendor_Name() + "運輸空櫃已停靠"
-							+ tools.ConvertGateStr(containerInfo, tag.getReader_IP()) + " 請同仁出貨";
+					voiceText = container.getVendor_Name() + "運輸空櫃已停靠"
+							+ tools.ConvertGateStr(container, tag.getReader_IP()) + " 請同仁出貨";
 				}
 			}
 			tools.VoiceSend(gate.getVoice_Path(), voiceText, tag.getReader_IP());
