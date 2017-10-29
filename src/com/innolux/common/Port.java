@@ -4,16 +4,21 @@ import java.util.Hashtable;
 import java.util.List;
 import org.apache.log4j.Logger;
 
+import com.innolux.WIS_Main;
 import com.innolux.model.RF_Antenna_Setting;
 import com.innolux.model.RF_ContainerInfo;
 import com.innolux.model.RF_Gate_Setting;
 import com.innolux.model.RF_Pallet_Check;
 import com.innolux.model.RF_Tag_History;
 import com.innolux.model.RF_Tag_Mapping;
+import com.innolux.model.WMS_T1_Check_Pallet;
+import com.innolux.model.WMS_T2_Check_Pallet;
+import com.innolux.service.TibcoRvSend;
 
 public class Port {
 	public Logger logger = Logger.getLogger(this.getClass());
 	private ToolUtility tools = new ToolUtility();
+	public static TibcoRvSend MesDaemon = new TibcoRvSend(GlobleVar.TibDaemon, "8585", "");
 
 	public void Data(List<RF_Tag_History> tagList, Hashtable<Integer, RF_Antenna_Setting> antSetting) {
 		try {
@@ -116,28 +121,24 @@ public class Port {
 							if (gate.getForkLift_Direction().equals(GlobleVar.ForkLiftIN)) {
 
 							} else if (gate.getForkLift_Direction().equals(GlobleVar.ForkLiftOUT)) {
-
+								TransferOut(tag, gate);
 							} else {
 								logger.debug(tag.getReader_IP() + " ForkLift_Direction is not define.");
 							}
 							break;
 						case GlobleVar.TransferIn:
 							if (gate.getForkLift_Direction().equals(GlobleVar.ForkLiftIN)) {
-
+								TransferIn(tag, gate);
 							} else if (gate.getForkLift_Direction().equals(GlobleVar.ForkLiftOUT)) {
-
+								
 							} else {
 								logger.debug(tag.getReader_IP() + " ForkLift_Direction is not define.");
 							}
 							break;
 						case GlobleVar.DeliveryLoad:
-							if (gate.getForkLift_Direction().equals(GlobleVar.ForkLiftIN)) {
-								DeliveryLoad(tag);
-							} else if (gate.getForkLift_Direction().equals(GlobleVar.ForkLiftOUT)) {
 
-							} else {
-								logger.debug(tag.getReader_IP() + " ForkLift_Direction is not define.");
-							}
+							DeliveryLoad(tag, gate);
+
 							break;
 						default:
 
@@ -157,12 +158,134 @@ public class Port {
 		}
 	}
 	
-	private void DeliveryLoad(RF_Tag_History tag) {
-		
+	private void TransferIn(RF_Tag_History tag, RF_Gate_Setting gate) {
+		RF_ContainerInfo container = tools.GetContainerInfo(gate);
+		if (container != null) {
+			RF_Pallet_Check pallet = tools.GetMarkPallet(tag.getTag_ID(), GlobleVar.TransferIn, tag.getReader_IP());
+			if (pallet != null) {
+				logger.debug(tag.getReader_IP()+" the tag is already send to wms.");
+				
+			} else {
+				tools.MarkPallet(tag, container.getContainer_ID(), GlobleVar.TransferIn);
+				tools.SignalTowerAutoOff(gate, GlobleVar.GreenOn, 5, tag.getReader_IP());
+				tools.Subtitle(gate, "棧板" + tag.getTag_ID() + "廠移出", tag.getReader_IP());
+				MesDaemon.sendMessage(tools.SendTransfer(tag, container, "In", tag.getReader_IP()),
+						GlobleVar.SendToWMS);
+			}
+
+		} else {
+			// 此碼頭沒有綁定任何車輛
+			tools.SignalTower(gate, GlobleVar.RedOn, tag.getReader_IP());
+			tools.Subtitle(gate, "沒有綁定車輛，偵測到棧板" + tag.getTag_ID(), tag.getReader_IP());
+			tools.SetGateError(tag, GlobleVar.TransferError,
+					tools.ConvertGateStr(tag) + "沒有綁定車輛，偵測到棧板" + tag.getTag_ID());
+		}
 	}
-	
-	private void DeliveryUnLoad(RF_Tag_History tag) {
-		
+
+	private void TransferOut(RF_Tag_History tag, RF_Gate_Setting gate) {
+		RF_ContainerInfo container = tools.GetContainerInfo(gate);
+		if (container != null) {
+			RF_Pallet_Check pallet = tools.GetMarkPallet(tag.getTag_ID(), GlobleVar.TransferOut, tag.getReader_IP());
+			if (pallet != null) {
+				logger.debug(tag.getReader_IP()+" the tag is already send to wms.");
+				
+			} else {
+				tools.MarkPallet(tag, container.getContainer_ID(), GlobleVar.TransferOut);
+				tools.SignalTowerAutoOff(gate, GlobleVar.GreenOn, 5, tag.getReader_IP());
+				tools.Subtitle(gate, "棧板" + tag.getTag_ID() + "廠移出", tag.getReader_IP());
+				MesDaemon.sendMessage(tools.SendTransfer(tag, container, "Out", tag.getReader_IP()),
+						GlobleVar.SendToWMS);
+			}
+
+		} else {
+			// 此碼頭沒有綁定任何車輛
+			tools.SignalTower(gate, GlobleVar.RedOn, tag.getReader_IP());
+			tools.Subtitle(gate, "沒有綁定車輛，偵測到棧板" + tag.getTag_ID(), tag.getReader_IP());
+			tools.SetGateError(tag, GlobleVar.TransferError,
+					tools.ConvertGateStr(tag) + "沒有綁定車輛，偵測到棧板" + tag.getTag_ID());
+		}
+	}
+
+	private void DeliveryLoad(RF_Tag_History tag, RF_Gate_Setting gate) {
+		RF_ContainerInfo container = tools.GetContainerInfo(gate);
+		if (container != null) {
+			// Check pallet in the container
+			WMS_T1_Check_Pallet pallet = null;
+			WMS_T1_Check_Pallet t1 = tools.GetT1Pallet(tag, tag.getReader_IP());
+			WMS_T2_Check_Pallet t2 = tools.GetT2Pallet(tag, tag.getReader_IP());
+			if (t1 != null) {
+				pallet = t1;
+			} else if (t2 != null) {
+				pallet = new WMS_T1_Check_Pallet();
+				pallet.setContainer_NO(t2.getContainer_NO());
+				pallet.setDN_No(t2.getDN_No());
+				pallet.setFab(t2.getFab());
+				pallet.setPallet_ID(t2.getPallet_ID());
+				pallet.setStatus(t2.getStatus());
+				pallet.setTruck_NO(t2.getTruck_NO());
+			}
+			if (pallet != null) {
+				// is pallet match to container
+				if (pallet.getContainer_NO().equals(container.getContainer_ID())
+						|| pallet.getTruck_NO().equals(container.getCar_ID())) {
+					// If not in container
+					if (pallet.getStatus().equals("TRUE")) {
+						if (gate.getForkLift_Direction().equals(GlobleVar.ForkLiftIN)) {
+							logger.debug(tag.getReader_IP() + " Pallet is already in container.");
+						} else if (gate.getForkLift_Direction().equals(GlobleVar.ForkLiftOUT)) {
+							tools.SignalTowerAutoOff(gate, GlobleVar.GreenOn, 5, tag.getReader_IP());
+							tools.Subtitle(gate,
+									"目前進度" + (tools.GetCompletePallet(container, tag.getReader_IP()).size() - 1) + "/"
+											+ tools.GetAllPallet(container, tag.getReader_IP()).size(),
+									tag.getReader_IP());
+							MesDaemon.sendMessage(tools.SendDeliveryLoad(tag, container, "Cancel", tag.getReader_IP()),
+									GlobleVar.SendToWMS);
+
+						} else {
+							logger.debug(tag.getReader_IP() + " ForkLift_Direction is not define.");
+						}
+
+					} else {
+						if (gate.getForkLift_Direction().equals(GlobleVar.ForkLiftIN)) {
+
+							tools.SignalTowerAutoOff(gate, GlobleVar.GreenOn, 5, tag.getReader_IP());
+							tools.Subtitle(gate,
+									"目前進度" + (tools.GetCompletePallet(container, tag.getReader_IP()).size() + 1) + "/"
+											+ tools.GetAllPallet(container, tag.getReader_IP()).size(),
+									tag.getReader_IP());
+							MesDaemon.sendMessage(tools.SendDeliveryLoad(tag, container, "Confirm", tag.getReader_IP()),
+									GlobleVar.SendToWMS);
+						} else if (gate.getForkLift_Direction().equals(GlobleVar.ForkLiftOUT)) {
+							logger.debug(tag.getReader_IP() + " Pallet is not in container.");
+
+						} else {
+							logger.debug(tag.getReader_IP() + " ForkLift_Direction is not define.");
+						}
+
+					}
+				} else {
+					// 棧板不屬於此貨櫃
+					tools.SignalTower(gate, GlobleVar.RedOn, tag.getReader_IP());
+					tools.Subtitle(gate, "棧板" + tag.getTag_ID() + "不屬於" + container.getContainer_ID(),
+							tag.getReader_IP());
+					tools.SetGateError(tag, GlobleVar.DeliveryError,
+							tools.ConvertGateStr(tag) + "棧板" + tag.getTag_ID() + "不屬於" + container.getContainer_ID());
+				}
+			} else {
+				// WMS資料庫中找不到此棧板
+				tools.SignalTower(gate, GlobleVar.RedOn, tag.getReader_IP());
+				tools.Subtitle(gate, "棧板" + tag.getTag_ID() + "不存在WMS資料庫", tag.getReader_IP());
+				tools.SetGateError(tag, GlobleVar.DeliveryError,
+						tools.ConvertGateStr(tag) + "出貨棧板" + tag.getTag_ID() + "不存在WMS資料庫");
+			}
+		} else {
+			// 此碼頭沒有綁定任何車輛
+			tools.SignalTower(gate, GlobleVar.RedOn, tag.getReader_IP());
+			tools.Subtitle(gate, "沒有綁定車輛，偵測到棧板" + tag.getTag_ID(), tag.getReader_IP());
+			tools.SetGateError(tag, GlobleVar.DeliveryError,
+					tools.ConvertGateStr(tag) + "沒有綁定車輛，偵測到棧板" + tag.getTag_ID());
+		}
+
 	}
 
 	private void PortHandler(RF_Tag_History tag) {
@@ -247,10 +370,11 @@ public class Port {
 			container.setArea(tag.getArea());
 			container.setGate(tag.getGate());
 			container.setManual_Bind(false);
+			tools.DeletePalletByCarID(container.getContainer_ID(), tag.getReader_IP());
 			// Update container object
 			tools.UpdateContainerInfo(container, tag.getReader_IP());
 			// Clear all pallet by this car ID
-			tools.DeletePalletByCarID(tag);
+
 			tools.SignalTowerAutoOff(gate, GlobleVar.GreenOn, 5, tag.getReader_IP());
 			tools.Subtitle(gate, tools.ConvertCarStr(tag) + "進入:" + container.getContainer_ID(), tag.getReader_IP());
 
@@ -283,14 +407,14 @@ public class Port {
 
 	public void PortUnBind(RF_Gate_Setting gate, RF_Tag_History tag) {
 		String voiceText = "";
-		RF_ContainerInfo container = tools.GetContainerInfo(tag);
+		RF_ContainerInfo container = tools.GetContainerInfo(gate);
 
 		if (container != null) {
 
 			// Check load complete?
-			List<RF_Pallet_Check> notCompletePallets = tools.GetNotCompletePallet(container, tag.getReader_IP());
+			List<String> notCompletePallets = tools.GetNotCompletePallet(container, tag.getReader_IP());
 
-			if (notCompletePallets != null) {
+			if (notCompletePallets.size() != 0) {
 				// There are some pallet is not complete.
 				tools.SignalTower(gate, GlobleVar.RedOn, tag.getReader_IP());
 				tools.Subtitle(gate, container.getContainer_ID() + "尚未裝櫃完成即離場", tag.getReader_IP());
@@ -305,6 +429,7 @@ public class Port {
 				// All pallet are complete, car exit normally.
 				container.setArea("WH");
 				container.setGate("0");
+				tools.DeletePalletByCarID(container.getContainer_ID(), tag.getReader_IP());
 				tools.UpdateContainerInfo(container, tag.getReader_IP());
 				tools.SignalTowerAutoOff(gate, GlobleVar.GreenOn, 5, tag.getReader_IP());
 				tools.Subtitle(gate, container.getContainer_ID() + "已離開碼頭", tag.getReader_IP());

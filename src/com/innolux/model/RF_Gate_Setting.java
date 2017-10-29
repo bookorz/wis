@@ -4,7 +4,7 @@ import com.innolux.annotation.Column;
 import com.innolux.annotation.Entity;
 import com.innolux.annotation.Id;
 
-@Entity("rf_gate_setting") // 銵典��
+@Entity("rf_gate_setting") // 表名
 public class RF_Gate_Setting {
 
 	/**

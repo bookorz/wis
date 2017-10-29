@@ -4,6 +4,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -42,6 +43,11 @@ public class ToolUtility {
 			GlobleVar.T1WMS_DB);
 	private GenericDao<WMS_T2_Opreation_Mode> WMS_T2_Opreation_Mode_Dao = new JdbcGenericDaoImpl<WMS_T2_Opreation_Mode>(
 			GlobleVar.T2WMS_DB);
+	private GenericDao<WMS_T1_Check_Pallet> WMS_T1_Check_Pallet_Dao = new JdbcGenericDaoImpl<WMS_T1_Check_Pallet>(
+			GlobleVar.T1WMS_DB);
+	private GenericDao<WMS_T2_Check_Pallet> WMS_T2_Check_Pallet_Dao = new JdbcGenericDaoImpl<WMS_T2_Check_Pallet>(
+			GlobleVar.T2WMS_DB);
+	
 
 	public static String StackTrace2String(Exception e) {
 
@@ -56,6 +62,24 @@ public class ToolUtility {
 		sb.append((int) (Math.random() * 100)).append("_").append(eqpID).append("_").append(functionID).append("_");
 		sb.append(new SimpleDateFormat("HH:mm:ss.SSS").format(Calendar.getInstance().getTime()));
 		return sb.toString();
+	}
+	
+	public String SendTransfer(RF_Tag_History tag,RF_ContainerInfo container,String Action, String readerIP) {
+		String RvFormat = ">>L WmsRfidTransferXml USERID=\"DIS\" xml=\"<ZDIS01><HEADER><PALLET_ID>" + tag.getTag_ID()
+				+ "</PALLET_ID><FAB>" + tag.getFab() + "</FAB><AREA>" + tag.getArea() + "</AREA><GATEID>" + tag.getGate()
+				+ "</GATEID><CONTAINERID>" + container.getContainer_ID() + "</CONTAINERID><VEHICLE_NO>" + container.getCar_ID()
+				+ "</VEHICLE_NO><ACTION>" + Action + "</ACTION></HEADER></ZDIS01>\"";
+		logger.info(readerIP + " " + "send to WMS:" + RvFormat);
+		return RvFormat;
+	}
+	
+	public String SendDeliveryLoad(RF_Tag_History tag,RF_ContainerInfo container,String Action, String readerIP) {
+		String RvFormat = ">>L WmsRfidPalletInfoXml USERID=\"DIS\" xml=\"<ZDIS01><HEADER><PALLET_ID>" + tag.getTag_ID()
+				+ "</PALLET_ID><FAB>" + tag.getFab() + "</FAB><AREA>" + tag.getArea() + "</AREA><GATEID>" + tag.getGate()
+				+ "</GATEID><CONTAINERID>" + container.getContainer_ID() + "</CONTAINERID><VEHICLE_NO>" + container.getCar_ID()
+				+ "</VEHICLE_NO><ACTION>" + Action + "</ACTION></HEADER></ZDIS01>\"";
+		logger.info(readerIP + " " + "send to WMS:" + RvFormat);
+		return RvFormat;
 	}
 
 	public String GetOpreation_Mode(RF_Tag_History tag) {
@@ -485,14 +509,48 @@ public class ToolUtility {
 		return result;
 	}
 
-	public void DeletePalletByCarID(RF_Tag_History tag) {
+	public void DeletePalletByCarID(String CarID, String readerIP) {
 		try {
 
 			Map<String, Object> sqlWhereMap = new HashMap<String, Object>();
 
-			sqlWhereMap.put("container_id", tag.getTag_ID());
+			sqlWhereMap.put("container_id", CarID);
 
 			RF_Pallet_Check_Dao.deleteAllByConditions(sqlWhereMap, RF_Pallet_Check.class);
+
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			logger.error(readerIP + " " + "Exception:" + StackTrace2String(e));
+		}
+
+	}
+	
+	public RF_Pallet_Check GetMarkPallet(String palletID, String opreation, String readerIP) {
+		RF_Pallet_Check result = new RF_Pallet_Check();
+		try {
+			Map<String, Object> sqlWhereMap = new HashMap<String, Object>();
+			sqlWhereMap.put("pallet_id", palletID);
+			sqlWhereMap.put("opreation_mode", opreation);
+
+			result = RF_Pallet_Check_Dao.findAllByConditions(sqlWhereMap, RF_Pallet_Check.class).get(0);
+
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			logger.error(readerIP + " " + "Exception:" + StackTrace2String(e));
+		}
+		return result;
+	}
+	
+	public void MarkPallet(RF_Tag_History tag,String containerID,String Opreation) {
+		try {
+			RF_Pallet_Check pallet = new RF_Pallet_Check();
+			pallet.setContainer_ID(containerID);
+			pallet.setIn_Container(true);
+			pallet.setOpreation_Mode(Opreation);
+			pallet.setPallet_ID(tag.getTag_ID());
+			pallet.setTimeStamp(Calendar.getInstance().getTime());
+
+			RF_Pallet_Check_Dao.save(pallet);
 
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -501,15 +559,27 @@ public class ToolUtility {
 
 	}
 
-	public List<RF_Pallet_Check> GetNotCompletePallet(RF_ContainerInfo container, String readerIP) {
-		List<RF_Pallet_Check> result = null;
+	public List<String> GetNotCompletePallet(RF_ContainerInfo container, String readerIP) {
+		List<String> result = new ArrayList<String>();
 		try {
 			Map<String, Object> sqlWhereMap = new HashMap<String, Object>();
+			if(container.getCar_Type().equals(GlobleVar.TruckStr)) {
+				sqlWhereMap.put("truck_no", container.getContainer_ID());
+			}else {
+				sqlWhereMap.put("container_no", container.getContainer_ID());
+			}
+			sqlWhereMap.put("status", "");
 
-			sqlWhereMap.put("container_id", container.getContainer_ID());
-			sqlWhereMap.put("in_container", false);
-
-			result = RF_Pallet_Check_Dao.findAllByConditions(sqlWhereMap, RF_Pallet_Check.class);
+			List<WMS_T1_Check_Pallet> tmp = WMS_T1_Check_Pallet_Dao.findAllByConditions(sqlWhereMap,  WMS_T1_Check_Pallet.class);
+			for(WMS_T1_Check_Pallet each : tmp) {
+				result.add(each.getPallet_ID());
+			}
+			
+			List<WMS_T2_Check_Pallet> tmp1 = WMS_T2_Check_Pallet_Dao.findAllByConditions(sqlWhereMap,  WMS_T2_Check_Pallet.class);
+			
+			for(WMS_T2_Check_Pallet each : tmp1) {
+				result.add(each.getPallet_ID());
+			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			logger.error(readerIP + " Exception:" + StackTrace2String(e));
@@ -517,15 +587,81 @@ public class ToolUtility {
 		return result;
 	}
 	
-	public RF_Pallet_Check GetPallet(RF_Tag_History tag, String readerIP) {
-		RF_Pallet_Check result = null;
+	public List<String> GetCompletePallet(RF_ContainerInfo container, String readerIP) {
+		List<String> result = new ArrayList<String>();
 		try {
 			Map<String, Object> sqlWhereMap = new HashMap<String, Object>();
+			if(container.getCar_Type().equals(GlobleVar.TruckStr)) {
+				sqlWhereMap.put("truck_no", container.getContainer_ID());
+			}else {
+				sqlWhereMap.put("container_no", container.getContainer_ID());
+			}
+			sqlWhereMap.put("status", "TRUE");
 
-			sqlWhereMap.put("pallet_id", tag.getTag_ID());
-			sqlWhereMap.put("in_container", false);
+			List<WMS_T1_Check_Pallet> tmp = WMS_T1_Check_Pallet_Dao.findAllByConditions(sqlWhereMap,  WMS_T1_Check_Pallet.class);
+			for(WMS_T1_Check_Pallet each : tmp) {
+				result.add(each.getPallet_ID());
+			}
+			
+			List<WMS_T2_Check_Pallet> tmp1 = WMS_T2_Check_Pallet_Dao.findAllByConditions(sqlWhereMap,  WMS_T2_Check_Pallet.class);
+			
+			for(WMS_T2_Check_Pallet each : tmp1) {
+				result.add(each.getPallet_ID());
+			}
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			logger.error(readerIP + " Exception:" + StackTrace2String(e));
+		}
+		return result;
+	}
+	
+	public List<String> GetAllPallet(RF_ContainerInfo container, String readerIP) {
+		List<String> result = new ArrayList<String>();
+		try {
+			Map<String, Object> sqlWhereMap = new HashMap<String, Object>();
+			if(container.getCar_Type().equals(GlobleVar.TruckStr)) {
+				sqlWhereMap.put("truck_no", container.getContainer_ID());
+			}else {
+				sqlWhereMap.put("container_no", container.getContainer_ID());
+			}
+			
 
-			result = RF_Pallet_Check_Dao.findAllByConditions(sqlWhereMap, RF_Pallet_Check.class);
+			List<WMS_T1_Check_Pallet> tmp = WMS_T1_Check_Pallet_Dao.findAllByConditions(sqlWhereMap,  WMS_T1_Check_Pallet.class);
+			for(WMS_T1_Check_Pallet each : tmp) {
+				result.add(each.getPallet_ID());
+			}
+			
+			List<WMS_T2_Check_Pallet> tmp1 = WMS_T2_Check_Pallet_Dao.findAllByConditions(sqlWhereMap,  WMS_T2_Check_Pallet.class);
+			
+			for(WMS_T2_Check_Pallet each : tmp1) {
+				result.add(each.getPallet_ID());
+			}
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			logger.error(readerIP + " Exception:" + StackTrace2String(e));
+		}
+		return result;
+	}
+	
+	public WMS_T1_Check_Pallet GetT1Pallet(RF_Tag_History tag, String readerIP) {
+		WMS_T1_Check_Pallet result = null;
+		try {
+			
+			result = WMS_T1_Check_Pallet_Dao.get(tag.getTag_ID(), WMS_T1_Check_Pallet.class);
+			
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			logger.error(readerIP + " Exception:" + StackTrace2String(e));
+		}
+		return result;
+	}
+	
+	public WMS_T2_Check_Pallet GetT2Pallet(RF_Tag_History tag, String readerIP) {
+		WMS_T2_Check_Pallet result = null;
+		try {
+			
+			result = WMS_T2_Check_Pallet_Dao.get(tag.getTag_ID(), WMS_T2_Check_Pallet.class);
+			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			logger.error(readerIP + " Exception:" + StackTrace2String(e));

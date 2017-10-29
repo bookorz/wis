@@ -6,7 +6,7 @@ import com.innolux.annotation.Column;
 import com.innolux.annotation.Entity;
 import com.innolux.annotation.Id;
 
-@Entity("rf_pallet_check") // 銵典��
+@Entity("rf_pallet_check") // 表名
 public class RF_Pallet_Check { 
 	/** 
      * Container ID

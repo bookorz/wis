@@ -16,6 +16,7 @@ public class GlobleVar {
 	public static final String T2WMSPwd = "CIMWMST2MGR";
 
 	// Subject
+	public static final String TibDaemon = "172.20.8.13:8585";
 	public static final String ListenFromWMS = "INNOLUX.T2.PROD.WMS.DIS.RECEIVE";
 	public static final String SendToWMS = "INNOLUX.T2.PROD.WMS.DIS.SEND";
 	public static final String SendToAMS = "INNOLUX.T2.PROD.ALM.WIS";
@@ -129,6 +130,8 @@ public class GlobleVar {
 		public static final String FailureMode = "FAILUREMODE";
 		public static final String DeliveryError = "DELIVERYERROR";
 		public static final String ReceiveError = "RECEIVEERROR";
+		public static final String ASNError = "ASNERROR";
+		public static final String TransferError = "TRANSFERERROR";
 		public static final String NonStatusError = "NONSTATUSERROR";
 		public static final String NonEntryRecord = "NONENTRYRECORD";
 		public static final String BindingError = "BINDINGERROR";
@@ -138,6 +141,6 @@ public class GlobleVar {
 		public static final String ContainerIn = "CONTAINERIN";
 		public static final String ContainerOut = "CONTAINEROUT";
 		public static final String LoadNotComplete = "LOADNOTCOMPLETE";
-		public static final String ASNError = "ASNERROR";
+		
 		public static final String VoicePath = "VOICEPATH";
 }
