@@ -67,6 +67,7 @@ public class GlobleVar {
 		//ForkLift
 		public static final String ForkLiftIN = "IN";
 		public static final String ForkLiftOUT = "OUT";
+		public static final long DirectionExpire = 4000;
 		public static final int Later = 1;
 		public static final int Early = 2;
 		public static final int Front = 1;
@@ -112,7 +113,7 @@ public class GlobleVar {
 		public static final String InProgress = "INPROGRESS"; //作業中
 		public static final String ShutDown = "SHUTDOWN"; //非作業中
 		
-		public static final String NonStatus = "NONSTATUS";
+		public static final String NonOpreation = "NONOPREATION";
 		public static final String AnyStatus = "ANYSTATUS";
 		public static final String NonBinding = "NONBINDING";
 		

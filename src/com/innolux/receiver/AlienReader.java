@@ -27,6 +27,7 @@ public class AlienReader implements MessageListener{
 	private ToolUtility tools = new ToolUtility();
 	private RF_Reader_Setting setting;
 	private Hashtable<Integer,RF_Antenna_Setting> antSetting = new Hashtable<Integer,RF_Antenna_Setting>();
+	private Port tagHandle = new Port();
 	
 	public AlienReader(RF_Reader_Setting _setting){
 		setting = _setting;
@@ -53,7 +54,7 @@ public class AlienReader implements MessageListener{
 		List<RF_Tag_History> tagList = new TagParser().Parse(MessageRawData, antSetting);
 
 		if (tagList.size() != 0) {
-			new Port().DataHandle(tagList, antSetting);
+			tagHandle.Data(tagList, antSetting);
 		}
 		
 	}

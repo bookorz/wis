@@ -4,9 +4,10 @@ import java.util.Date;
 
 import com.innolux.annotation.Column;
 import com.innolux.annotation.Entity;
+import com.innolux.annotation.Id;
 
-@Entity("rf_pallet_check") // 表名
-public class RF_Pallet_Check {
+@Entity("rf_pallet_check") // 銵典��
+public class RF_Pallet_Check { 
 	/** 
      * Container ID
      */  
@@ -24,7 +25,7 @@ public class RF_Pallet_Check {
     /** 
      * Pallet ID
      */  
-	@Column("pallet_id")  
+	@Id("pallet_id")  
     private String Pallet_ID;  
 	
 	public String getPallet_ID() {  

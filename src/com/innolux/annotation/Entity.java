@@ -6,7 +6,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;  
   
 /** 
- * 数据库表的的名称 
+ * 數據庫表的的名稱 
  */  
 @Retention(RetentionPolicy.RUNTIME)  
 @Target(ElementType.TYPE)  
