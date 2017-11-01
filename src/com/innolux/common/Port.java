@@ -29,7 +29,7 @@ public class Port {
 					// If the gate had error, do nothing.
 					continue;
 				}
-				tools.InsertLog(tag);
+				
 
 				switch (tag.getAntenna_Type()) {
 				case GlobleVar.ANT_Pallet:
@@ -64,9 +64,7 @@ public class Port {
 		}
 	}
 
-	private void AbnormalHandler(RF_Tag_History tag) {
-
-	}
+	
 
 	private void DispatchHandler(RF_Tag_History tag) {
 
@@ -78,6 +76,10 @@ public class Port {
 
 	private void CylinderHandler(RF_Tag_History tag) {
 
+	}
+	
+	private void AbnormalHandler(RF_Tag_History tag) {
+		
 	}
 
 	private void GateHandler(RF_Tag_History tag) {
@@ -344,7 +346,7 @@ public class Port {
 			RF_Tag_Mapping tagMapping = tools.GetTagMapping(tag);
 			if (tagMapping != null) {
 				tag.setTag_ID(tagMapping.getReal_id());
-				tools.InsertLog(tag);
+				
 				if (tools.CheckPortBinding(tag)) {
 					// get gateSetting object
 					RF_Gate_Setting gate = tools.GetGateSetting(tag);

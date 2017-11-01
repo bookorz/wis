@@ -52,7 +52,7 @@ public class AlienReader implements MessageListener{
 		MessageRawData = message.getRawData();
 		logger.debug(setting.getReader_IP() + " " + MessageRawData);
 		List<RF_Tag_History> tagList = new TagParser().Parse(MessageRawData, antSetting);
-
+		tools.InsertLog(tagList,setting.getReader_IP());
 		if (tagList.size() != 0) {
 			tagHandle.Data(tagList, antSetting);
 		}

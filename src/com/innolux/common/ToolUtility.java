@@ -31,6 +31,8 @@ public class ToolUtility {
 			GlobleVar.WIS_DB);
 	private static GenericDao<RF_Gate_Error> RF_Gate_Error_Dao = new JdbcGenericDaoImpl<RF_Gate_Error>(
 			GlobleVar.WIS_DB);
+	private static GenericDao<RF_Error_Pallet> RF_Error_Pallet_Dao = new JdbcGenericDaoImpl<RF_Error_Pallet>(
+			GlobleVar.WIS_DB);
 	private static GenericDao<RF_ContainerInfo> RF_ContainerInfo_Dao = new JdbcGenericDaoImpl<RF_ContainerInfo>(
 			GlobleVar.WIS_DB);
 	private static GenericDao<RF_Move_History> RF_Move_History_Dao = new JdbcGenericDaoImpl<RF_Move_History>(
@@ -53,10 +55,10 @@ public class ToolUtility {
 			GlobleVar.T1WMS_DB);
 	private static GenericDao<WMS_T2_Check_Pallet> WMS_T2_Check_Pallet_Dao = new JdbcGenericDaoImpl<WMS_T2_Check_Pallet>(
 			GlobleVar.T2WMS_DB);
-	
+
 	private static GenericDao<WMS_T1_ASN_Pallet> WMS_T1_ASN_Pallet_Dao = new JdbcGenericDaoImpl<WMS_T1_ASN_Pallet>(
 			GlobleVar.T2WMS_DB);
-	
+
 	private static GenericDao<WMS_T2_ASN_Pallet> WMS_T2_ASN_Pallet_Dao = new JdbcGenericDaoImpl<WMS_T2_ASN_Pallet>(
 			GlobleVar.T2WMS_DB);
 
@@ -102,12 +104,12 @@ public class ToolUtility {
 		logger.info(readerIP + " " + "send to WMS:" + RvFormat);
 		return RvFormat;
 	}
-	
+
 	public WMS_T1_ASN_Pallet GetASNPallet(RF_Tag_History tag, String readerIP) {
 		WMS_T1_ASN_Pallet result = null;
-		
+
 		try {
-			
+
 			switch (tag.getFab()) {
 			case "T1":
 				result = WMS_T1_ASN_Pallet_Dao.get(tag.getTag_ID(), WMS_T1_ASN_Pallet.class);
@@ -124,7 +126,7 @@ public class ToolUtility {
 		} catch (Exception e) {
 			logger.error(tag.getReader_IP() + " " + "Exception:" + StackTrace2String(e));
 		}
-		
+
 		return result;
 	}
 
@@ -153,12 +155,13 @@ public class ToolUtility {
 		return result;
 	}
 
-	public void InsertLog(RF_Tag_History tag) {
+	public void InsertLog(List<RF_Tag_History> tagList, String readerIP) {
 		try {
-
-			RF_Tag_History_Dao.save(tag);
+			for (RF_Tag_History tag : tagList) {
+				RF_Tag_History_Dao.save(tag);
+			}
 		} catch (Exception e) {
-			logger.error(tag.getReader_IP() + " " + "Exception:" + StackTrace2String(e));
+			logger.error(readerIP + " Exception:" + StackTrace2String(e));
 		}
 	}
 
@@ -342,6 +345,41 @@ public class ToolUtility {
 			logger.error(tag.getReader_IP() + " " + "Exception:" + StackTrace2String(e));
 		}
 		return result;
+	}
+	
+	public RF_Error_Pallet GetErrorPallet(RF_Tag_History tag) {
+		RF_Error_Pallet result = null;
+		try {
+
+			Map<String, Object> sqlWhereMap = new HashMap<String, Object>();
+
+			sqlWhereMap.put("pallet_id", tag.getTag_ID());
+			
+
+			result = RF_Error_Pallet_Dao.findAllByConditions(sqlWhereMap, RF_Error_Pallet.class).get(0);
+
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			logger.error(tag.getReader_IP() + " " + "Exception:" + StackTrace2String(e));
+		}
+		return result;
+	}
+	
+	public void DeleteErrorPallet(RF_Tag_History tag) {
+
+		try {
+
+			Map<String, Object> sqlWhereMap = new HashMap<String, Object>();
+
+			sqlWhereMap.put("pallet_id", tag.getTag_ID());
+
+			RF_Error_Pallet_Dao.deleteAllByConditions(sqlWhereMap, RF_Error_Pallet.class);
+
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			logger.error(tag.getReader_IP() + " " + "Exception:" + StackTrace2String(e));
+		}
+
 	}
 
 	public RF_Gate_Error GetGateError(RF_Tag_History tag) {
