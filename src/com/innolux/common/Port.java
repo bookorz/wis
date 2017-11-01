@@ -4,13 +4,13 @@ import java.util.Hashtable;
 import java.util.List;
 import org.apache.log4j.Logger;
 
-import com.innolux.WIS_Main;
 import com.innolux.model.RF_Antenna_Setting;
 import com.innolux.model.RF_ContainerInfo;
 import com.innolux.model.RF_Gate_Setting;
 import com.innolux.model.RF_Pallet_Check;
 import com.innolux.model.RF_Tag_History;
 import com.innolux.model.RF_Tag_Mapping;
+import com.innolux.model.WMS_T1_ASN_Pallet;
 import com.innolux.model.WMS_T1_Check_Pallet;
 import com.innolux.model.WMS_T2_Check_Pallet;
 import com.innolux.service.TibcoRvSend;
@@ -60,7 +60,7 @@ public class Port {
 			}
 
 		} catch (Exception e) {
-			logger.error(tagList.get(0).getReader_IP() + " " + "Exception:" + tools.StackTrace2String(e));
+			logger.error(tagList.get(0).getReader_IP() + " " + "Exception:" + ToolUtility.StackTrace2String(e));
 		}
 	}
 
@@ -100,27 +100,21 @@ public class Port {
 					case GlobleVar.PalletTag:
 						switch (Opreation) {
 						case GlobleVar.ASNUnload:
-							if (gate.getForkLift_Direction().equals(GlobleVar.ForkLiftIN)) {
-
-							} else if (gate.getForkLift_Direction().equals(GlobleVar.ForkLiftOUT)) {
-
+							if (gate.getForkLift_Direction().equals(GlobleVar.ForkLiftOUT)) {
+								ASNUnload(tag, gate);
 							} else {
 								logger.debug(tag.getReader_IP() + " ForkLift_Direction is not define.");
 							}
 							break;
 						case GlobleVar.EmptyWrapUnload:
-							if (gate.getForkLift_Direction().equals(GlobleVar.ForkLiftIN)) {
-
-							} else if (gate.getForkLift_Direction().equals(GlobleVar.ForkLiftOUT)) {
-
+							if (gate.getForkLift_Direction().equals(GlobleVar.ForkLiftOUT)) {
+								EmptyWrapUnload(tag, gate);
 							} else {
 								logger.debug(tag.getReader_IP() + " ForkLift_Direction is not define.");
 							}
 							break;
 						case GlobleVar.TransferOut:
-							if (gate.getForkLift_Direction().equals(GlobleVar.ForkLiftIN)) {
-
-							} else if (gate.getForkLift_Direction().equals(GlobleVar.ForkLiftOUT)) {
+							if (gate.getForkLift_Direction().equals(GlobleVar.ForkLiftOUT)) {
 								TransferOut(tag, gate);
 							} else {
 								logger.debug(tag.getReader_IP() + " ForkLift_Direction is not define.");
@@ -129,8 +123,6 @@ public class Port {
 						case GlobleVar.TransferIn:
 							if (gate.getForkLift_Direction().equals(GlobleVar.ForkLiftIN)) {
 								TransferIn(tag, gate);
-							} else if (gate.getForkLift_Direction().equals(GlobleVar.ForkLiftOUT)) {
-								
 							} else {
 								logger.debug(tag.getReader_IP() + " ForkLift_Direction is not define.");
 							}
@@ -157,14 +149,69 @@ public class Port {
 			logger.debug(tag.getReader_IP() + " PortHandler : Fetch gate setting fail.");
 		}
 	}
-	
+
+	private void ASNUnload(RF_Tag_History tag, RF_Gate_Setting gate) {
+		RF_ContainerInfo container = tools.GetContainerInfo(gate);
+		if (container != null) {
+			RF_Pallet_Check pallet = tools.GetMarkPallet(tag.getTag_ID(), GlobleVar.ASNUnload, tag.getReader_IP());
+			if (pallet != null) {
+				logger.debug(tag.getReader_IP() + " the tag is already send to wms.");
+
+			} else {
+
+				WMS_T1_ASN_Pallet ANS_Pallet = tools.GetASNPallet(tag, tag.getReader_IP());
+
+				if (!ANS_Pallet.getRFID_Chk().equals("TRUE")) {
+
+					tools.MarkPallet(tag, container.getContainer_ID(), GlobleVar.ASNUnload);
+					tools.SignalTowerAutoOff(gate, GlobleVar.GreenOn, 5, tag.getReader_IP());
+					tools.Subtitle(gate, "棧板" + tag.getTag_ID() + "ASN:", tag.getReader_IP());
+					MesDaemon.sendMessage(tools.SendTransfer(tag, container, "In", tag.getReader_IP()),
+							GlobleVar.SendToWMS);
+				}
+			}
+		} else {
+			// 此碼頭沒有綁定任何車輛
+			tools.SignalTower(gate, GlobleVar.RedOn, tag.getReader_IP());
+			tools.Subtitle(gate, "沒有綁定車輛，偵測到棧板" + tag.getTag_ID(), tag.getReader_IP());
+			tools.SetGateError(tag, GlobleVar.TransferError,
+					tools.ConvertGateStr(tag) + "沒有綁定車輛，偵測到棧板" + tag.getTag_ID());
+		}
+
+	}
+
+	private void EmptyWrapUnload(RF_Tag_History tag, RF_Gate_Setting gate) {
+
+		RF_ContainerInfo container = tools.GetContainerInfo(gate);
+		if (container != null) {
+			RF_Pallet_Check pallet = tools.GetMarkPallet(tag.getTag_ID(), GlobleVar.EmptyWrapUnload,
+					tag.getReader_IP());
+			if (pallet != null) {
+				logger.debug(tag.getReader_IP() + " the tag is already send to wms.");
+
+			} else {
+				tools.MarkPallet(tag, container.getContainer_ID(), GlobleVar.EmptyWrapUnload);
+				tools.SignalTowerAutoOff(gate, GlobleVar.GreenOn, 5, tag.getReader_IP());
+				tools.Subtitle(gate, "棧板" + tag.getTag_ID() + "卸包材", tag.getReader_IP());
+				MesDaemon.sendMessage(tools.SendTransfer(tag, container, "In", tag.getReader_IP()),
+						GlobleVar.SendToWMS);
+			}
+		} else {
+			// 此碼頭沒有綁定任何車輛
+			tools.SignalTower(gate, GlobleVar.RedOn, tag.getReader_IP());
+			tools.Subtitle(gate, "沒有綁定車輛，偵測到棧板" + tag.getTag_ID(), tag.getReader_IP());
+			tools.SetGateError(tag, GlobleVar.TransferError,
+					tools.ConvertGateStr(tag) + "沒有綁定車輛，偵測到棧板" + tag.getTag_ID());
+		}
+	}
+
 	private void TransferIn(RF_Tag_History tag, RF_Gate_Setting gate) {
 		RF_ContainerInfo container = tools.GetContainerInfo(gate);
 		if (container != null) {
 			RF_Pallet_Check pallet = tools.GetMarkPallet(tag.getTag_ID(), GlobleVar.TransferIn, tag.getReader_IP());
 			if (pallet != null) {
-				logger.debug(tag.getReader_IP()+" the tag is already send to wms.");
-				
+				logger.debug(tag.getReader_IP() + " the tag is already send to wms.");
+
 			} else {
 				tools.MarkPallet(tag, container.getContainer_ID(), GlobleVar.TransferIn);
 				tools.SignalTowerAutoOff(gate, GlobleVar.GreenOn, 5, tag.getReader_IP());
@@ -187,8 +234,8 @@ public class Port {
 		if (container != null) {
 			RF_Pallet_Check pallet = tools.GetMarkPallet(tag.getTag_ID(), GlobleVar.TransferOut, tag.getReader_IP());
 			if (pallet != null) {
-				logger.debug(tag.getReader_IP()+" the tag is already send to wms.");
-				
+				logger.debug(tag.getReader_IP() + " the tag is already send to wms.");
+
 			} else {
 				tools.MarkPallet(tag, container.getContainer_ID(), GlobleVar.TransferOut);
 				tools.SignalTowerAutoOff(gate, GlobleVar.GreenOn, 5, tag.getReader_IP());

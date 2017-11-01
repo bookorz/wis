@@ -23,31 +23,42 @@ public class ToolUtility {
 
 	private Logger logger = Logger.getLogger(this.getClass());
 
-	private GenericDao<RF_SignalTower_Setting> RF_SignalTower_Setting_Dao = new JdbcGenericDaoImpl<RF_SignalTower_Setting>(
+	private static GenericDao<RF_SignalTower_Setting> RF_SignalTower_Setting_Dao = new JdbcGenericDaoImpl<RF_SignalTower_Setting>(
 			GlobleVar.WIS_DB);
-	private GenericDao<RF_Subtitle_Setting> RF_Subtitle_Setting_Dao = new JdbcGenericDaoImpl<RF_Subtitle_Setting>(
+	private static GenericDao<RF_Subtitle_Setting> RF_Subtitle_Setting_Dao = new JdbcGenericDaoImpl<RF_Subtitle_Setting>(
 			GlobleVar.WIS_DB);
-	private GenericDao<RF_Tag_Mapping> RF_Tag_Mapping_Dao = new JdbcGenericDaoImpl<RF_Tag_Mapping>(GlobleVar.WIS_DB);
-	private GenericDao<RF_Gate_Error> RF_Gate_Error_Dao = new JdbcGenericDaoImpl<RF_Gate_Error>(GlobleVar.WIS_DB);
-	private GenericDao<RF_ContainerInfo> RF_ContainerInfo_Dao = new JdbcGenericDaoImpl<RF_ContainerInfo>(
+	private static GenericDao<RF_Tag_Mapping> RF_Tag_Mapping_Dao = new JdbcGenericDaoImpl<RF_Tag_Mapping>(
 			GlobleVar.WIS_DB);
-	private GenericDao<RF_Move_History> RF_Move_History_Dao = new JdbcGenericDaoImpl<RF_Move_History>(GlobleVar.WIS_DB);
-	private GenericDao<RF_Gate_Setting> RF_Gate_Setting_Dao = new JdbcGenericDaoImpl<RF_Gate_Setting>(GlobleVar.WIS_DB);
-	private GenericDao<RF_Pallet_Check> RF_Pallet_Check_Dao = new JdbcGenericDaoImpl<RF_Pallet_Check>(GlobleVar.WIS_DB);
-	private GenericDao<RF_Tag_History> RF_Tag_History_Dao = new JdbcGenericDaoImpl<RF_Tag_History>(GlobleVar.WIS_DB);
-	private GenericDao<WMS_T1_Ship_Info> WMS_T1_Ship_Info_Dao = new JdbcGenericDaoImpl<WMS_T1_Ship_Info>(
+	private static GenericDao<RF_Gate_Error> RF_Gate_Error_Dao = new JdbcGenericDaoImpl<RF_Gate_Error>(
+			GlobleVar.WIS_DB);
+	private static GenericDao<RF_ContainerInfo> RF_ContainerInfo_Dao = new JdbcGenericDaoImpl<RF_ContainerInfo>(
+			GlobleVar.WIS_DB);
+	private static GenericDao<RF_Move_History> RF_Move_History_Dao = new JdbcGenericDaoImpl<RF_Move_History>(
+			GlobleVar.WIS_DB);
+	private static GenericDao<RF_Gate_Setting> RF_Gate_Setting_Dao = new JdbcGenericDaoImpl<RF_Gate_Setting>(
+			GlobleVar.WIS_DB);
+	private static GenericDao<RF_Pallet_Check> RF_Pallet_Check_Dao = new JdbcGenericDaoImpl<RF_Pallet_Check>(
+			GlobleVar.WIS_DB);
+	private static GenericDao<RF_Tag_History> RF_Tag_History_Dao = new JdbcGenericDaoImpl<RF_Tag_History>(
+			GlobleVar.WIS_DB);
+	private static GenericDao<WMS_T1_Ship_Info> WMS_T1_Ship_Info_Dao = new JdbcGenericDaoImpl<WMS_T1_Ship_Info>(
 			GlobleVar.T1WMS_DB);
-	private GenericDao<WMS_T2_Ship_Info> WMS_T2_Ship_Info_Dao = new JdbcGenericDaoImpl<WMS_T2_Ship_Info>(
+	private static GenericDao<WMS_T2_Ship_Info> WMS_T2_Ship_Info_Dao = new JdbcGenericDaoImpl<WMS_T2_Ship_Info>(
 			GlobleVar.T2WMS_DB);
-	private GenericDao<WMS_T1_Opreation_Mode> WMS_T1_Opreation_Mode_Dao = new JdbcGenericDaoImpl<WMS_T1_Opreation_Mode>(
+	private static GenericDao<WMS_T1_Opreation_Mode> WMS_T1_Opreation_Mode_Dao = new JdbcGenericDaoImpl<WMS_T1_Opreation_Mode>(
 			GlobleVar.T1WMS_DB);
-	private GenericDao<WMS_T2_Opreation_Mode> WMS_T2_Opreation_Mode_Dao = new JdbcGenericDaoImpl<WMS_T2_Opreation_Mode>(
+	private static GenericDao<WMS_T2_Opreation_Mode> WMS_T2_Opreation_Mode_Dao = new JdbcGenericDaoImpl<WMS_T2_Opreation_Mode>(
 			GlobleVar.T2WMS_DB);
-	private GenericDao<WMS_T1_Check_Pallet> WMS_T1_Check_Pallet_Dao = new JdbcGenericDaoImpl<WMS_T1_Check_Pallet>(
+	private static GenericDao<WMS_T1_Check_Pallet> WMS_T1_Check_Pallet_Dao = new JdbcGenericDaoImpl<WMS_T1_Check_Pallet>(
 			GlobleVar.T1WMS_DB);
-	private GenericDao<WMS_T2_Check_Pallet> WMS_T2_Check_Pallet_Dao = new JdbcGenericDaoImpl<WMS_T2_Check_Pallet>(
+	private static GenericDao<WMS_T2_Check_Pallet> WMS_T2_Check_Pallet_Dao = new JdbcGenericDaoImpl<WMS_T2_Check_Pallet>(
 			GlobleVar.T2WMS_DB);
 	
+	private static GenericDao<WMS_T1_ASN_Pallet> WMS_T1_ASN_Pallet_Dao = new JdbcGenericDaoImpl<WMS_T1_ASN_Pallet>(
+			GlobleVar.T2WMS_DB);
+	
+	private static GenericDao<WMS_T2_ASN_Pallet> WMS_T2_ASN_Pallet_Dao = new JdbcGenericDaoImpl<WMS_T2_ASN_Pallet>(
+			GlobleVar.T2WMS_DB);
 
 	public static String StackTrace2String(Exception e) {
 
@@ -63,23 +74,58 @@ public class ToolUtility {
 		sb.append(new SimpleDateFormat("HH:mm:ss.SSS").format(Calendar.getInstance().getTime()));
 		return sb.toString();
 	}
-	
-	public String SendTransfer(RF_Tag_History tag,RF_ContainerInfo container,String Action, String readerIP) {
+
+	public String SendEmptyWrapUnload(RF_Tag_History tag, RF_ContainerInfo container, String readerIP) {
+		String RvFormat = ">>L WmsRfidEmptyWrapUnloadXml USERID=\"DIS\" xml=\"<ZDIS01><HEADER><PALLET_ID>"
+				+ tag.getTag_ID() + "</PALLET_ID><FAB>" + tag.getFab() + "</FAB><AREA>" + tag.getArea()
+				+ "</AREA><GATEID>" + tag.getGate() + "</GATEID><CONTAINERID>" + container.getContainer_ID()
+				+ "</CONTAINERID><VEHICLE_NO>" + container.getCar_ID()
+				+ "</VEHICLE_NO><ACTION></ACTION></HEADER></ZDIS01>\"";
+		logger.info(readerIP + " " + "send to WMS:" + RvFormat);
+		return RvFormat;
+	}
+
+	public String SendTransfer(RF_Tag_History tag, RF_ContainerInfo container, String Action, String readerIP) {
 		String RvFormat = ">>L WmsRfidTransferXml USERID=\"DIS\" xml=\"<ZDIS01><HEADER><PALLET_ID>" + tag.getTag_ID()
-				+ "</PALLET_ID><FAB>" + tag.getFab() + "</FAB><AREA>" + tag.getArea() + "</AREA><GATEID>" + tag.getGate()
-				+ "</GATEID><CONTAINERID>" + container.getContainer_ID() + "</CONTAINERID><VEHICLE_NO>" + container.getCar_ID()
-				+ "</VEHICLE_NO><ACTION>" + Action + "</ACTION></HEADER></ZDIS01>\"";
+				+ "</PALLET_ID><FAB>" + tag.getFab() + "</FAB><AREA>" + tag.getArea() + "</AREA><GATEID>"
+				+ tag.getGate() + "</GATEID><CONTAINERID>" + container.getContainer_ID() + "</CONTAINERID><VEHICLE_NO>"
+				+ container.getCar_ID() + "</VEHICLE_NO><ACTION>" + Action + "</ACTION></HEADER></ZDIS01>\"";
+		logger.info(readerIP + " " + "send to WMS:" + RvFormat);
+		return RvFormat;
+	}
+
+	public String SendDeliveryLoad(RF_Tag_History tag, RF_ContainerInfo container, String Action, String readerIP) {
+		String RvFormat = ">>L WmsRfidPalletInfoXml USERID=\"DIS\" xml=\"<ZDIS01><HEADER><PALLET_ID>" + tag.getTag_ID()
+				+ "</PALLET_ID><FAB>" + tag.getFab() + "</FAB><AREA>" + tag.getArea() + "</AREA><GATEID>"
+				+ tag.getGate() + "</GATEID><CONTAINERID>" + container.getContainer_ID() + "</CONTAINERID><VEHICLE_NO>"
+				+ container.getCar_ID() + "</VEHICLE_NO><ACTION>" + Action + "</ACTION></HEADER></ZDIS01>\"";
 		logger.info(readerIP + " " + "send to WMS:" + RvFormat);
 		return RvFormat;
 	}
 	
-	public String SendDeliveryLoad(RF_Tag_History tag,RF_ContainerInfo container,String Action, String readerIP) {
-		String RvFormat = ">>L WmsRfidPalletInfoXml USERID=\"DIS\" xml=\"<ZDIS01><HEADER><PALLET_ID>" + tag.getTag_ID()
-				+ "</PALLET_ID><FAB>" + tag.getFab() + "</FAB><AREA>" + tag.getArea() + "</AREA><GATEID>" + tag.getGate()
-				+ "</GATEID><CONTAINERID>" + container.getContainer_ID() + "</CONTAINERID><VEHICLE_NO>" + container.getCar_ID()
-				+ "</VEHICLE_NO><ACTION>" + Action + "</ACTION></HEADER></ZDIS01>\"";
-		logger.info(readerIP + " " + "send to WMS:" + RvFormat);
-		return RvFormat;
+	public WMS_T1_ASN_Pallet GetASNPallet(RF_Tag_History tag, String readerIP) {
+		WMS_T1_ASN_Pallet result = null;
+		
+		try {
+			
+			switch (tag.getFab()) {
+			case "T1":
+				result = WMS_T1_ASN_Pallet_Dao.get(tag.getTag_ID(), WMS_T1_ASN_Pallet.class);
+				break;
+			case "T2":
+				result = new WMS_T1_ASN_Pallet();
+				WMS_T2_ASN_Pallet t2 = WMS_T2_ASN_Pallet_Dao.get(tag.getTag_ID(), WMS_T2_ASN_Pallet.class);
+				result.setASN_NO(t2.getASN_NO());
+				result.setCar_NO(t2.getCar_NO());
+				result.setPallet_ID(t2.getPallet_ID());
+				result.setRFID_Chk(t2.getRFID_Chk());
+				break;
+			}
+		} catch (Exception e) {
+			logger.error(tag.getReader_IP() + " " + "Exception:" + StackTrace2String(e));
+		}
+		
+		return result;
 	}
 
 	public String GetOpreation_Mode(RF_Tag_History tag) {
@@ -93,10 +139,12 @@ public class ToolUtility {
 
 			switch (tag.getFab()) {
 			case "T1":
-				result = WMS_T1_Opreation_Mode_Dao.findAllByConditions(sqlWhereMap, WMS_T1_Opreation_Mode.class).get(0).getOpreation_Type();
+				result = WMS_T1_Opreation_Mode_Dao.findAllByConditions(sqlWhereMap, WMS_T1_Opreation_Mode.class).get(0)
+						.getOpreation_Type();
 				break;
 			case "T2":
-				result = WMS_T2_Opreation_Mode_Dao.findAllByConditions(sqlWhereMap, WMS_T2_Opreation_Mode.class).get(0).getOpreation_Type();
+				result = WMS_T2_Opreation_Mode_Dao.findAllByConditions(sqlWhereMap, WMS_T2_Opreation_Mode.class).get(0)
+						.getOpreation_Type();
 				break;
 			}
 		} catch (Exception e) {
@@ -524,7 +572,7 @@ public class ToolUtility {
 		}
 
 	}
-	
+
 	public RF_Pallet_Check GetMarkPallet(String palletID, String opreation, String readerIP) {
 		RF_Pallet_Check result = new RF_Pallet_Check();
 		try {
@@ -540,8 +588,8 @@ public class ToolUtility {
 		}
 		return result;
 	}
-	
-	public void MarkPallet(RF_Tag_History tag,String containerID,String Opreation) {
+
+	public void MarkPallet(RF_Tag_History tag, String containerID, String Opreation) {
 		try {
 			RF_Pallet_Check pallet = new RF_Pallet_Check();
 			pallet.setContainer_ID(containerID);
@@ -563,21 +611,23 @@ public class ToolUtility {
 		List<String> result = new ArrayList<String>();
 		try {
 			Map<String, Object> sqlWhereMap = new HashMap<String, Object>();
-			if(container.getCar_Type().equals(GlobleVar.TruckStr)) {
+			if (container.getCar_Type().equals(GlobleVar.TruckStr)) {
 				sqlWhereMap.put("truck_no", container.getContainer_ID());
-			}else {
+			} else {
 				sqlWhereMap.put("container_no", container.getContainer_ID());
 			}
 			sqlWhereMap.put("status", "");
 
-			List<WMS_T1_Check_Pallet> tmp = WMS_T1_Check_Pallet_Dao.findAllByConditions(sqlWhereMap,  WMS_T1_Check_Pallet.class);
-			for(WMS_T1_Check_Pallet each : tmp) {
+			List<WMS_T1_Check_Pallet> tmp = WMS_T1_Check_Pallet_Dao.findAllByConditions(sqlWhereMap,
+					WMS_T1_Check_Pallet.class);
+			for (WMS_T1_Check_Pallet each : tmp) {
 				result.add(each.getPallet_ID());
 			}
-			
-			List<WMS_T2_Check_Pallet> tmp1 = WMS_T2_Check_Pallet_Dao.findAllByConditions(sqlWhereMap,  WMS_T2_Check_Pallet.class);
-			
-			for(WMS_T2_Check_Pallet each : tmp1) {
+
+			List<WMS_T2_Check_Pallet> tmp1 = WMS_T2_Check_Pallet_Dao.findAllByConditions(sqlWhereMap,
+					WMS_T2_Check_Pallet.class);
+
+			for (WMS_T2_Check_Pallet each : tmp1) {
 				result.add(each.getPallet_ID());
 			}
 		} catch (Exception e) {
@@ -586,26 +636,28 @@ public class ToolUtility {
 		}
 		return result;
 	}
-	
+
 	public List<String> GetCompletePallet(RF_ContainerInfo container, String readerIP) {
 		List<String> result = new ArrayList<String>();
 		try {
 			Map<String, Object> sqlWhereMap = new HashMap<String, Object>();
-			if(container.getCar_Type().equals(GlobleVar.TruckStr)) {
+			if (container.getCar_Type().equals(GlobleVar.TruckStr)) {
 				sqlWhereMap.put("truck_no", container.getContainer_ID());
-			}else {
+			} else {
 				sqlWhereMap.put("container_no", container.getContainer_ID());
 			}
 			sqlWhereMap.put("status", "TRUE");
 
-			List<WMS_T1_Check_Pallet> tmp = WMS_T1_Check_Pallet_Dao.findAllByConditions(sqlWhereMap,  WMS_T1_Check_Pallet.class);
-			for(WMS_T1_Check_Pallet each : tmp) {
+			List<WMS_T1_Check_Pallet> tmp = WMS_T1_Check_Pallet_Dao.findAllByConditions(sqlWhereMap,
+					WMS_T1_Check_Pallet.class);
+			for (WMS_T1_Check_Pallet each : tmp) {
 				result.add(each.getPallet_ID());
 			}
-			
-			List<WMS_T2_Check_Pallet> tmp1 = WMS_T2_Check_Pallet_Dao.findAllByConditions(sqlWhereMap,  WMS_T2_Check_Pallet.class);
-			
-			for(WMS_T2_Check_Pallet each : tmp1) {
+
+			List<WMS_T2_Check_Pallet> tmp1 = WMS_T2_Check_Pallet_Dao.findAllByConditions(sqlWhereMap,
+					WMS_T2_Check_Pallet.class);
+
+			for (WMS_T2_Check_Pallet each : tmp1) {
 				result.add(each.getPallet_ID());
 			}
 		} catch (Exception e) {
@@ -614,26 +666,27 @@ public class ToolUtility {
 		}
 		return result;
 	}
-	
+
 	public List<String> GetAllPallet(RF_ContainerInfo container, String readerIP) {
 		List<String> result = new ArrayList<String>();
 		try {
 			Map<String, Object> sqlWhereMap = new HashMap<String, Object>();
-			if(container.getCar_Type().equals(GlobleVar.TruckStr)) {
+			if (container.getCar_Type().equals(GlobleVar.TruckStr)) {
 				sqlWhereMap.put("truck_no", container.getContainer_ID());
-			}else {
+			} else {
 				sqlWhereMap.put("container_no", container.getContainer_ID());
 			}
-			
 
-			List<WMS_T1_Check_Pallet> tmp = WMS_T1_Check_Pallet_Dao.findAllByConditions(sqlWhereMap,  WMS_T1_Check_Pallet.class);
-			for(WMS_T1_Check_Pallet each : tmp) {
+			List<WMS_T1_Check_Pallet> tmp = WMS_T1_Check_Pallet_Dao.findAllByConditions(sqlWhereMap,
+					WMS_T1_Check_Pallet.class);
+			for (WMS_T1_Check_Pallet each : tmp) {
 				result.add(each.getPallet_ID());
 			}
-			
-			List<WMS_T2_Check_Pallet> tmp1 = WMS_T2_Check_Pallet_Dao.findAllByConditions(sqlWhereMap,  WMS_T2_Check_Pallet.class);
-			
-			for(WMS_T2_Check_Pallet each : tmp1) {
+
+			List<WMS_T2_Check_Pallet> tmp1 = WMS_T2_Check_Pallet_Dao.findAllByConditions(sqlWhereMap,
+					WMS_T2_Check_Pallet.class);
+
+			for (WMS_T2_Check_Pallet each : tmp1) {
 				result.add(each.getPallet_ID());
 			}
 		} catch (Exception e) {
@@ -642,26 +695,26 @@ public class ToolUtility {
 		}
 		return result;
 	}
-	
+
 	public WMS_T1_Check_Pallet GetT1Pallet(RF_Tag_History tag, String readerIP) {
 		WMS_T1_Check_Pallet result = null;
 		try {
-			
+
 			result = WMS_T1_Check_Pallet_Dao.get(tag.getTag_ID(), WMS_T1_Check_Pallet.class);
-			
+
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			logger.error(readerIP + " Exception:" + StackTrace2String(e));
 		}
 		return result;
 	}
-	
+
 	public WMS_T2_Check_Pallet GetT2Pallet(RF_Tag_History tag, String readerIP) {
 		WMS_T2_Check_Pallet result = null;
 		try {
-			
+
 			result = WMS_T2_Check_Pallet_Dao.get(tag.getTag_ID(), WMS_T2_Check_Pallet.class);
-			
+
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			logger.error(readerIP + " Exception:" + StackTrace2String(e));

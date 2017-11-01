@@ -2,6 +2,7 @@ package com.innolux.model;
 
 import com.innolux.annotation.Column;
 import com.innolux.annotation.Entity;
+import com.innolux.annotation.Id;
 
 @Entity("jn_t1_wms.v_t1_wms_asn_rfid_pallet") // 表名
 public class WMS_T1_ASN_Pallet {
@@ -22,7 +23,7 @@ public class WMS_T1_ASN_Pallet {
     /** 
      * Pallet ID
      */  
-	@Column("pallet_id")  
+	@Id("pallet_id")  
     private String Pallet_ID; 
 	
 	public String getPallet_ID() {  
