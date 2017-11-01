@@ -25,17 +25,21 @@ public class Port {
 
 			for (RF_Tag_History tag : tagList) {
 
-				if (tools.GetGateError(tag) != null) {
-					// If the gate had error, do nothing.
-					continue;
-				}
 				
 
 				switch (tag.getAntenna_Type()) {
 				case GlobleVar.ANT_Pallet:
+					if (tools.GetGateError(tag) != null) {
+						// If the gate had error, do nothing.
+						continue;
+					}
 					GateHandler(tag);
 					break;
 				case GlobleVar.ANT_Container:
+					if (tools.GetGateError(tag) != null) {
+						// If the gate had error, do nothing.
+						continue;
+					}
 					PortHandler(tag);
 					break;
 				case GlobleVar.ANT_Abnormal:
@@ -64,8 +68,6 @@ public class Port {
 		}
 	}
 
-	
-
 	private void DispatchHandler(RF_Tag_History tag) {
 
 	}
@@ -77,9 +79,9 @@ public class Port {
 	private void CylinderHandler(RF_Tag_History tag) {
 
 	}
-	
+
 	private void AbnormalHandler(RF_Tag_History tag) {
-		
+
 	}
 
 	private void GateHandler(RF_Tag_History tag) {
@@ -154,6 +156,7 @@ public class Port {
 
 	private void ASNUnload(RF_Tag_History tag, RF_Gate_Setting gate) {
 		RF_ContainerInfo container = tools.GetContainerInfo(gate);
+		String voiceText = "";
 		if (container != null) {
 			RF_Pallet_Check pallet = tools.GetMarkPallet(tag.getTag_ID(), GlobleVar.ASNUnload, tag.getReader_IP());
 			if (pallet != null) {
@@ -162,14 +165,31 @@ public class Port {
 			} else {
 
 				WMS_T1_ASN_Pallet ANS_Pallet = tools.GetASNPallet(tag, tag.getReader_IP());
+				if (ANS_Pallet == null) {
+					ANS_Pallet = new WMS_T1_ASN_Pallet();
+					ANS_Pallet.setASN_NO("N/A");
+					ANS_Pallet.setPallet_ID(tag.getTag_ID());
 
-				if (!ANS_Pallet.getRFID_Chk().equals("TRUE")) {
+					tools.SignalTower(gate, GlobleVar.RedOn, tag.getReader_IP());
+					tools.Subtitle(gate, "廠商" + container.getSource() + " 收貨棧板:" + tag.getTag_ID() + " 未存在ASN資料庫",
+							tag.getReader_IP());
+					tools.SetGateError(tag, GlobleVar.ASNError, tools.ConvertGateStr(tag) + "廠商" + container.getSource()
+							+ " 收貨棧板:" + tag.getTag_ID() + " 未存在ASN資料庫" + tag.getTag_ID());
+					voiceText = "注意 注意 廠商" + container.getSource() + " " + container.getVendor_Name() + "運輸 棧板"
+							+ ToolUtility.AddSpace(tag.getTag_ID()) + "未存在ASN資料庫 請同仁查明";
+					tools.VoiceSend(gate.getVoice_Path(), voiceText, tag.getReader_IP());
 
-					tools.MarkPallet(tag, container.getContainer_ID(), GlobleVar.ASNUnload);
-					tools.SignalTowerAutoOff(gate, GlobleVar.GreenOn, 5, tag.getReader_IP());
-					tools.Subtitle(gate, "棧板" + tag.getTag_ID() + "ASN:", tag.getReader_IP());
-					MesDaemon.sendMessage(tools.SendTransfer(tag, container, "In", tag.getReader_IP()),
+					MesDaemon.sendMessage(tools.SendASNUnload(ANS_Pallet, container, "Error", tag.getReader_IP()),
 							GlobleVar.SendToWMS);
+				} else {
+					if (!ANS_Pallet.getRFID_Chk().equals("TRUE")) {
+
+						tools.MarkPallet(tag, container.getContainer_ID(), GlobleVar.ASNUnload);
+						tools.SignalTowerAutoOff(gate, GlobleVar.GreenOn, 5, tag.getReader_IP());
+						tools.Subtitle(gate, "棧板" + tag.getTag_ID() + "ASN:", tag.getReader_IP());
+						MesDaemon.sendMessage(tools.SendASNUnload(ANS_Pallet, container, "Confirm", tag.getReader_IP()),
+								GlobleVar.SendToWMS);
+					}
 				}
 			}
 		} else {
@@ -256,6 +276,7 @@ public class Port {
 	}
 
 	private void DeliveryLoad(RF_Tag_History tag, RF_Gate_Setting gate) {
+		String voiceText = "";
 		RF_ContainerInfo container = tools.GetContainerInfo(gate);
 		if (container != null) {
 			// Check pallet in the container
@@ -296,12 +317,26 @@ public class Port {
 
 					} else {
 						if (gate.getForkLift_Direction().equals(GlobleVar.ForkLiftIN)) {
+							int completeCount = tools.GetCompletePallet(container, tag.getReader_IP()).size() + 1;
+							int allCount = tools.GetAllPallet(container, tag.getReader_IP()).size();
+							if (completeCount == allCount) {
+								// Delivery load complete.
+								tools.SignalTowerAutoOff(gate, GlobleVar.OrangeOn, 5, tag.getReader_IP());
+								tools.Subtitle(gate, tools.ConvertCarStr(container, tag.getReader_IP())
+										+ container.getContainer_ID() + "已裝載完成", tag.getReader_IP());
 
-							tools.SignalTowerAutoOff(gate, GlobleVar.GreenOn, 5, tag.getReader_IP());
-							tools.Subtitle(gate,
-									"目前進度" + (tools.GetCompletePallet(container, tag.getReader_IP()).size() + 1) + "/"
-											+ tools.GetAllPallet(container, tag.getReader_IP()).size(),
-									tag.getReader_IP());
+								voiceText = "出貨" + tools.GetShipTo(container, tag.getReader_IP()) + " "
+										+ container.getVendor_Name() + "運輸 "
+										+ tools.ConvertGateStr(container, tag.getReader_IP()) + "已裝櫃完成";
+								tools.VoiceSend(gate.getVoice_Path(), voiceText, tag.getReader_IP());
+							} else {
+								// Not complete yet.
+								tools.SignalTowerAutoOff(gate, GlobleVar.GreenOn, 5, tag.getReader_IP());
+								tools.Subtitle(gate,
+										"目前進度" + (tools.GetCompletePallet(container, tag.getReader_IP()).size() + 1)
+												+ "/" + tools.GetAllPallet(container, tag.getReader_IP()).size(),
+										tag.getReader_IP());
+							}
 							MesDaemon.sendMessage(tools.SendDeliveryLoad(tag, container, "Confirm", tag.getReader_IP()),
 									GlobleVar.SendToWMS);
 						} else if (gate.getForkLift_Direction().equals(GlobleVar.ForkLiftOUT)) {
@@ -326,6 +361,11 @@ public class Port {
 				tools.Subtitle(gate, "棧板" + tag.getTag_ID() + "不存在WMS資料庫", tag.getReader_IP());
 				tools.SetGateError(tag, GlobleVar.DeliveryError,
 						tools.ConvertGateStr(tag) + "出貨棧板" + tag.getTag_ID() + "不存在WMS資料庫");
+
+				voiceText = "注意 注意 出貨" + tools.GetShipTo(container, tag.getReader_IP()) + " "
+						+ container.getVendor_Name() + "運輸 " + tools.ConvertGateStr(container, tag.getReader_IP())
+						+ "棧板" + ToolUtility.AddSpace(tag.getTag_ID()) + "未存在出貨資料庫 請同仁查明";
+				tools.VoiceSend(gate.getVoice_Path(), voiceText, tag.getReader_IP());
 			}
 		} else {
 			// 此碼頭沒有綁定任何車輛
@@ -346,7 +386,7 @@ public class Port {
 			RF_Tag_Mapping tagMapping = tools.GetTagMapping(tag);
 			if (tagMapping != null) {
 				tag.setTag_ID(tagMapping.getReal_id());
-				
+
 				if (tools.CheckPortBinding(tag)) {
 					// get gateSetting object
 					RF_Gate_Setting gate = tools.GetGateSetting(tag);
@@ -482,6 +522,29 @@ public class Port {
 				tools.UpdateContainerInfo(container, tag.getReader_IP());
 				tools.SignalTowerAutoOff(gate, GlobleVar.GreenOn, 5, tag.getReader_IP());
 				tools.Subtitle(gate, container.getContainer_ID() + "已離開碼頭", tag.getReader_IP());
+
+				if (container.getCar_Type().equals(GlobleVar.TruckStr)) {
+					if (container.getReason() != null) {
+						if (container.getReason().equals("Delivery")) {
+							voiceText = "廠商" + container.getSource() + " " + container.getVendor_Name() + "運輸 卸貨完成已離開"
+									+ tools.ConvertGateStr(container, tag.getReader_IP());
+						} else if (container.getReason().equals("Receive")) {
+							voiceText = "出貨" + tools.GetShipTo(container, tag.getReader_IP()) + " "
+									+ container.getVendor_Name() + "運輸裝櫃完成已離開"
+									+ tools.ConvertGateStr(container, tag.getReader_IP());
+						}
+					}
+				} else if (container.getCar_Type().equals(GlobleVar.ContainerStr)) {
+					if (container.getContainer_Status().equals("NonEmpty")) {
+						voiceText = "出貨" + tools.GetShipTo(container, tag.getReader_IP()) + " "
+								+ container.getVendor_Name() + "運輸 裝櫃完成已離開"
+								+ tools.ConvertGateStr(container, tag.getReader_IP());
+					} else {
+						voiceText = container.getVendor_Name() + "運輸卸櫃完成已離開"
+								+ tools.ConvertGateStr(container, tag.getReader_IP());
+					}
+				}
+
 			}
 
 		} else {

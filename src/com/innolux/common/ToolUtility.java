@@ -69,6 +69,15 @@ public class ToolUtility {
 		e.printStackTrace(pw);
 		return sw.toString(); // stack trace as a string
 	}
+	
+	public static String AddSpace(String input) {
+		String output = " ";
+		for (int i = 0; i < input.length(); i++) {
+			output += input.substring(i, i + 1) + " ";
+		}
+		return output;
+
+	}
 
 	public String getTxnID(String eqpID, String functionID) {
 		StringBuffer sb = new StringBuffer();
@@ -76,6 +85,15 @@ public class ToolUtility {
 		sb.append(new SimpleDateFormat("HH:mm:ss.SSS").format(Calendar.getInstance().getTime()));
 		return sb.toString();
 	}
+	
+	public String SendASNUnload(WMS_T1_ASN_Pallet pallet, RF_ContainerInfo container, String Action, String readerIP) {
+		String RvFormat = ">>L WmsASNRfidPalletInfoXml USERID=\"DIS\" xml=\"<ZDIS01><HEADER><ASN_NO>" + pallet.getASN_NO()
+				+ "</ASN_NO><PALLET_ID>" + pallet.getPallet_ID() + "</PALLET_ID><ACTION>" + Action + "</ACTION><PLANT>" + container.getFab()
+				+ "</PLANT></HEADER></ZDIS01>\"";
+		logger.info(readerIP + " " + "send to WMS:" + RvFormat);
+		return RvFormat;
+	}
+	
 
 	public String SendEmptyWrapUnload(RF_Tag_History tag, RF_ContainerInfo container, String readerIP) {
 		String RvFormat = ">>L WmsRfidEmptyWrapUnloadXml USERID=\"DIS\" xml=\"<ZDIS01><HEADER><PALLET_ID>"
@@ -807,6 +825,24 @@ public class ToolUtility {
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			logger.error(tag.getReader_IP() + " Exception:" + StackTrace2String(e));
+		}
+		return result;
+	}
+	
+	public String ConvertCarStr(RF_ContainerInfo containerInfo ,String readerIP) {
+		String result = "";
+		try {
+			switch (containerInfo.getCar_Type()) {
+			case GlobleVar.ContainerStr:
+				result += "貨櫃";
+				break;
+			case GlobleVar.TruckStr:
+				result += "貨車";
+				break;
+			}
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			logger.error(readerIP + " Exception:" + StackTrace2String(e));
 		}
 		return result;
 	}
