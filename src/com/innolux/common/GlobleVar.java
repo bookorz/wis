@@ -92,8 +92,8 @@ public class GlobleVar {
 		public static final String DeleteErrorPallet = "DeleteErrorPallet";
 		public static final String CancelInContainerPallet = "CancelInContainerPallet";
 		public static final String CustCaptionStr = "CustCaptionStr";
-		public static final String RemoveNotComplete = "REMOVENOTCOMPLETE";
-		public static final String RemoveNonEntryRecord = "REMOVENONENTRYRECORD";
+		public static final String RemoveNotComplete = "RemoveNotComplete";
+		public static final String RemoveNonEntryRecord = "RemoveNonEntryRecord";
 		public static final String GateActionChange = "GateActionChange";
 		public static final String BindContainer = "BindContainer";
 		public static final String UnBindContainer = "UnBindContainer";
@@ -110,13 +110,13 @@ public class GlobleVar {
 		public static final String TransferIn = "TRANSFERIN"; //廠移入
 		public static final String DeliveryLoad = "DELIVERYLOAD"; //出貨
 		//Container Actions
-		public static final String Error = "ERROR"; //碼頭異常
-		public static final String InProgress = "INPROGRESS"; //作業中
-		public static final String ShutDown = "SHUTDOWN"; //非作業中
+		public static final String Error = "Error"; //碼頭異常
+		public static final String InProgress = "InProgress"; //作業中
+		public static final String ShutDown = "ShutDown"; //非作業中
 		
-		public static final String NonOpreation = "NONOPREATION";
-		public static final String AnyStatus = "ANYSTATUS";
-		public static final String NonBinding = "NONBINDING";
+		public static final String NonOpreation = "NonOpreation";
+		public static final String AnyStatus = "AnyStatus";
+		public static final String NonBinding = "NonBinding";
 		
 		//Gas Status   create/待收貨，stock/庫存(這個是WMS這邊的狀態)，used/使用中,empty/空瓶，destroy/刪除(新增，表示離開氣體室)
 		public static final String Gas_Create = "create";
@@ -127,20 +127,24 @@ public class GlobleVar {
 		public static final String Gas_Disappear = "disappear";
 		
 		//Error Type
-		public static final String FailureMode = "FAILUREMODE";
-		public static final String DeliveryError = "DELIVERYERROR";
-		public static final String ReceiveError = "RECEIVEERROR";
-		public static final String ASNError = "ASNERROR";
-		public static final String TransferError = "TRANSFERERROR";
-		public static final String NonStatusError = "NONSTATUSERROR";
-		public static final String NonEntryRecord = "NONENTRYRECORD";
-		public static final String BindingError = "BINDINGERROR";
+		public static final String FailureMode = "FailureMode";
+		public static final String DeliveryError = "DeliveryError";
+		public static final String ReceiveError = "ReceiveError";
+		public static final String ASNError = "ASNError";
+		public static final String TransferError = "TransferError";
+		public static final String NonStatusError = "NonStatusError";
+		public static final String NonEntryRecord = "NonEntryRecord";
+		public static final String BindingError = "BindingError";
+		
+		//Error reason
+		public static final String WMSNotFound = "WMSNotFound";
+		public static final String ContainerMismatch = "ContainerMismatch";
 		
 		//Setting Name List
-		public static final String PalletLimitTime = "PALLETLIMITTIME";
-		public static final String ContainerIn = "CONTAINERIN";
-		public static final String ContainerOut = "CONTAINEROUT";
-		public static final String LoadNotComplete = "LOADNOTCOMPLETE";
+		public static final String PalletLimitTime = "PalletLimitTime";
+		public static final String ContainerIn = "ContainerIn";
+		public static final String ContainerOut = "ContainerOut";
+		public static final String LoadNotComplete = "LoadNotComplete";
 		
-		public static final String VoicePath = "VOICEPATH";
+		public static final String VoicePath = "VoicePath";
 }

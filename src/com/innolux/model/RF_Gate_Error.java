@@ -4,9 +4,22 @@ import java.util.Date;
 
 import com.innolux.annotation.Column;
 import com.innolux.annotation.Entity;
+import com.innolux.annotation.Id;
 
 @Entity("rf_gate_error") // 表名
 public class RF_Gate_Error {
+
+	@Id("id")
+	private String ID;
+
+	public String getID() {
+		return ID;
+	}
+
+	public void setID(String ID) {
+		this.ID = ID;
+	}
+
 	/**
 	 * Fab (T1 T2)
 	 */
@@ -82,28 +95,24 @@ public class RF_Gate_Error {
 	 */
 	@Column("timestamp")
 	private Date TimeStamp;
-	
-	public Date getTimeStamp() {  
-        return TimeStamp;  
-    }  
-  
-    public void setTimeStamp(Date TimeStamp) {  
-        this.TimeStamp = TimeStamp;  
-    }  
-    
-    public String getTimeStampString(){
-    	
-    	return new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(TimeStamp);
-    }
-	
-	@Override  
-    public String toString() {  
-        return "Fab: " + Fab + 
-        		" Area: " + Area+
-        		" Gate: " + Gate+
-        		" Error_Type: " + Error_Type+
-        		" Error_Message: " + Error_Message+
-        		" TimeStamp: " + getTimeStampString();
-        		
-    }  
+
+	public Date getTimeStamp() {
+		return TimeStamp;
+	}
+
+	public void setTimeStamp(Date TimeStamp) {
+		this.TimeStamp = TimeStamp;
+	}
+
+	public String getTimeStampString() {
+
+		return new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(TimeStamp);
+	}
+
+	@Override
+	public String toString() {
+		return "ID: " + ID + "Fab: " + Fab + " Area: " + Area + " Gate: " + Gate + " Error_Type: "
+				+ Error_Type + " Error_Message: " + Error_Message + " TimeStamp: " + getTimeStampString();
+
+	}
 }

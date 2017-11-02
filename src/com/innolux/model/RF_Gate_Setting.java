@@ -8,17 +8,17 @@ import com.innolux.annotation.Id;
 public class RF_Gate_Setting {
 
 	/**
-	 * Gate Name
+	 * ID
 	 */
-	@Id("gate_name")
-	private String Gate_Name;
+	@Id("id")
+	private String ID;
 
-	public String getGate_Name() {
-		return Gate_Name;
+	public String getID() {
+		return ID;
 	}
 
-	public void setGate_Name(String Gate_Name) {
-		this.Gate_Name = Gate_Name;
+	public void setID(String ID) {
+		this.ID = ID;
 	}
 
 	/**
@@ -191,7 +191,7 @@ public class RF_Gate_Setting {
 
 	@Override
 	public String toString() {
-		return "Gate_Name: " + Gate_Name + " Fab: " + Fab + " Area: " + Area + " Gate: " + Gate + " Mark_Tag: "
+		return "ID: " + ID + " Fab: " + Fab + " Area: " + Area + " Gate: " + Gate + " Mark_Tag: "
 				+ Mark_Tag + " Use_IR: " + Use_IR + " SignalTower_Name: " + SignalTower_Name + " Subtitle_Name: "
 				+ Subtitle_Name + " Last_MarkTag_Time: " + Last_MarkTag_Time + " Last_ContainerTag_Time: "
 				+ Last_ContainerTag_Time + " Voice_Path: " + Voice_Path + " ForkLift_Direction: " + ForkLift_Direction
