@@ -1,4 +1,4 @@
-package com.innolux.common;
+package com.innolux.common.base;
 
 import java.net.InetAddress;
 import java.util.HashMap;
@@ -8,6 +8,8 @@ import java.util.Map;
 import org.apache.log4j.Logger;
 
 import com.alien.enterpriseRFID.reader.AlienClass1Reader;
+import com.innolux.common.GlobleVar;
+import com.innolux.common.ToolUtility;
 import com.innolux.dao.GenericDao;
 import com.innolux.dao.JdbcGenericDaoImpl;
 import com.innolux.model.RF_Antenna_Setting;

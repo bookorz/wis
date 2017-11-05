@@ -6,20 +6,21 @@ import com.innolux.annotation.Id;
 
 @Entity("rf_custcaption")   //表名  
 public class RF_CustCaption {
+
 	/**
-	 * Subtitle Name
+	 * ID
 	 */
-	@Id("subtitle_name")
-	private String Subtitle_Name;
+	@Id("id")
+	private String ID;
 
-	public String getSubtitle_Name() {
-		return Subtitle_Name;
+	public String getID() {
+		return ID;
 	}
 
-	public void setSubtitle_Name(String Subtitle_Name) {
-		this.Subtitle_Name = Subtitle_Name;
+	public void setID(String ID) {
+		this.ID = ID;
 	}
-
+	
 	/**
 	 * Fab (T1 T2)
 	 */
@@ -120,7 +121,7 @@ public class RF_CustCaption {
     
     @Override  
     public String toString() {  
-        return "Subtitle_Name: " + Subtitle_Name +        		
+        return  "ID: " + ID +        		
         		" Fab: " + Fab+
         		" Area: " + Area+
         		" Gate: " + Gate+

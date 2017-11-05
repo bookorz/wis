@@ -5,8 +5,8 @@ import java.util.List;
 import org.apache.log4j.Logger;
 
 import com.innolux.common.GlobleVar;
-import com.innolux.common.ReaderCmd;
 import com.innolux.common.ToolUtility;
+import com.innolux.common.base.ReaderCmd;
 import com.innolux.dao.GenericDao;
 import com.innolux.dao.JdbcGenericDaoImpl;
 import com.innolux.model.RF_Reader_Setting;
