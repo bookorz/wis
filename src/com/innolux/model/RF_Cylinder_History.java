@@ -86,13 +86,13 @@ public class RF_Cylinder_History {
 	 * Check Times
 	 */
 	@Column("check_times")
-	private String Check_Times;
+	private int Check_Times;
 	
-	public String getCheck_Times() {  
+	public int getCheck_Times() {  
         return Check_Times;  
     }  
   
-    public void setCheck_Times(String Check_Times) {  
+    public void setCheck_Times(int Check_Times) {  
         this.Check_Times = Check_Times;  
     }  
     

@@ -8,11 +8,14 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
+import org.json.JSONObject;
 
+import com.innolux.common.base.IR_MessageBase;
 import com.innolux.dao.GenericDao;
 import com.innolux.dao.JdbcGenericDaoImpl;
 import com.innolux.model.*;
@@ -21,6 +24,10 @@ import com.innolux.service.*;
 public class ToolUtility {
 
 	private static Logger logger = Logger.getLogger(ToolUtility.class);
+
+	private static boolean ReaderIPsInit = false;
+
+	private static Hashtable<String, String> ReaderIPs = new Hashtable<String, String>();
 
 	private static GenericDao<RF_SignalTower_Setting> RF_SignalTower_Setting_Dao = new JdbcGenericDaoImpl<RF_SignalTower_Setting>(
 			GlobleVar.WIS_DB);
@@ -42,6 +49,12 @@ public class ToolUtility {
 			GlobleVar.WIS_DB);
 	private static GenericDao<RF_Tag_History> RF_Tag_History_Dao = new JdbcGenericDaoImpl<RF_Tag_History>(
 			GlobleVar.WIS_DB);
+	private static GenericDao<RF_Cylinder_Status> RF_Cylinder_Status_Dao = new JdbcGenericDaoImpl<RF_Cylinder_Status>(
+			GlobleVar.WIS_DB);
+	private static GenericDao<RF_Cylinder_History> RF_Cylinder_History_Dao = new JdbcGenericDaoImpl<RF_Cylinder_History>(
+			GlobleVar.WIS_DB);
+	private static GenericDao<RF_Antenna_Setting> RF_Antenna_Setting_Dao = new JdbcGenericDaoImpl<RF_Antenna_Setting>(
+			GlobleVar.WIS_DB);
 	private static GenericDao<WMS_T1_Ship_Info> WMS_T1_Ship_Info_Dao = new JdbcGenericDaoImpl<WMS_T1_Ship_Info>(
 			GlobleVar.T1WMS_DB);
 	private static GenericDao<WMS_T2_Ship_Info> WMS_T2_Ship_Info_Dao = new JdbcGenericDaoImpl<WMS_T2_Ship_Info>(
@@ -61,6 +74,45 @@ public class ToolUtility {
 	private static GenericDao<WMS_T2_ASN_Pallet> WMS_T2_ASN_Pallet_Dao = new JdbcGenericDaoImpl<WMS_T2_ASN_Pallet>(
 			GlobleVar.T2WMS_DB);
 
+	static {
+		boolean init = false;
+		List<RF_Antenna_Setting> result = null;
+		String key = "";
+		try {
+
+			result = RF_Antenna_Setting_Dao.findAllByConditions(null, RF_Antenna_Setting.class);
+
+			for (RF_Antenna_Setting eachAnt : result) {
+				key = eachAnt.getFab() + eachAnt.getArea() + eachAnt.getGate();
+				if (!ReaderIPs.containsKey(key)) {
+					ReaderIPs.put(key, eachAnt.getReader_IP());
+				}
+			}
+
+			init = true;
+		} catch (Exception e) {
+			logger.error("AntSetting init fail Exception:" + StackTrace2String(e));
+		}
+
+		ReaderIPsInit = init;
+	}
+
+	public static String GetReaderIP(String fab, String area, String gate) {
+		String result = "";
+		String key = fab + area + gate;
+		try {
+			if (ReaderIPsInit) {
+				if (ReaderIPs.containsKey(key)) {
+					result = ReaderIPs.get(key);
+				}
+			}
+		} catch (Exception e) {
+			logger.error("GetReaderIP Exception:" + StackTrace2String(e));
+			result = null;
+		}
+		return result;
+	}
+
 	public static String StackTrace2String(Exception e) {
 
 		StringWriter sw = new StringWriter();
@@ -78,11 +130,90 @@ public class ToolUtility {
 
 	}
 
+	public static IR_MessageBase Parse_T1_IR(String msg) {
+		IR_MessageBase result = new IR_MessageBase();
+		try {
+			String startStr = "<commandXML>";
+			String endStr = "</commandXML>";
+			int StartIdx = msg.indexOf(startStr) + startStr.length();
+			int EndIdx = msg.indexOf(endStr);
+
+			msg.substring(StartIdx, EndIdx);
+			String[] commandAry = msg.split(";");
+			String[] infoAry = commandAry[2].split(",");
+			result.setFab(infoAry[1]);
+			result.setArea(infoAry[2]);
+			result.setGate(infoAry[3]);
+			result.setType(GlobleVar.RawDataReport);
+			result.setSensorNo("1");
+			// IR 1=connect 0=break
+			if (infoAry[4].equals("1")) {
+				result.setStatus(GlobleVar.On);
+			} else {
+				result.setStatus(GlobleVar.Off);
+			}
+			result.setTimeStamp(System.currentTimeMillis());
+
+			logger.debug("Parse_T1_IR " + result.toString());
+
+		} catch (Exception e) {
+			logger.error("Parse_T1_IR Exception:" + StackTrace2String(e));
+			result = null;
+		}
+		return result;
+	}
+
+	public static IR_MessageBase Parse_T2_IR(String msg) {
+		IR_MessageBase result = new IR_MessageBase();
+		try {
+
+			JSONObject org = new JSONObject(msg);
+			result.setFab(org.getString("Fab"));
+			result.setArea(org.getString("Area"));
+			result.setGate(org.getString("Gate"));
+
+			result.setType(org.getString("Type"));
+			try {
+				result.setDirection(org.getString("Direction"));
+			} catch (Exception e11) {
+				result.setDirection("NONE");
+			}
+			try {
+				result.setSensorNo(org.getString("SensorNo"));
+				result.setStatus(org.getString("Status"));
+			} catch (Exception e12) {
+				result.setSensorNo("");
+				result.setStatus("");
+			}
+
+			result.setTimeStamp(System.currentTimeMillis());
+
+			logger.debug("Parse_T2_IR " + result.toString());
+
+		} catch (Exception e) {
+			logger.error("Parse_T2_IR Exception:" + StackTrace2String(e));
+			result = null;
+		}
+		return result;
+	}
+
 	public static String getTxnID(String eqpID, String functionID) {
 		StringBuffer sb = new StringBuffer();
 		sb.append((int) (Math.random() * 100)).append("_").append(eqpID).append("_").append(functionID).append("_");
 		sb.append(new SimpleDateFormat("HH:mm:ss.SSS").format(Calendar.getInstance().getTime()));
 		return sb.toString();
+	}
+
+	public static String SendCylinderStatus(RF_Cylinder_Status cylinder, String readerIP) {
+		DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		String reportDate = df.format(cylinder.getUpdateTime());
+
+		String RvFormat = ">>L WmsCylinderStatusInfoXml USERID=\"DIS\" xml=\"<ZDIS01><HEADER><PALLET_ID>"
+				+ cylinder.getTag_ID() + "</PALLET_ID><TYPE>" + cylinder.getCylinder_Type() + "</TYPE><STATUS>"
+				+ cylinder.getStatus() + "</STATUS><UPDATE_TIME>" + reportDate
+				+ "</UPDATE_TIME><ERR_MSG></ERR_MSG></HEADER></ZDIS01>\"";
+		logger.info(readerIP + " " + "send to WMS:" + RvFormat);
+		return RvFormat;
 	}
 
 	public static String SendASNUnload(WMS_T1_ASN_Pallet pallet, RF_ContainerInfo container, String Action,
@@ -122,8 +253,130 @@ public class ToolUtility {
 		logger.info(readerIP + " " + "send to WMS:" + RvFormat);
 		return RvFormat;
 	}
+	
+	public static RF_Antenna_Setting UpdateAntSetting(RF_Antenna_Setting ant, String readerIP) {
+		RF_Antenna_Setting result = null;
+		try {
 
-	public static WMS_T1_ASN_Pallet GetASNPallet(RF_Tag_History tag, String readerIP) {
+			RF_Antenna_Setting_Dao.update(ant);
+		} catch (Exception e) {
+			logger.error(readerIP + " " + "Exception:" + StackTrace2String(e));
+		}
+		return result;
+	}
+
+	public static RF_Antenna_Setting GetAntSetting(String fab, String area, String gate, String antenna_Type, String readerIP) {
+		RF_Antenna_Setting result = null;
+		try {
+			Map<String, Object> sqlWhereMap = new HashMap<String, Object>();
+			sqlWhereMap.put("fab", fab);
+			sqlWhereMap.put("area", area);
+			sqlWhereMap.put("gate", gate);
+			sqlWhereMap.put("antenna_type", antenna_Type);
+
+			result = RF_Antenna_Setting_Dao.findAllByConditions(sqlWhereMap, RF_Antenna_Setting.class).get(0);
+		} catch (Exception e) {
+			logger.error(readerIP + " " + "Exception:" + StackTrace2String(e));
+		}
+		return result;
+	}
+
+	public static String GetAntennaSequence(String readerIP) {
+		String AntennaSequence = "1 3 1 0 3 1 3 2";
+		for (RF_Antenna_Setting eachAnt : GetAntSettingList(readerIP)) {
+
+			if (eachAnt.getAntenna_No() == 0) {
+				if (!eachAnt.getActive()) {
+					AntennaSequence.replace("0", "");
+				}
+			}
+
+			if (eachAnt.getAntenna_No() == 1) {
+				if (!eachAnt.getActive()) {
+					AntennaSequence.replace("1", "");
+				}
+			}
+			if (eachAnt.getAntenna_No() == 2) {
+				if (!eachAnt.getActive()) {
+					AntennaSequence.replace("2", "");
+				}
+			}
+			if (eachAnt.getAntenna_No() == 3) {
+				if (!eachAnt.getActive()) {
+					AntennaSequence.replace("3", "");
+				}
+			}
+		}
+		AntennaSequence = AntennaSequence.replace("  ", " ").trim();
+		logger.debug(readerIP + " GetAntennaSequence " + AntennaSequence);
+		return AntennaSequence;
+	}
+
+	public static List<RF_Antenna_Setting> GetAntSettingList(String readerIP) {
+		List<RF_Antenna_Setting> result = null;
+		try {
+			Map<String, Object> sqlWhereMap = new HashMap<String, Object>();
+			sqlWhereMap.put("reader_ip", readerIP);
+
+			result = RF_Antenna_Setting_Dao.findAllByConditions(sqlWhereMap, RF_Antenna_Setting.class);
+		} catch (Exception e) {
+			logger.error(readerIP + " " + "Exception:" + StackTrace2String(e));
+		}
+		return result;
+	}
+
+	public static void SetCylinderHistory(RF_Cylinder_Status cylinder, String readerIP) {
+		RF_Cylinder_History history = new RF_Cylinder_History();
+		try {
+			history.setFab(cylinder.getFab());
+			history.setArea(cylinder.getArea());
+			history.setTag_ID(cylinder.getTag_ID());
+			history.setPosition(cylinder.getPosition());
+			history.setNew_Position(cylinder.getNew_Position());
+			history.setStatus(cylinder.getStatus());
+			history.setCheck_Times(cylinder.getCheck_Times());
+			history.setCylinder_Type(cylinder.getCylinder_Type());
+			history.setUpdateTime(Calendar.getInstance().getTime());
+
+			RF_Cylinder_History_Dao.save(history);
+
+		} catch (Exception e) {
+			logger.error(readerIP + " " + "Exception:" + StackTrace2String(e));
+		}
+
+	}
+
+	public static RF_Cylinder_Status GetCylinder(String tagID, String readerIP) {
+		RF_Cylinder_Status result = null;
+		try {
+			result = RF_Cylinder_Status_Dao.get(tagID, RF_Cylinder_Status.class);
+		} catch (Exception e) {
+			logger.error(readerIP + " " + "Exception:" + StackTrace2String(e));
+		}
+		return result;
+	}
+
+	public static void SetCylinder(RF_Cylinder_Status cylinder, String readerIP) {
+
+		try {
+			if (GetCylinder(cylinder.getTag_ID(), readerIP) != null) {
+				RF_Cylinder_Status_Dao.update(cylinder);
+			} else {
+				if (cylinder.getPosition().equals(GlobleVar.ANT_Big_Stock)
+						|| cylinder.getPosition().equals(GlobleVar.ANT_Big_Use)) {
+					cylinder.setCylinder_Type("big");
+				} else {
+					cylinder.setCylinder_Type("small");
+				}
+				RF_Cylinder_Status_Dao.save(cylinder);
+			}
+		} catch (Exception e) {
+			logger.error(readerIP + " " + "Exception:" + StackTrace2String(e));
+		}
+
+	}
+
+	public static WMS_T1_ASN_Pallet GetASNPallet(RF_Tag_History tag) {
 		WMS_T1_ASN_Pallet result = null;
 
 		try {
@@ -182,7 +435,23 @@ public class ToolUtility {
 			logger.error(readerIP + " Exception:" + StackTrace2String(e));
 		}
 	}
-
+	
+	public static List<RF_Tag_History> GetTagHistory(String fab, String area, String gate, String antenna_Type, long startTime, String readerIP){
+		List<RF_Tag_History> result = null;
+		try {
+			Map<String, Object> sqlWhereMap = new HashMap<String, Object>();
+			sqlWhereMap.put("fab", fab);
+			sqlWhereMap.put("area", area);
+			sqlWhereMap.put("gate", gate);
+			sqlWhereMap.put("antenna_type", antenna_Type);
+			sqlWhereMap.put("receive_time,>=", startTime);
+			
+			result = RF_Tag_History_Dao.findAllByConditions(sqlWhereMap, RF_Tag_History.class);
+		} catch (Exception e) {
+			logger.error(readerIP + " Exception:" + StackTrace2String(e));
+		}
+		return result;
+	}
 	public static void SignalTowerAutoOff(RF_Gate_Setting gate, String cmd, long delay, String readerIP) {
 		try {
 			String cmdStr = "";
@@ -425,7 +694,7 @@ public class ToolUtility {
 		return result;
 	}
 
-	public static String GetErrorPalletSummary(RF_ContainerInfo container, String opreation,String readerIP) {
+	public static String GetErrorPalletSummary(RF_ContainerInfo container, String opreation, String readerIP) {
 		String result = "";
 		String type1 = "";
 		String type2 = "";
@@ -433,7 +702,6 @@ public class ToolUtility {
 
 			Map<String, Object> sqlWhereMap = new HashMap<String, Object>();
 
-			
 			sqlWhereMap.put("container_id", container.getContainer_ID());
 			sqlWhereMap.put("opreation_mode", opreation);
 
@@ -494,7 +762,7 @@ public class ToolUtility {
 
 	}
 
-	public static RF_Gate_Error GetGateError(String fab,String area,String gate, String errorType,String readerIP) {
+	public static RF_Gate_Error GetGateError(String fab, String area, String gate, String errorType, String readerIP) {
 		RF_Gate_Error result = null;
 		try {
 
@@ -711,7 +979,7 @@ public class ToolUtility {
 		}
 	}
 
-	public static void SetGateSetting(RF_Gate_Setting t, String readerIP) {
+	public static void UpdateGateSetting(RF_Gate_Setting t, String readerIP) {
 
 		try {
 			RF_Gate_Setting_Dao.update(t);
@@ -721,7 +989,7 @@ public class ToolUtility {
 		}
 
 	}
-	
+
 	public static RF_Gate_Setting GetGateSetting(RF_ContainerInfo container, String readerIP) {
 		RF_Gate_Setting result = null;
 		try {
@@ -740,20 +1008,20 @@ public class ToolUtility {
 		return result;
 	}
 
-	public static RF_Gate_Setting GetGateSetting(RF_Tag_History tag) {
+	public static RF_Gate_Setting GetGateSetting(String fab, String area, String gate, String readerIP) {
 		RF_Gate_Setting result = null;
 		try {
 
 			Map<String, Object> sqlWhereMap = new HashMap<String, Object>();
 
-			sqlWhereMap.put("fab", tag.getFab());
-			sqlWhereMap.put("area", tag.getArea());
-			sqlWhereMap.put("gate", tag.getGate());
+			sqlWhereMap.put("fab", fab);
+			sqlWhereMap.put("area", area);
+			sqlWhereMap.put("gate", gate);
 
 			result = RF_Gate_Setting_Dao.findAllByConditions(sqlWhereMap, RF_Gate_Setting.class).get(0);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
-			logger.error(tag.getReader_IP() + " " + "Exception:" + StackTrace2String(e));
+			logger.error(readerIP + " " + "Exception:" + StackTrace2String(e));
 		}
 		return result;
 	}
@@ -774,15 +1042,16 @@ public class ToolUtility {
 
 	}
 
-	public static RF_Pallet_Check GetMarkPallet(String palletID, String containerID, String opreation, String readerIP) {
+	public static RF_Pallet_Check GetMarkPallet(String palletID, String containerID, String opreation,
+			String readerIP) {
 		RF_Pallet_Check result = new RF_Pallet_Check();
 		try {
 			Map<String, Object> sqlWhereMap = new HashMap<String, Object>();
 			sqlWhereMap.put("pallet_id", palletID);
-			if(containerID!="") {
+			if (containerID != "") {
 				sqlWhereMap.put("container_id", containerID);
 			}
-			if(opreation!="") {
+			if (opreation != "") {
 				sqlWhereMap.put("opreation_mode", opreation);
 			}
 			result = RF_Pallet_Check_Dao.findAllByConditions(sqlWhereMap, RF_Pallet_Check.class).get(0);

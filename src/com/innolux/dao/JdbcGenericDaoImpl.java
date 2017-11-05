@@ -183,6 +183,7 @@ public class JdbcGenericDaoImpl<T> implements GenericDao<T> {
 		return list.size() > 0 ? list.get(0) : null;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public List<T> findAllByConditions(Map<String, Object> sqlWhereMap, Class<T> clazz) throws Exception {
 		List<T> list = new ArrayList<T>();
@@ -243,6 +244,7 @@ public class JdbcGenericDaoImpl<T> implements GenericDao<T> {
 		return list;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public List<T> deleteAllByConditions(Map<String, Object> sqlWhereMap, Class<T> clazz) throws Exception {
 		List<T> list = new ArrayList<T>();
@@ -338,9 +340,25 @@ public class JdbcGenericDaoImpl<T> implements GenericDao<T> {
 			fieldValues.add(entrySet.getValue());
 			Object value = entrySet.getValue();
 			if (value.getClass() == String.class) {
-				sqlWhere.append(entrySet.getKey()).append("=").append("?").append(" and ");
+				if(entrySet.getKey().indexOf(",")!= -1) {
+					String[] tmpKeyAry = entrySet.getKey().split(",");
+					if(tmpKeyAry.length<2) {
+						continue;
+					}
+					sqlWhere.append(tmpKeyAry[0]).append(tmpKeyAry[1]).append("?").append(" and ");
+				}else {
+					sqlWhere.append(entrySet.getKey()).append("=").append("?").append(" and ");
+				}
 			} else {
-				sqlWhere.append(entrySet.getKey()).append("=").append("?").append(" and ");
+				if(entrySet.getKey().indexOf(",")!= -1) {
+					String[] tmpKeyAry = entrySet.getKey().split(",");
+					if(tmpKeyAry.length<2) {
+						continue;
+					}
+					sqlWhere.append(tmpKeyAry[0]).append(tmpKeyAry[1]).append("?").append(" and ");
+				}else {
+					sqlWhere.append(entrySet.getKey()).append("=").append("?").append(" and ");
+				}
 			}
 		}
 		sqlWhere.delete(sqlWhere.lastIndexOf("and"), sqlWhere.length());

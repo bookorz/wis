@@ -14,7 +14,6 @@ import com.innolux.model.RF_Subtitle_Setting;
 public class Subtitle {
 	private RF_Subtitle_Setting SubtitleSet;
 	public Logger logger = Logger.getLogger(this.getClass());
-	private ToolUtility tools = new ToolUtility();
 	Socket socket;
 
 	byte ID_H = (byte) 'A'; // 站號 High byte
@@ -53,7 +52,7 @@ public class Subtitle {
 			// SocketCloseResult = "OK";
 		} catch (Exception e) {
 			SocketCloseResult = "NG[SocketClose]";
-			logger.error(SubtitleSet.getSubtitle_IP() + " " + "Exception:" + tools.StackTrace2String(e));
+			logger.error(SubtitleSet.getSubtitle_IP() + " " + "Exception:" + ToolUtility.StackTrace2String(e));
 		}
 		return SocketCloseResult;
 
@@ -103,7 +102,7 @@ public class Subtitle {
 							dataInput.read(ResultBuff);
 						} catch (Exception e1) {
 							// System.out.println("Exception:" + e1); // 寫入
-							logger.error(SubtitleSet.getSubtitle_IP() + " " + "Exception:" + tools.StackTrace2String(e1));
+							logger.error(SubtitleSet.getSubtitle_IP() + " " + "Exception:" + ToolUtility.StackTrace2String(e1));
 
 							dataOut.write(MsgBuf);
 							retryCount++;
@@ -173,7 +172,7 @@ public class Subtitle {
 							dataInput.read(ResultBuff);
 						} catch (Exception e1) {
 							// System.out.println("Exception:" + e1); // 寫入
-							logger.error(SubtitleSet.getSubtitle_IP() + " " + "Exception:" + tools.StackTrace2String(e1));
+							logger.error(SubtitleSet.getSubtitle_IP() + " " + "Exception:" + ToolUtility.StackTrace2String(e1));
 							dataOut.write(MsgBuf);
 							retryCount++;
 							continue;
@@ -231,7 +230,7 @@ public class Subtitle {
 				ShowDataResult = true;
 			}
 		} catch (Exception e) {
-			logger.error(SubtitleSet.getSubtitle_IP() + " " + "Exception:" + tools.StackTrace2String(e));
+			logger.error(SubtitleSet.getSubtitle_IP() + " " + "Exception:" + ToolUtility.StackTrace2String(e));
 			ShowDataResult = false;
 		} finally {
 			SocketClose();
@@ -270,7 +269,7 @@ public class Subtitle {
 			return "OK";
 
 		} catch (Exception e) {
-			logger.error(SubtitleSet.getSubtitle_IP() + " " + "Exception:" + tools.StackTrace2String(e));
+			logger.error(SubtitleSet.getSubtitle_IP() + " " + "Exception:" + ToolUtility.StackTrace2String(e));
 			return "NG" + "[ConvertMsg]:" + e;
 		}
 
@@ -322,7 +321,7 @@ public class Subtitle {
 
 		} catch (Exception e) {
 			CombineMsgResult = "NG[CombineMsg-" + Type + "]:" + e;
-			logger.error(SubtitleSet.getSubtitle_IP() + " " + "Exception:" + tools.StackTrace2String(e));
+			logger.error(SubtitleSet.getSubtitle_IP() + " " + "Exception:" + ToolUtility.StackTrace2String(e));
 		}
 
 		return CombineMsgResult;

@@ -17,7 +17,6 @@ public class TibcoRvListen extends Thread implements TibrvMsgCallback{
 
 	private ITibcoRvListenService targetObject;
 	private Logger logger = Logger.getLogger(this.getClass());
-	private ToolUtility tools = new ToolUtility();
 	private String daemon;
 	private String subject;
 	private String service;
@@ -105,9 +104,8 @@ public class TibcoRvListen extends Thread implements TibrvMsgCallback{
 					
 			}
 		} catch (Exception e) {
-			ToolUtility tools = new ToolUtility();
 			logger.error("subject:"+subject+" msg:"+data);
-			logger.error(tools.StackTrace2String(e));
+			logger.error(ToolUtility.StackTrace2String(e));
 		}
 	}
 

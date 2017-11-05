@@ -14,6 +14,11 @@ import javax.ws.rs.core.MediaType;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
 
+import com.innolux.common.IRHandle;
+import com.innolux.common.ToolUtility;
+import com.innolux.common.base.IR_MessageBase;
+import com.innolux.common.base.ResponseBase;
+
 
 
 @Path("/DISWebService")
@@ -50,7 +55,7 @@ public class WebApiController {
 		}
 		
 		
-		//DIS_Main.SetCaptionOnMsg(buffer.toString());
+		
 		
 		return new JSONObject().put("statuscode", 200).toString();
 		
@@ -79,7 +84,7 @@ public class WebApiController {
 		}
 		
 		
-		//DIS_Main.SetGateOnMsg(buffer.toString());
+		
 		
 		return new JSONObject().put("statuscode", 200).toString();
 		
@@ -101,16 +106,16 @@ public class WebApiController {
 				}
 				in.close();
 			} catch (IOException e) {
-				return null;
+				new JSONObject().put("statuscode", 500).put("Message", ToolUtility.StackTrace2String(e)).toString();
 			}
 		} else {
-			return null;
+			new JSONObject().put("statuscode", 500).put("Message", "content is null").toString();
 		}
+		IR_MessageBase irMsg = ToolUtility.Parse_T1_IR(buffer.toString());
 		
+		ResponseBase<String> response = IRHandle.Data(irMsg);
 		
-		//String msg = DIS_Main.IROnMsg(buffer.toString());
-		
-		return new JSONObject().put("statuscode", 200).put("Message", "").toString();
+		return new JSONObject().put("statuscode", response.getStatus()).put("Message", response.getMessage()).toString();
 		
 	}
 	
@@ -131,16 +136,17 @@ public class WebApiController {
 				}
 				in.close();
 			} catch (IOException e) {
-				return null;
+				new JSONObject().put("statuscode", 500).put("Message", ToolUtility.StackTrace2String(e)).toString();
 			}
 		} else {
-			return null;
+			new JSONObject().put("statuscode", 500).put("Message", "content is null").toString();
 		}
 		
+		IR_MessageBase irMsg = ToolUtility.Parse_T2_IR(buffer.toString());
 		
-		//String msg = DIS_Main.IROnMsg(buffer.toString());
+		ResponseBase<String> response = IRHandle.Data(irMsg);
 		
-		return new JSONObject().put("statuscode", 200).put("Message", "").toString();
+		return new JSONObject().put("statuscode", response.getStatus()).put("Message", response.getMessage()).toString();
 		
 	}
 }

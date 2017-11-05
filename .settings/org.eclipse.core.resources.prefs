@@ -1,6 +1,6 @@
 eclipse.preferences.version=1
 encoding//src/com/innolux/common/GlobleVar.java=UTF-8
-encoding//src/com/innolux/common/Port.java=UTF-8
+encoding//src/com/innolux/common/TagHandle.java=UTF-8
 encoding//src/com/innolux/common/ToolUtility.java=UTF-8
 encoding//src/com/innolux/model/RF_Gate_Setting.java=UTF-8
 encoding//src/com/innolux/model/RF_Pallet_Check.java=UTF-8

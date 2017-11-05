@@ -63,12 +63,27 @@ public class RF_Reader_Setting {
         this.Test_Mode = Test_Mode;  
     }  
 	
+	/** 
+     * On_Line
+     */  
+    @Column("on_line")  
+    private boolean On_Line;  
+  
+    public boolean getOn_Line() {  
+        return On_Line;  
+    }  
+  
+    public void setOn_Line(boolean On_Line) {  
+        this.On_Line = On_Line;  
+    }  
+	
 	@Override  
     public String toString() {  
         return "Reader_IP: " + Reader_IP + 
         		" Listen_Port: " + Listen_Port+
         		" Reader_Type: " + Reader_Type+
-        		" Test_Mode: " + Test_Mode;
+        		" Test_Mode: " + Test_Mode+
+        		" On_Line: " + On_Line;
         		
     }  
 }

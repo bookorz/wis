@@ -74,4 +74,17 @@ public class ReaderCmdService {
 		}
 		return result;
 	}
+	
+	public static boolean SetAntennaSequence(String readerIP) {
+		boolean result = false;
+		if (readerList.containsKey(readerIP)) {
+			ReaderCmd t = readerList.get(readerIP);
+
+			result = t.SetAntennaSequence();
+
+		} else {
+			logger.error(readerIP + " is not exist.");
+		}
+		return result;
+	}
 }

@@ -23,7 +23,6 @@ public class SocketService {
 	private String ip;
 	private int port;
 	private boolean isDead = true;
-	private ToolUtility tools = new ToolUtility();
 	private ISocketService SocketListener;
 	
 	public SocketService(String ip,int port){
@@ -42,7 +41,7 @@ public class SocketService {
 				connect();
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
-				logger.error("startService connect error: "+ tools.StackTrace2String(e));
+				logger.error("startService connect error: "+ ToolUtility.StackTrace2String(e));
 			}
 		}
 	}
@@ -91,7 +90,7 @@ public class SocketService {
 						str = getServerMessage();
 					} catch (IOException e) {
 						
-						logger.error("readerIp : " + ip + " connect error:" + tools.StackTrace2String(e));
+						logger.error("readerIp : " + ip + " connect error:" + ToolUtility.StackTrace2String(e));
 						close();
 					} finally {
 						// close();
@@ -137,7 +136,7 @@ public class SocketService {
 			clientSocket.close();
 		} catch (IOException e) {
 			e.printStackTrace(System.err);
-			logger.error(ip + " " + "Exception:" + tools.StackTrace2String(e));
+			logger.error(ip + " " + "Exception:" + ToolUtility.StackTrace2String(e));
 		}
 	}
 }

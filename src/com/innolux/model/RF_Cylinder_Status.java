@@ -4,6 +4,7 @@ import java.util.Date;
 
 import com.innolux.annotation.Column;
 import com.innolux.annotation.Entity;
+import com.innolux.annotation.Id;
 
 @Entity("rf_cylinder_status")   //表名  
 public class RF_Cylinder_Status {
@@ -38,7 +39,7 @@ public class RF_Cylinder_Status {
 	/**
 	 * Tag ID (T1 T2)
 	 */
-	@Column("tag_id")
+	@Id("tag_id")
 	private String Tag_ID;
 
 	public String getTag_ID() {
@@ -86,13 +87,13 @@ public class RF_Cylinder_Status {
 	 * Check Times
 	 */
 	@Column("check_times")
-	private String Check_Times;
+	private int Check_Times;
 	
-	public String getCheck_Times() {  
+	public int getCheck_Times() {  
         return Check_Times;  
     }  
   
-    public void setCheck_Times(String Check_Times) {  
+    public void setCheck_Times(int Check_Times) {  
         this.Check_Times = Check_Times;  
     }  
     

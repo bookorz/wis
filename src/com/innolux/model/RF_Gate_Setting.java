@@ -178,15 +178,29 @@ public class RF_Gate_Setting {
 	/**
 	 * For forklift use
 	 */
-	@Column("direction_time")
-	private long Direction_Time;
+	@Column("direction_starttime")
+	private long Direction_StartTime;
 
-	public long geDirection_Time() {
-		return Direction_Time;
+	public long geDirection_StartTime() {
+		return Direction_StartTime;
 	}
 
-	public void setDirection_Time(long Direction_Time) {
-		this.Direction_Time = Direction_Time;
+	public void setDirection_StartTime(long Direction_StartTime) {
+		this.Direction_StartTime = Direction_StartTime;
+	}
+	
+	/**
+	 * For forklift use
+	 */
+	@Column("direction_endtime")
+	private long Direction_EndTime;
+
+	public long geDirection_EndTime() {
+		return Direction_EndTime;
+	}
+
+	public void setDirection_EndTime(long Direction_EndTime) {
+		this.Direction_EndTime = Direction_EndTime;
 	}
 
 	@Override
@@ -195,7 +209,7 @@ public class RF_Gate_Setting {
 				+ Mark_Tag + " Use_IR: " + Use_IR + " SignalTower_Name: " + SignalTower_Name + " Subtitle_Name: "
 				+ Subtitle_Name + " Last_MarkTag_Time: " + Last_MarkTag_Time + " Last_ContainerTag_Time: "
 				+ Last_ContainerTag_Time + " Voice_Path: " + Voice_Path + " ForkLift_Direction: " + ForkLift_Direction
-				+ " Direction_Time: " + Direction_Time;
+				+ " Direction_StartTime: " + Direction_StartTime+ " Direction_EndTime: " + Direction_EndTime;
 
 	}
 }

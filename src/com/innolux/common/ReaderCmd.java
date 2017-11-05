@@ -17,17 +17,16 @@ public class ReaderCmd {
 	private RF_Reader_Setting ReaderSet;
 	private AlienClass1Reader reader = new AlienClass1Reader();
 	private Logger logger = Logger.getLogger(this.getClass());
-	
 
 	public ReaderCmd(RF_Reader_Setting _ReaderSet) {
 		ReaderSet = _ReaderSet;
 		reader.setConnection(ReaderSet.getReader_IP(), 23);
 		reader.setUsername("alien");
 		reader.setPassword("password");
-		if(!InitialReader()){
+		if (!InitialReader()) {
 			logger.error(ReaderSet.getReader_IP() + " " + "InitialReader fail");
 		}
-		if(!SetAttenuation()){
+		if (!SetAttenuation()) {
 			logger.error(ReaderSet.getReader_IP() + " " + "SetAttenuation fail");
 		}
 	}
@@ -88,9 +87,29 @@ public class ReaderCmd {
 		return result;
 	}
 
-	public synchronized boolean InitialReader() {
+	public synchronized boolean SetAntennaSequence() {
 		boolean result = false;
 		try {
+			if (reader != null) {
+
+				reader.open();				
+				reader.setAntennaSequence(ToolUtility.GetAntennaSequence(ReaderSet.getReader_IP()));
+				reader.close();
+				result = true;
+			} else {
+				logger.error(ReaderSet.getReader_IP() + " " + "reader is null");
+			}
+		} catch (Exception e) {
+			logger.error(ReaderSet.getReader_IP() + " " + "Exception:" + ToolUtility.StackTrace2String(e));
+		}
+		return result;
+	}
+
+	public synchronized boolean InitialReader() {
+		boolean result = false;
+
+		try {
+			
 			if (reader != null) {
 
 				reader.open();
@@ -120,7 +139,8 @@ public class ReaderCmd {
 
 				} else {
 					reader.notifyNow();
-					reader.setAntennaSequence("1 3 1 0 3 1 3 2");
+					//reader.setAntennaSequence("1 3 1 0 3 1 3 2");
+					reader.setAntennaSequence(ToolUtility.GetAntennaSequence(ReaderSet.getReader_IP()));
 					reader.setNotifyTrigger("OFF");
 					reader.setTagListAntennaCombine(AlienClass1Reader.OFF);
 					reader.setAutoStartPause(0);
@@ -143,6 +163,8 @@ public class ReaderCmd {
 				}
 				reader.saveSettings();
 				reader.close();
+			} else {
+				logger.error(ReaderSet.getReader_IP() + " " + "reader is null");
 			}
 			result = true;
 		} catch (Exception e) {

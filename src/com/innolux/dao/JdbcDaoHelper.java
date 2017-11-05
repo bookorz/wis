@@ -18,7 +18,6 @@ import com.innolux.common.ToolUtility;
 public class JdbcDaoHelper {  
 	private int max; // 連接池中最大Connection數目
 	private List<Connection> connections;
-	private ToolUtility tools = new ToolUtility();
 	private Logger logger = Logger.getLogger(this.getClass());
 	
     /** 
@@ -45,7 +44,7 @@ public class JdbcDaoHelper {
 			Class.forName("oracle.jdbc.driver.OracleDriver");
 		} catch (Exception e) {
 			logger.error(URL);
-			logger.error(tools.StackTrace2String(e));
+			logger.error(ToolUtility.StackTrace2String(e));
 		}
 
 		connections = new ArrayList<Connection>();
@@ -73,7 +72,7 @@ public class JdbcDaoHelper {
     		}
     		
         } catch (Exception e) {  
-        	logger.error(tools.StackTrace2String(e));
+        	logger.error(ToolUtility.StackTrace2String(e));
         }  
         return conn;  
     }  
@@ -100,7 +99,7 @@ public class JdbcDaoHelper {
                 rs = null;  
             }  
         } catch (SQLException e) {  
-        	logger.error(tools.StackTrace2String(e));
+        	logger.error(ToolUtility.StackTrace2String(e));
         }  
     }  
 }  
