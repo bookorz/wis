@@ -36,7 +36,21 @@ public class RF_Reader_Setting {
     }  
     
     /** 
-     * Reader type 
+     * Port or Cylinder
+     */  
+    @Column("location")  
+    private String Location;  
+    
+    public String getLocation() {  
+        return Location;  
+    }  
+  
+    public void setLocation(String Location) {  
+        this.Location = Location;  
+    }  
+    
+    /** 
+     * Alien or Socket
      */  
     @Column("reader_type")  
     private String Reader_Type;  
@@ -53,13 +67,13 @@ public class RF_Reader_Setting {
      * For debug use
      */  
     @Column("test_mode")  
-    private String Test_Mode;  
+    private boolean Test_Mode;  
   
-    public String getTest_Mode() {  
+    public boolean getTest_Mode() {  
         return Test_Mode;  
     }  
   
-    public void setTest_Mode(String Test_Mode) {  
+    public void setTest_Mode(boolean Test_Mode) {  
         this.Test_Mode = Test_Mode;  
     }  
 	
@@ -76,14 +90,30 @@ public class RF_Reader_Setting {
     public void setOn_Line(boolean On_Line) {  
         this.On_Line = On_Line;  
     }  
+    
+    /** 
+     * Start Delay
+     */  
+    @Column("start_delay")  
+    private int Start_Delay;  
+    
+    public int getStart_Delay() {  
+        return Start_Delay;  
+    }  
+  
+    public void setStart_Delay(int Start_Delay) {  
+        this.Start_Delay = Start_Delay;  
+    }  
 	
 	@Override  
     public String toString() {  
         return "Reader_IP: " + Reader_IP + 
         		" Listen_Port: " + Listen_Port+
+        		" Location: " + Location+
         		" Reader_Type: " + Reader_Type+
         		" Test_Mode: " + Test_Mode+
-        		" On_Line: " + On_Line;
+        		" On_Line: " + On_Line+
+        		" Start_Delay: " + Start_Delay;
         		
     }  
 }

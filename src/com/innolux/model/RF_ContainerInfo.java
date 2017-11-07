@@ -7,7 +7,7 @@ import com.innolux.annotation.Entity;
 import com.innolux.annotation.Id;  
   
 
-@Entity("rf_containerinfo")   //表名  
+@Entity("rf_containerinfo_test")   //表名  
 public class RF_ContainerInfo {  
   
     /** 
@@ -343,17 +343,17 @@ public class RF_ContainerInfo {
     }  
     
     /** 
-     * Manual Bind form web interface
+     * Current Operation
      */  
-    @Column("manual_bind")  
-    private boolean Manual_Bind;
+    @Column("current_operation")  
+    private String Current_Operation;
     
-    public boolean getManual_Bind() {  
-        return Manual_Bind;  
+    public String getv() {  
+        return Current_Operation;  
     }  
   
-    public void setManual_Bind(boolean Manual_Bind) {  
-        this.Manual_Bind = Manual_Bind;  
+    public void setCurrent_Operation(String Current_Operation) {  
+        this.Current_Operation = Current_Operation;  
     }  
   
     @Override  
@@ -381,7 +381,7 @@ public class RF_ContainerInfo {
         		" Process_Start: " + getProcess_StartString()+
         		" Process_End: " + getProcess_EndString()+
         		" Process_Count: " + Process_Count+
-        		" Manual_Bind: " + Manual_Bind;
+        		" Current_Operation: " + Current_Operation;
         		
     }  
 }  

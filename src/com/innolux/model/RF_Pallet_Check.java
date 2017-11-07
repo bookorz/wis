@@ -65,7 +65,7 @@ public class RF_Pallet_Check {
     }  
 	
     /**
-	 * Position
+	 * Position (T1 T2)
 	 */
 	@Column("position")
 	private String Position;

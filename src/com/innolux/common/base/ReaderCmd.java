@@ -21,6 +21,13 @@ public class ReaderCmd {
 	private Logger logger = Logger.getLogger(this.getClass());
 
 	public ReaderCmd(RF_Reader_Setting _ReaderSet) {
+		try {
+			Thread.sleep(_ReaderSet.getStart_Delay());
+		} catch (InterruptedException e) {
+			
+			logger.error(ReaderSet.getReader_IP() + " " + "Exception:" + ToolUtility.StackTrace2String(e));
+		}
+		
 		ReaderSet = _ReaderSet;
 		reader.setConnection(ReaderSet.getReader_IP(), 23);
 		reader.setUsername("alien");
@@ -41,7 +48,7 @@ public class ReaderCmd {
 			reader.close();
 			result = true;
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
+			
 			logger.error(ReaderSet.getReader_IP() + " " + "Exception:" + ToolUtility.StackTrace2String(e));
 		}
 		return result;
@@ -55,7 +62,7 @@ public class ReaderCmd {
 			reader.close();
 			result = true;
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
+			
 			logger.error(ReaderSet.getReader_IP() + " " + "Exception:" + ToolUtility.StackTrace2String(e));
 		}
 		return result;
@@ -83,7 +90,7 @@ public class ReaderCmd {
 			}
 			result = true;
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
+			
 			logger.error(ReaderSet.getReader_IP() + " " + "Exception:" + ToolUtility.StackTrace2String(e));
 		}
 		return result;
@@ -118,7 +125,7 @@ public class ReaderCmd {
 				reader.setAutoMode(AlienClass1Reader.OFF);
 				reader.setNotifyMode(AlienClass1Reader.OFF);
 				reader.setNotifyAddress(InetAddress.getLocalHost().getHostAddress(), ReaderSet.getListen_Port());
-				if (ReaderSet.getReader_Type().toUpperCase().equals("CYLINDER")) {
+				if (ReaderSet.getLocation().toUpperCase().equals("CYLINDER")) {
 
 					reader.setAntennaSequence("0 1 2 3");
 					reader.setTagListAntennaCombine(AlienClass1Reader.ON);

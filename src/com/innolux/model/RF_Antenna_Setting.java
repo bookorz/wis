@@ -103,17 +103,17 @@ public class RF_Antenna_Setting {
 	}
 
 	/**
-	 * Gate_Name
+	 * Setting_ID
 	 */
-	@Column("gate_name")
-	private String Gate_Name;
+	@Column("setting_id")
+	private String Setting_ID;
 
-	public String getGate_Name() {
-		return Gate_Name;
+	public String getSetting_ID() {
+		return Setting_ID;
 	}
 
-	public void setGate_Name(String Gate_Name) {
-		this.Gate_Name = Gate_Name;
+	public void setSetting_ID(String Setting_ID) {
+		this.Setting_ID = Setting_ID;
 	}
 
 	/**
@@ -143,11 +143,13 @@ public class RF_Antenna_Setting {
 	public void setActive(boolean Active) {
 		this.Active = Active;
 	}
+	
+	
 
 	@Override
 	public String toString() {
 		return "ID: " + ID +" Reader_IP: " + Reader_IP + " Antenna_No: " + Antenna_No + " Antenna_Type: " + Antenna_Type + " Fab: "
-				+ Fab + " Area: " + Area + " Gate: " + Gate + " Gate_Name: " + Gate_Name + " RFAttenuation: "
+				+ Fab + " Area: " + Area + " Gate: " + Gate + " Setting_ID: " + Setting_ID + " RFAttenuation: "
 				+ RFAttenuation + " Active: " + Active;
 
 	}

@@ -64,35 +64,21 @@ public class RF_Gate_Setting {
 	}
 
 	/**
-	 * For car binding to gate use
+	 * Share Gate
 	 */
-	@Column("mark_tag")
-	private String Mark_Tag;
+	@Column("share_gate")
+	private String Share_Gate;
 
-	public String getMark_Tag() {
-		return Mark_Tag;
+	public String getShare_Gate() {
+		return Share_Gate;
 	}
 
-	public void setMark_Tag(String Mark_Tag) {
-		this.Mark_Tag = Mark_Tag;
+	public void setShare_Gate(String Share_Gate) {
+		this.Share_Gate = Share_Gate;
 	}
 
 	/**
-	 * For infrared trigger use
-	 */
-	@Column("use_ir")
-	private String Use_IR;
-
-	public String getUse_IR() {
-		return Use_IR;
-	}
-
-	public void setUse_IR(String Use_IR) {
-		this.Use_IR = Use_IR;
-	}
-
-	/**
-	 * SignalTower Name Name
+	 * SignalTower Name
 	 */
 	@Column("signaltower_name")
 	private String SignalTower_Name;
@@ -106,17 +92,17 @@ public class RF_Gate_Setting {
 	}
 
 	/**
-	 * Subtitle Name
+	 * For car binding to gate use
 	 */
-	@Column("subtitle_name")
-	private String Subtitle_Name;
+	@Column("mark_tag")
+	private String Mark_Tag;
 
-	public String getSubtitle_Name() {
-		return Subtitle_Name;
+	public String getMark_Tag() {
+		return Mark_Tag;
 	}
 
-	public void setSubtitle_Name(String Subtitle_Name) {
-		this.Subtitle_Name = Subtitle_Name;
+	public void setMark_Tag(String Mark_Tag) {
+		this.Mark_Tag = Mark_Tag;
 	}
 
 	/**
@@ -188,14 +174,14 @@ public class RF_Gate_Setting {
 	public void setDirection_StartTime(long Direction_StartTime) {
 		this.Direction_StartTime = Direction_StartTime;
 	}
-	
+
 	/**
 	 * For forklift use
 	 */
 	@Column("direction_endtime")
 	private long Direction_EndTime;
 
-	public long geDirection_EndTime() {
+	public long getDirection_EndTime() {
 		return Direction_EndTime;
 	}
 
@@ -203,13 +189,27 @@ public class RF_Gate_Setting {
 		this.Direction_EndTime = Direction_EndTime;
 	}
 
+	/**
+	 * Manual Bind form web interface
+	 */
+	@Column("manual_bind")
+	private boolean Manual_Bind;
+
+	public boolean getManual_Bind() {
+		return Manual_Bind;
+	}
+
+	public void setManual_Bind(boolean Manual_Bind) {
+		this.Manual_Bind = Manual_Bind;
+	}
+
 	@Override
 	public String toString() {
-		return "ID: " + ID + " Fab: " + Fab + " Area: " + Area + " Gate: " + Gate + " Mark_Tag: "
-				+ Mark_Tag + " Use_IR: " + Use_IR + " SignalTower_Name: " + SignalTower_Name + " Subtitle_Name: "
-				+ Subtitle_Name + " Last_MarkTag_Time: " + Last_MarkTag_Time + " Last_ContainerTag_Time: "
-				+ Last_ContainerTag_Time + " Voice_Path: " + Voice_Path + " ForkLift_Direction: " + ForkLift_Direction
-				+ " Direction_StartTime: " + Direction_StartTime+ " Direction_EndTime: " + Direction_EndTime;
+		return "ID: " + ID + " Fab: " + Fab + " Area: " + Area + " Gate: " + Gate + " Share_Gate: " + Share_Gate
+				+ " SignalTower_Name: " + SignalTower_Name + " Mark_Tag: " + Mark_Tag + " Last_MarkTag_Time: "
+				+ Last_MarkTag_Time + " Last_ContainerTag_Time: " + Last_ContainerTag_Time + " Voice_Path: "
+				+ Voice_Path + " ForkLift_Direction: " + ForkLift_Direction + " Direction_StartTime: "
+				+ Direction_StartTime + " Direction_EndTime: " + Direction_EndTime + " Manual_Bind: " + Manual_Bind;
 
 	}
 }

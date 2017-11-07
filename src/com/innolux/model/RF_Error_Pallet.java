@@ -9,15 +9,15 @@ import com.innolux.annotation.Id;
 @Entity("rf_error_pallet") // 表名
 public class RF_Error_Pallet {
 
-	@Id("error_id")
-	private String Error_ID;
+	@Id("id")
+	private String ID;
 
-	public String getError_ID() {
-		return Error_ID;
+	public String getID() {
+		return ID;
 	}
 
-	public void setError_ID(String Error_ID) {
-		this.Error_ID = Error_ID;
+	public void setID(String ID) {
+		this.ID = ID;
 	}
 
 	/**
@@ -97,7 +97,7 @@ public class RF_Error_Pallet {
 
 	@Override
 	public String toString() {
-		return "Error_ID: " + Error_ID + "Container_ID: " + Container_ID + " Pallet_ID: " + Pallet_ID + " Reason: "
+		return "ID: " + ID + "Container_ID: " + Container_ID + " Pallet_ID: " + Pallet_ID + " Reason: "
 				+ Reason + " Opreation_Mode: " + Opreation_Mode + " TimeStamp: " + getTimeStampString();
 	}
 }

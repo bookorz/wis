@@ -36,28 +36,16 @@ public class WebApiController {
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	public String setCaption(InputStream is) throws JarException {
-		StringBuffer buffer = null;
+		String msg = "";
 		if (is != null) {
-			buffer = new StringBuffer();
-			try {
-				// InputStreamReader isr = ;
-				Reader in = new BufferedReader(new InputStreamReader(is, "UTF-8"));
-				int ch;
-				while ((ch = in.read()) > -1) {
-					buffer.append((char) ch);
-				}
-				in.close();
-			} catch (IOException e) {
-				return null;
-			}
+			msg = ConvertToString(is);
 		} else {
-			return null;
+			new JSONObject().put("statuscode", 500).put("Message", "content is null").toString();
 		}
 		
-		
-		
-		
-		return new JSONObject().put("statuscode", 200).toString();
+		ResponseBase<String> response = ToolUtility.SetSubtitle(msg);
+			
+		return new JSONObject().put("statuscode", response.getStatus()).put("Message", response.getMessage()).toString();
 		
 	}
 	@POST
@@ -65,28 +53,16 @@ public class WebApiController {
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	public String setGate(InputStream is) throws JarException {
-		StringBuffer buffer = null;
+		String msg = "";
 		if (is != null) {
-			buffer = new StringBuffer();
-			try {
-				// InputStreamReader isr = ;
-				Reader in = new BufferedReader(new InputStreamReader(is, "UTF-8"));
-				int ch;
-				while ((ch = in.read()) > -1) {
-					buffer.append((char) ch);
-				}
-				in.close();
-			} catch (IOException e) {
-				return null;
-			}
+			msg = ConvertToString(is);
 		} else {
-			return null;
+			new JSONObject().put("statuscode", 500).put("Message", "content is null").toString();
 		}
 		
+		ResponseBase<String> response = ToolUtility.PortBinding(msg);
 		
-		
-		
-		return new JSONObject().put("statuscode", 200).toString();
+		return new JSONObject().put("statuscode", response.getStatus()).put("Message", response.getMessage()).toString();
 		
 	}
 	@POST
@@ -94,24 +70,13 @@ public class WebApiController {
 	@Consumes(MediaType.TEXT_XML)
 	@Produces(MediaType.TEXT_XML)
 	public String IR(InputStream is) throws JarException {
-		StringBuffer buffer = null;
+		String msg = "";
 		if (is != null) {
-			buffer = new StringBuffer();
-			try {
-				// InputStreamReader isr = ;
-				Reader in = new BufferedReader(new InputStreamReader(is, "UTF-8"));
-				int ch;
-				while ((ch = in.read()) > -1) {
-					buffer.append((char) ch);
-				}
-				in.close();
-			} catch (IOException e) {
-				new JSONObject().put("statuscode", 500).put("Message", ToolUtility.StackTrace2String(e)).toString();
-			}
+			msg = ConvertToString(is);
 		} else {
 			new JSONObject().put("statuscode", 500).put("Message", "content is null").toString();
 		}
-		IR_MessageBase irMsg = ToolUtility.Parse_T1_IR(buffer.toString());
+		IR_MessageBase irMsg = ToolUtility.Parse_T1_IR(msg);
 		
 		ResponseBase<String> response = IRHandle.Data(irMsg);
 		
@@ -124,29 +89,36 @@ public class WebApiController {
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	public String T2IR(InputStream is) throws JarException {
-		StringBuffer buffer = null;
+		String msg = "";
 		if (is != null) {
-			buffer = new StringBuffer();
-			try {
-				// InputStreamReader isr = ;
-				Reader in = new BufferedReader(new InputStreamReader(is, "UTF-8"));
-				int ch;
-				while ((ch = in.read()) > -1) {
-					buffer.append((char) ch);
-				}
-				in.close();
-			} catch (IOException e) {
-				new JSONObject().put("statuscode", 500).put("Message", ToolUtility.StackTrace2String(e)).toString();
-			}
+			msg = ConvertToString(is);
 		} else {
 			new JSONObject().put("statuscode", 500).put("Message", "content is null").toString();
 		}
 		
-		IR_MessageBase irMsg = ToolUtility.Parse_T2_IR(buffer.toString());
+		IR_MessageBase irMsg = ToolUtility.Parse_T2_IR(msg);
 		
 		ResponseBase<String> response = IRHandle.Data(irMsg);
 		
 		return new JSONObject().put("statuscode", response.getStatus()).put("Message", response.getMessage()).toString();
 		
+	}
+	
+	private String ConvertToString(InputStream is) {
+		String result = "";
+		StringBuffer buffer = null;
+		buffer = new StringBuffer();
+		try {
+			// InputStreamReader isr = ;
+			Reader in = new BufferedReader(new InputStreamReader(is, "UTF-8"));
+			int ch;
+			while ((ch = in.read()) > -1) {
+				buffer.append((char) ch);
+			}
+			in.close();
+		} catch (IOException e) {
+			logger.error("ConvertToString "+ToolUtility.StackTrace2String(e));
+		}
+		return result;
 	}
 }

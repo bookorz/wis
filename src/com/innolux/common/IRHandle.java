@@ -75,7 +75,7 @@ public class IRHandle {
 												ir.getGate(), targetReaderIP);
 
 										if (oldgate.geDirection_StartTime() == newgate.geDirection_StartTime()
-												&& gate.geDirection_EndTime() == 0) {
+												&& gate.getDirection_EndTime() == 0) {
 											antenna.setActive(false);
 											ToolUtility.UpdateAntSetting(antenna, targetReaderIP);
 											ReaderCmdService.SetAntennaSequence(targetReaderIP);
@@ -108,24 +108,36 @@ public class IRHandle {
 
 					String targetReaderIP = ToolUtility.GetReaderIP(ir.getFab(), ir.getArea(), ir.getGate());
 					RF_Antenna_Setting antenna = ToolUtility.GetAntSetting(ir.getFab(), ir.getArea(), ir.getGate(),
-							"DN", targetReaderIP);
+							"DN", "IR");
 					RF_Gate_Setting gate = ToolUtility.GetGateSetting(ir.getFab(), ir.getArea(), ir.getGate(),
-							targetReaderIP);
-					
+							"IR");
+					//search for active operate gate
+					if(!gate.getShare_Gate().equals("0")) {
+						String Opreation = ToolUtility.GetOperation_Mode(gate.getFab(),gate.getArea(),gate.getGate(),"IR");
+						if (Opreation.equals("")) {
+							Opreation = ToolUtility.GetOperation_Mode(gate.getFab(),gate.getArea(),gate.getShare_Gate(),"IR");
+							if (!Opreation.equals("")) {
+								//Change to current operate gate
+								
+								gate = ToolUtility.GetGateSetting(gate.getFab(),gate.getArea(),gate.getShare_Gate(),
+										"IR");
+							}
+						}
+					}
 					if (gate.geDirection_StartTime() != 0) {
 						gate.setForkLift_Direction(ir.getDirection());
 						gate.setDirection_EndTime(ir.getTimeStamp());
-						ToolUtility.UpdateGateSetting(gate, targetReaderIP);
+						ToolUtility.UpdateGateSetting(gate, "IR");
 						TagHandle.Data(ToolUtility.GetTagHistory(ir.getFab(), ir.getArea(), ir.getGate(), "DN",
-								gate.geDirection_StartTime(), targetReaderIP));
+								gate.geDirection_StartTime(), "IR"));
 
 						antenna.setActive(false);
-						ToolUtility.UpdateAntSetting(antenna, targetReaderIP);
+						ToolUtility.UpdateAntSetting(antenna, "IR");
 						ReaderCmdService.SetAntennaSequence(targetReaderIP);
 						// Reset gate direction time
 						gate.setDirection_StartTime(0);
 						gate.setDirection_EndTime(0);
-						ToolUtility.UpdateGateSetting(gate, targetReaderIP);
+						ToolUtility.UpdateGateSetting(gate, "IR");
 					}
 				} else if (ir.getType().equals(GlobleVar.RawDataReport)) {
 					lastStatus = T2_IR.GetLastSignal(ir.getFab(), ir.getArea(), ir.getGate(), ir.getStatus());
@@ -137,6 +149,19 @@ public class IRHandle {
 								"DN", targetReaderIP);
 						RF_Gate_Setting gate = ToolUtility.GetGateSetting(ir.getFab(), ir.getArea(), ir.getGate(),
 								targetReaderIP);
+						//search for active operate gate
+						if(!gate.getShare_Gate().equals("0")) {
+							String Opreation = ToolUtility.GetOperation_Mode(gate.getFab(),gate.getArea(),gate.getGate(),"IR");
+							if (Opreation.equals("")) {
+								Opreation = ToolUtility.GetOperation_Mode(gate.getFab(),gate.getArea(),gate.getShare_Gate(),"IR");
+								if (!Opreation.equals("")) {
+									//Change to current operate gate
+									
+									gate = ToolUtility.GetGateSetting(gate.getFab(),gate.getArea(),gate.getShare_Gate(),
+											"IR");
+								}
+							}
+						}
 						switch (ir.getStatus()) {
 						case GlobleVar.On:
 							// IR connect
@@ -167,7 +192,7 @@ public class IRHandle {
 												ir.getGate(), targetReaderIP);
 
 										if (oldgate.geDirection_StartTime() == newgate.geDirection_StartTime()
-												&& gate.geDirection_EndTime() == 0) {
+												&& newgate.getDirection_EndTime() == 0) {
 											antenna.setActive(false);
 											ToolUtility.UpdateAntSetting(antenna, targetReaderIP);
 											ReaderCmdService.SetAntennaSequence(targetReaderIP);

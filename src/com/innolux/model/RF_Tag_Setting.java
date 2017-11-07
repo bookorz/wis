@@ -2,36 +2,35 @@ package com.innolux.model;
 
 import com.innolux.annotation.Column;
 import com.innolux.annotation.Entity;
-import com.innolux.annotation.Id;
 
-@Entity("rf_ext_setting") // 表名
-public class RF_Ext_Setting {
+@Entity("rf_tag_setting") // 表名
+public class RF_Tag_Setting {
 	/**
-	 * Ext ID
+	 * Setting ID
 	 */
-	@Id("ext_id")
-	private String Ext_ID;
+	@Column("setting_id")
+	private String Setting_ID;
 	
-	public String getExt_ID() {  
-        return Ext_ID;  
+	public String getSetting_ID() {  
+        return Setting_ID;  
     }  
   
-    public void setExt_ID(String Ext_ID) {  
-        this.Ext_ID = Ext_ID;  
+    public void setSetting_ID(String Setting_ID) {  
+        this.Setting_ID = Setting_ID;  
     }  
 
 	/**
-	 * Value Type
+	 * Tag Type
 	 */
-	@Column("value_type")
-	private String Value_Type;
+	@Column("tag_type")
+	private String Tag_Type;
 
-	public String getValue_Type() {
-		return Value_Type;
+	public String getTag_Type() {
+		return Tag_Type;
 	}
 
-	public void setValue_Type(String Value_Type) {
-		this.Value_Type = Value_Type;
+	public void setTag_Type_Type(String Tag_Type) {
+		this.Tag_Type = Tag_Type;
 		
 	}
 
@@ -69,8 +68,8 @@ public class RF_Ext_Setting {
 
 	@Override  
     public String toString() {  
-        return " Ext_ID: " + Ext_ID+
-        		" Value_Type: " + Value_Type+
+        return " Setting_ID: " + Setting_ID+
+        		" Tag_Type: " + Tag_Type+
         		" Name: " + Name+
         		" Value: " + Value;
         		

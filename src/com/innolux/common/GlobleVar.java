@@ -29,6 +29,8 @@ public class GlobleVar {
 
 	public static JdbcDaoHelper T2WMS_DB = new JdbcDaoHelper(GlobleVar.T2WMSConnectionStr, GlobleVar.T2WMSUser,
 			GlobleVar.T2WMSPwd, 3);
+	
+	public static final boolean TestMode = false;
 
 	// Tag
 	public static final String CylinderTag = "CY";
@@ -39,6 +41,7 @@ public class GlobleVar {
 	public static final String GuestTag = "G";
 	public static final String ForkLiftTag = "F";
 	public static final String GodTag = "X";
+	public static final String CountLess = "CountLess";
 	
 	//IR
 	public static final String RawDataReport = "RawDataReport";
@@ -50,6 +53,9 @@ public class GlobleVar {
 	public static final String ContainerStr = "Container";
 	public static final String TruckStr = "Truck";
 	
+	//Reader
+	public static final String AlienType = "AlienType";
+	public static final String SocketType = "SocketType";
 
 	// ANT
 	public static final String ANT_Container = "CT";

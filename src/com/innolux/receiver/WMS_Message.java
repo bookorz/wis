@@ -1,9 +1,10 @@
 package com.innolux.receiver;
 
+import java.util.Calendar;
+
 import org.apache.log4j.Logger;
 
 import com.innolux.common.GlobleVar;
-import com.innolux.common.IRHandle;
 import com.innolux.common.ToolUtility;
 import com.innolux.interfaces.ITibcoRvListenService;
 import com.innolux.model.RF_ContainerInfo;
@@ -12,7 +13,7 @@ import com.innolux.model.RF_Gate_Setting;
 import com.innolux.service.TibcoRvListen;
 
 public class WMS_Message implements ITibcoRvListenService {
-	
+
 	private Logger logger = Logger.getLogger(this.getClass());
 
 	public WMS_Message() {
@@ -40,53 +41,54 @@ public class WMS_Message implements ITibcoRvListenService {
 			String gate = msg.substring(msg.indexOf("<GATEID>") + 8, msg.indexOf("</GATEID>"));
 			String empno = msg.substring(msg.indexOf("<EMPNO>") + 7, msg.indexOf("</EMPNO>"));
 			String palletStr = ToolUtility.GetGateError(fab, area, gate, "", "RV").getError_Message();
-			
+
 			RF_Gate_Setting gateSetting = ToolUtility.GetGateSetting(fab, area, gate, "RV");
-			RF_ContainerInfo container = ToolUtility.GetContainerInfo(gateSetting.getFab(),gateSetting.getArea(),gateSetting.getGate(),"RV");
-			
+			RF_ContainerInfo container = ToolUtility.GetContainerInfo(gateSetting.getFab(), gateSetting.getArea(),
+					gateSetting.getGate(), "RV");
+
 			ToolUtility.DeleteGateError(fab, area, gate, "", "RV");
-			if(container!=null) {
+			if (container != null) {
 				ToolUtility.ClearErrorPallet(container, "RV");
 			}
-			
-			ToolUtility.SignalTower(gateSetting, GlobleVar.RedOff, "RV");			
-			ToolUtility.Subtitle(gateSetting, ToolUtility.ConvertCarStr(container, "RV") + "進入:"
-					+ container.getContainer_ID(), "RV");
-			
-			ToolUtility.MesDaemon.sendMessage(ToolUtility.ReplyRfidErrorReset(fab, area, gate, palletStr, empno, container.getContainer_ID(), "RV"), GlobleVar.SendToWMS);
-			
-			
+
+			ToolUtility.SignalTower(fab, area, gate, GlobleVar.RedOff, "RV");
+			ToolUtility.Subtitle(fab, area, gate,
+					ToolUtility.ConvertCarStr(container, "RV") + "進入:" + container.getContainer_ID(), "RV");
+
+			ToolUtility.MesDaemon.sendMessage(ToolUtility.ReplyRfidErrorReset(fab, area, gate, palletStr, empno,
+					container.getContainer_ID(), "RV"), GlobleVar.SendToWMS);
+
 			break;
 		case "WmsRfidStatusChange":
-			
+
 			fab = msg.substring(msg.indexOf("<FAB>") + 5, msg.indexOf("</FAB>"));
 			area = msg.substring(msg.indexOf("<AREA>") + 6, msg.indexOf("</AREA>"));
 			gate = msg.substring(msg.indexOf("<GATEID>") + 8, msg.indexOf("</GATEID>"));
 			String action = msg.substring(msg.indexOf("<ACTION>") + 8, msg.indexOf("</ACTION>"));
 			String status = msg.substring(msg.indexOf("<STATUS>") + 8, msg.indexOf("</STATUS>"));
-			
-			container = ToolUtility.GetContainerInfo(fab,area,gate,"RV");
+
+			container = ToolUtility.GetContainerInfo(fab, area, gate, "RV");
 			container.setCurrentAction(action);
 			container.setCurrentStatus(status);
-			ToolUtility.UpdateContainerInfo(container,"RV");
+			ToolUtility.UpdateContainerInfo(container, "RV");
 
 			break;
 		case "WmsReturn2CIMToxicity":
 			String ERR_MSG = msg.substring(msg.indexOf("<ERR_MSG>") + 9, msg.indexOf("</ERR_MSG>")).trim();
 			String Status = msg.substring(msg.indexOf("<STATUS>") + 8, msg.indexOf("</STATUS>")).trim();
-			
+
 			if (!ERR_MSG.equals("")) {
 				String PalletID = msg.substring(msg.indexOf("<PALLET_ID>") + 5, msg.indexOf("</PALLET_ID>"));
 				RF_Cylinder_Status cylinder = ToolUtility.GetCylinder(PalletID, "RV");
-				
+
 				if (cylinder == null) {
 
 					logger.debug("WMS Set empty error: the pallet " + PalletID + " is not exist in db");
 				} else {
 					gateSetting = ToolUtility.GetGateSetting(cylinder.getFab(), cylinder.getArea(), "0", "RV");
-				
+
 					ToolUtility.VoiceSend(gateSetting.getVoice_Path(), ERR_MSG, "RV");
-					
+
 				}
 			} else if (Status.toUpperCase().equals("EMPTY")) {
 				String PalletID = msg.substring(msg.indexOf("<PALLET_ID>") + 5, msg.indexOf("</PALLET_ID>"));
@@ -103,9 +105,48 @@ public class WMS_Message implements ITibcoRvListenService {
 					cylinder.setNew_Position("");
 					cylinder.setCheck_Times(0);
 					cylinder.setStatus(GlobleVar.Cylinder_Empty);
-					
+
 					ToolUtility.SetCylinder(cylinder, "RV");
 				}
+			}
+			break;
+		case "OperationReport":
+			fab = msg.substring(msg.indexOf("<FAB>") + 5, msg.indexOf("</FAB>"));
+			area = msg.substring(msg.indexOf("<AREA>") + 6, msg.indexOf("</AREA>"));
+			gate = msg.substring(msg.indexOf("<GATEID>") + 8, msg.indexOf("</GATEID>"));
+			String operationType = msg.substring(msg.indexOf("<OPERATIONTYPE>") + 15, msg.indexOf("</OPERATIONTYPE>"));
+			status = msg.substring(msg.indexOf("<STATUS>") + 8, msg.indexOf("</STATUS>"));
+
+			container = ToolUtility.GetContainerInfo(fab, area, gate, "RV");
+			if (container != null) {
+
+				switch (operationType) {
+				case "DN":
+					container.setCurrent_Operation(GlobleVar.DeliveryLoad);
+					break;
+				case "PALLET":
+					container.setCurrent_Operation(GlobleVar.EmptyWrapUnload);
+					break;
+				case "PLANTMOVE":
+					container.setCurrent_Operation(GlobleVar.TransferIn);
+					break;
+				case "ASN":
+					container.setCurrent_Operation(GlobleVar.ASNUnload);
+					break;
+				}
+				
+				switch (status) {
+				case "BEGIN":
+					container.setProcess_Start(Calendar.getInstance().getTime());
+					break;
+				case "END":
+					container.setProcess_End(Calendar.getInstance().getTime());
+					break;
+				}
+				
+				ToolUtility.UpdateContainerInfo(container, "RV");
+			} else {
+				logger.debug("Container is not found.");
 			}
 			break;
 		}

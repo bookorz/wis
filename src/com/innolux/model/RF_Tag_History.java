@@ -81,13 +81,13 @@ public class RF_Tag_History {
 	 * Reader report this tag's read count
 	 */
 	@Column("count")
-	private String Count;
+	private int Count;
 
-	public String getCount() {
+	public int getCount() {
 		return Count;
 	}
 
-	public void setCount(String Count) {
+	public void setCount(int Count) {
 		this.Count = Count;
 	}
 
@@ -148,6 +148,20 @@ public class RF_Tag_History {
 	}
 	
 	/**
+	 * Reader's antenna no
+	 */
+	@Column("antenna_no")
+	private int Antenna_No;
+
+	public int getAntenna_No() {
+		return Antenna_No;
+	}
+
+	public void setAntenna_No(int Antenna_No) {
+		this.Antenna_No = Antenna_No;
+	}
+	
+	/**
 	 * Discover Time
 	 */
 	@Column("discover_time")
@@ -201,6 +215,7 @@ public class RF_Tag_History {
         		" RSSI: " + RSSI+
         		" RawData: " + RawData+
         		" Antenna_Type: " + Antenna_Type+
+        		" Antenna_No: " + Antenna_No+
         		" Discover_Time: " + Discover_Time+
         		" Receive_Time: " + Receive_Time+
         		" TimeStamp: " + TimeStamp;   		

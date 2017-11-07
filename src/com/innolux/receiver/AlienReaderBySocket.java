@@ -20,11 +20,11 @@ public class AlienReaderBySocket implements ISocketService {
 	private RF_Reader_Setting setting;
 	private Hashtable<Integer, RF_Antenna_Setting> antSetting = new Hashtable<Integer, RF_Antenna_Setting>();
 
-	public AlienReaderBySocket(RF_Reader_Setting _setting, int ListenPort) {
+	public AlienReaderBySocket(RF_Reader_Setting _setting) {
 		setting = _setting;
 		Initial();
 
-		SocketService sc = new SocketService(setting.getReader_IP(), ListenPort);
+		SocketService sc = new SocketService(setting.getReader_IP(), setting.getListen_Port());
 		sc.setSocketListener(this);
 		sc.startService();
 	}

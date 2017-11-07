@@ -13,9 +13,11 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import com.innolux.common.base.IR_MessageBase;
+import com.innolux.common.base.ResponseBase;
 import com.innolux.dao.GenericDao;
 import com.innolux.dao.JdbcGenericDaoImpl;
 import com.innolux.model.*;
@@ -37,6 +39,8 @@ public class ToolUtility {
 			GlobleVar.WIS_DB);
 	private static GenericDao<RF_Tag_Mapping> RF_Tag_Mapping_Dao = new JdbcGenericDaoImpl<RF_Tag_Mapping>(
 			GlobleVar.WIS_DB);
+	private static GenericDao<RF_Reader_Setting> RF_Reader_Setting_Dao = new JdbcGenericDaoImpl<RF_Reader_Setting>(
+			GlobleVar.WIS_DB);
 	private static GenericDao<RF_Gate_Error> RF_Gate_Error_Dao = new JdbcGenericDaoImpl<RF_Gate_Error>(
 			GlobleVar.WIS_DB);
 	private static GenericDao<RF_Error_Pallet> RF_Error_Pallet_Dao = new JdbcGenericDaoImpl<RF_Error_Pallet>(
@@ -56,6 +60,8 @@ public class ToolUtility {
 	private static GenericDao<RF_Cylinder_History> RF_Cylinder_History_Dao = new JdbcGenericDaoImpl<RF_Cylinder_History>(
 			GlobleVar.WIS_DB);
 	private static GenericDao<RF_Antenna_Setting> RF_Antenna_Setting_Dao = new JdbcGenericDaoImpl<RF_Antenna_Setting>(
+			GlobleVar.WIS_DB);
+	private static GenericDao<RF_Tag_Setting> RF_Tag_Setting_Dao = new JdbcGenericDaoImpl<RF_Tag_Setting>(
 			GlobleVar.WIS_DB);
 	private static GenericDao<WMS_T1_Ship_Info> WMS_T1_Ship_Info_Dao = new JdbcGenericDaoImpl<WMS_T1_Ship_Info>(
 			GlobleVar.T1WMS_DB);
@@ -97,6 +103,136 @@ public class ToolUtility {
 		}
 
 		ReaderIPsInit = init;
+	}
+
+	public static ResponseBase<String> PortBinding(String msg) {
+		ResponseBase<String> result = new ResponseBase<String>();
+		try {
+			result.setStatus("200");
+			result.setMessage("Success");
+			logger.debug("PortBinding msg:" + msg);
+
+			JSONObject org = new JSONObject(msg);
+			JSONObject each = new JSONObject(org.getString("setGateBind"));
+			String fab = each.getString("Fab");
+			String area = each.getString("Area");
+			String gate = each.getString("Gate");
+			String containerID = each.getString("ContainerID");
+			String carType = each.getString("CarType");
+			String Status = each.getString("Status");
+
+			switch (Status) {
+			case GlobleVar.BindContainer:
+				if (!CheckPortBinding(fab, area, gate, "WebService")) {
+					// get gateSetting object
+					RF_Gate_Setting gateSetting = ToolUtility.GetGateSetting(fab, area, gate, "WebService");
+					if (gateSetting != null) {
+						gateSetting.setLast_ContainerTag_Time(System.currentTimeMillis());
+						
+
+							RF_Tag_History tag = new RF_Tag_History();
+							tag.setAntenna_Type(GlobleVar.ANT_Container);
+							tag.setFab(fab);
+							tag.setArea(area);
+							tag.setGate(gate);
+							tag.setTag_ID(containerID);
+							tag.setTag_Type(carType);
+							tag.setReader_IP("WebService");
+
+							List<RF_Tag_History> tmp = new ArrayList<RF_Tag_History>();
+							tmp.add(tag);
+							InsertLog(tmp, "WebService");
+
+							TagHandle.PortBind(gateSetting, tag);
+							gateSetting.setManual_Bind(true);
+							UpdateGateSetting(gateSetting, "WebService");
+						
+						// update gateSetting object
+						UpdateGateSetting(gateSetting, "WebService");
+					} else {
+						logger.debug("WebService" + " PortHandler : Fetch gate setting fail.");
+						result.setStatus("500");
+						result.setMessage("PortHandler error: Fetch gate setting fail.");
+					}
+				} else {
+					logger.debug("WebService" + " PortHandler : This port was already binded car.");
+					result.setStatus("500");
+					result.setMessage("PortHandler error: This port was already binded car.");
+				}
+				break;
+			case GlobleVar.UnBindContainer:
+				if (CheckPortBinding(fab, area, gate, "WebService")) {
+					// get gateSetting object
+					RF_Gate_Setting gateSetting = ToolUtility.GetGateSetting(fab, area, gate, "WebService");
+					if (gateSetting != null) {
+						gateSetting.setLast_MarkTag_Time(System.currentTimeMillis());
+						
+
+						RF_Tag_History tag = new RF_Tag_History();
+						tag.setAntenna_Type(GlobleVar.ANT_Container);
+						tag.setFab(fab);
+						tag.setArea(area);
+						tag.setGate(gate);
+						tag.setTag_ID(containerID);
+						tag.setTag_Type(carType);
+						tag.setReader_IP("WebService");
+
+						List<RF_Tag_History> tmp = new ArrayList<RF_Tag_History>();
+						tmp.add(tag);
+						InsertLog(tmp, "WebService");
+
+						TagHandle.PortUnBind(gateSetting, tag);
+						gateSetting.setManual_Bind(false);
+						UpdateGateSetting(gateSetting, "WebService");
+					
+					// update gateSetting object
+					UpdateGateSetting(gateSetting, "WebService");
+					} else {
+						logger.debug("WebService" + " PortHandler : Fetch gate setting fail.");
+						result.setStatus("500");
+						result.setMessage("PortHandler error: Fetch gate setting fail.");
+					}
+				}else {
+					logger.debug("WebService" + " PortHandler : This port is not binded car.");
+					result.setStatus("500");
+					result.setMessage("PortHandler error: This port is not binded car.");
+				}
+				break;
+			}
+		} catch (Exception e) {
+			logger.error("SetSubtitle Exception:" + StackTrace2String(e));
+			result.setStatus("500");
+			result.setMessage(StackTrace2String(e));
+		}
+		return result;
+	}
+
+	public static ResponseBase<String> SetSubtitle(String msg) {
+		ResponseBase<String> result = new ResponseBase<String>();
+		try {
+			logger.debug("SetSubtitle msg:" + msg);
+			JSONObject orgJson = new JSONObject(msg);
+			JSONArray msgAry = new JSONArray(orgJson.getString("CustSubtitleList"));
+
+			for (int i = 0; i < msgAry.length(); i++) {
+				JSONObject each = msgAry.getJSONObject(i);
+
+				String fab = each.getString("Fab");
+				String area = each.getString("Area");
+				String gate = each.getString("Gate");
+				String subtitleStr = each.getString("CustSubtitleStr");
+
+				Subtitle(fab, area, gate, subtitleStr, "WebService");
+
+			}
+			result.setStatus("200");
+			result.setMessage("Success");
+		} catch (Exception e) {
+			logger.error("SetSubtitle Exception:" + StackTrace2String(e));
+			result.setStatus("500");
+			result.setMessage(StackTrace2String(e));
+		}
+		return result;
 	}
 
 	public static String GetReaderIP(String fab, String area, String gate) {
@@ -348,6 +484,17 @@ public class ToolUtility {
 		}
 		return result;
 	}
+	
+	public static List<RF_Tag_Setting> GetTagSettingList(String readerIP) {
+		List<RF_Tag_Setting> result = null;
+		try {
+
+			result = RF_Tag_Setting_Dao.findAllByConditions(null, RF_Tag_Setting.class);
+		} catch (Exception e) {
+			logger.error(readerIP + " " + "Exception:" + StackTrace2String(e));
+		}
+		return result;
+	}
 
 	public static void SetCylinderHistory(RF_Cylinder_Status cylinder, String readerIP) {
 		RF_Cylinder_History history = new RF_Cylinder_History();
@@ -425,16 +572,16 @@ public class ToolUtility {
 		return result;
 	}
 
-	public static String GetOpreation_Mode(RF_Tag_History tag) {
+	public static String GetOperation_Mode(String fab, String area, String gate,String readerIP) {
 		String result = "";
 		try {
 			Map<String, Object> sqlWhereMap = new HashMap<String, Object>();
 
-			sqlWhereMap.put("wh", tag.getFab());
-			sqlWhereMap.put("area", tag.getArea());
-			sqlWhereMap.put("gate", tag.getGate());
+			sqlWhereMap.put("wh", fab);
+			sqlWhereMap.put("area", area);
+			sqlWhereMap.put("gate", gate);
 
-			switch (tag.getFab()) {
+			switch (fab) {
 			case "T1":
 				result = WMS_T1_Opreation_Mode_Dao.findAllByConditions(sqlWhereMap, WMS_T1_Opreation_Mode.class).get(0)
 						.getOpreation_Type();
@@ -445,7 +592,7 @@ public class ToolUtility {
 				break;
 			}
 		} catch (Exception e) {
-			logger.error(tag.getReader_IP() + " " + "Exception:" + StackTrace2String(e));
+			logger.error(readerIP + " " + "Exception:" + StackTrace2String(e));
 		}
 		return result;
 	}
@@ -478,12 +625,18 @@ public class ToolUtility {
 		return result;
 	}
 
-	public static void SignalTowerAutoOff(RF_Gate_Setting gate, String cmd, long delay, String readerIP) {
+	public static void SignalTowerAutoOff(String fab, String area, String gate, String cmd, long delay,
+			String readerIP) {
 		try {
 			String cmdStr = "";
 
-			RF_SignalTower_Setting signalToerSet = RF_SignalTower_Setting_Dao.get(gate.getSignalTower_Name(),
-					RF_SignalTower_Setting.class);
+			Map<String, Object> sqlWhereMap = new HashMap<String, Object>();
+			sqlWhereMap.put("fab", fab);
+			sqlWhereMap.put("area", area);
+			sqlWhereMap.put("gate", gate);
+
+			RF_SignalTower_Setting signalToerSet = RF_SignalTower_Setting_Dao
+					.findAllByConditions(sqlWhereMap, RF_SignalTower_Setting.class).get(0);
 			if (signalToerSet != null) {
 				switch (cmd) {
 				case GlobleVar.RedOn:
@@ -556,18 +709,23 @@ public class ToolUtility {
 			}
 
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
+			
 			logger.error(readerIP + " " + "Exception:" + StackTrace2String(e));
 		}
 
 	}
 
-	public static void SignalTower(RF_Gate_Setting gate, String cmd, String readerIP) {
+	public static void SignalTower(String fab, String area, String gate, String cmd, String readerIP) {
 		try {
 			String cmdStr = "";
 
-			RF_SignalTower_Setting signalToerSet = RF_SignalTower_Setting_Dao.get(gate.getSignalTower_Name(),
-					RF_SignalTower_Setting.class);
+			Map<String, Object> sqlWhereMap = new HashMap<String, Object>();
+			sqlWhereMap.put("fab", fab);
+			sqlWhereMap.put("area", area);
+			sqlWhereMap.put("gate", gate);
+
+			RF_SignalTower_Setting signalToerSet = RF_SignalTower_Setting_Dao
+					.findAllByConditions(sqlWhereMap, RF_SignalTower_Setting.class).get(0);
 			if (signalToerSet != null) {
 				switch (cmd) {
 				case GlobleVar.RedOn:
@@ -601,23 +759,54 @@ public class ToolUtility {
 			}
 
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
+			
 			logger.error(readerIP + " " + "Exception:" + StackTrace2String(e));
 		}
 
 	}
 
-	public static void Subtitle(RF_Gate_Setting gate, String showStr, String readerIP) {
+	public static List<RF_Reader_Setting> GetAllReader() {
+		List<RF_Reader_Setting> result = null;
 		try {
 
-			RF_Subtitle_Setting SubtitleSetting = RF_Subtitle_Setting_Dao.get(gate.getSubtitle_Name(),
-					RF_Subtitle_Setting.class);
+			result = RF_Reader_Setting_Dao.findAllByConditions(null, RF_Reader_Setting.class);
+
+		} catch (Exception e) {
+			
+			logger.error("Exception:" + StackTrace2String(e));
+		}
+		return result;
+	}
+
+	public static List<RF_Subtitle_Setting> GetAllSubtitle() {
+		List<RF_Subtitle_Setting> result = null;
+		try {
+
+			result = RF_Subtitle_Setting_Dao.findAllByConditions(null, RF_Subtitle_Setting.class);
+
+		} catch (Exception e) {
+		
+			logger.error("Exception:" + StackTrace2String(e));
+		}
+		return result;
+	}
+
+	public static void Subtitle(String fab, String area, String gate, String showStr, String readerIP) {
+		try {
+
+			Map<String, Object> sqlWhereMap = new HashMap<String, Object>();
+			sqlWhereMap.put("fab", fab);
+			sqlWhereMap.put("area", area);
+			sqlWhereMap.put("gate", gate);
+			RF_Subtitle_Setting SubtitleSetting = RF_Subtitle_Setting_Dao
+					.findAllByConditions(sqlWhereMap, RF_Subtitle_Setting.class).get(0);
 
 			if (SubtitleSetting != null) {
 
 				if (SubtitleService.Show(SubtitleSetting.getSubtitle_IP(), showStr)) {
 					logger.info(readerIP + " " + showStr);
 					SubtitleSetting.setCurrent_Subtitle(showStr);
+					SubtitleSetting.setUpdate_Time(System.currentTimeMillis());
 					RF_Subtitle_Setting_Dao.update(SubtitleSetting);
 				} else {
 					logger.error(readerIP + " SignalTower send fail.");
@@ -627,7 +816,7 @@ public class ToolUtility {
 			}
 
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
+			
 			logger.error(readerIP + " " + "Exception:" + StackTrace2String(e));
 		}
 
@@ -642,7 +831,7 @@ public class ToolUtility {
 			}
 
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
+			
 			logger.error(readerIP + " " + "Exception:" + StackTrace2String(e));
 		}
 
@@ -654,7 +843,7 @@ public class ToolUtility {
 
 			result = RF_Tag_Mapping_Dao.get(tag.getTag_ID(), RF_Tag_Mapping.class);
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
+			
 			logger.error(tag.getReader_IP() + " " + "Exception:" + StackTrace2String(e));
 		}
 		return result;
@@ -673,7 +862,7 @@ public class ToolUtility {
 			RF_Error_Pallet_Dao.save(errorPallet);
 
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
+			
 			logger.error(tag.getReader_IP() + " " + "Exception:" + StackTrace2String(e));
 		}
 
@@ -688,7 +877,7 @@ public class ToolUtility {
 
 			result = RF_Error_Pallet_Dao.findAllByConditions(sqlWhereMap, RF_Error_Pallet.class);
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
+			
 			logger.error(tag.getReader_IP() + " " + "Exception:" + StackTrace2String(e));
 		}
 		return result;
@@ -714,7 +903,7 @@ public class ToolUtility {
 			result = RF_Error_Pallet_Dao.findAllByConditions(sqlWhereMap, RF_Error_Pallet.class).get(0);
 
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
+			
 			logger.error(tag.getReader_IP() + " " + "Exception:" + StackTrace2String(e));
 		}
 		return result;
@@ -752,7 +941,7 @@ public class ToolUtility {
 			}
 			result = type1 + type2;
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
+			
 			logger.error(readerIP + " " + "Exception:" + StackTrace2String(e));
 		}
 		return result;
@@ -762,10 +951,10 @@ public class ToolUtility {
 
 		try {
 
-			RF_Error_Pallet_Dao.delete(pallet.getError_ID(), RF_Error_Pallet.class);
+			RF_Error_Pallet_Dao.delete(pallet.getID(), RF_Error_Pallet.class);
 
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
+			
 			logger.error(readerIP + " " + "Exception:" + StackTrace2String(e));
 		}
 
@@ -782,7 +971,7 @@ public class ToolUtility {
 			RF_Error_Pallet_Dao.deleteAllByConditions(sqlWhereMap, RF_Error_Pallet.class);
 
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
+			
 			logger.error(readerIP + " " + "Exception:" + StackTrace2String(e));
 		}
 
@@ -804,7 +993,7 @@ public class ToolUtility {
 			result = RF_Gate_Error_Dao.findAllByConditions(sqlWhereMap, RF_Gate_Error.class).get(0);
 
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
+			
 			logger.error(readerIP + " " + "Exception:" + StackTrace2String(e));
 		}
 		return result;
@@ -825,7 +1014,7 @@ public class ToolUtility {
 			RF_Gate_Error_Dao.deleteAllByConditions(sqlWhereMap, RF_Gate_Error.class);
 
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
+			
 			logger.error(readerIP + " " + "Exception:" + StackTrace2String(e));
 		}
 
@@ -864,54 +1053,29 @@ public class ToolUtility {
 				RF_Gate_Error_Dao.save(t);
 			}
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
+			
 			logger.error(tag.getReader_IP() + " " + "Exception:" + StackTrace2String(e));
 		}
 
 	}
 
-	public static boolean CheckManualMode(RF_Tag_History tag) {
+	public static boolean CheckPortBinding(String fab, String area, String gate, String readerIP) {
 		boolean result = false;
 		try {
 
 			Map<String, Object> sqlWhereMap = new HashMap<String, Object>();
 
-			sqlWhereMap.put("fab", tag.getFab());
-			sqlWhereMap.put("area", tag.getArea());
-			sqlWhereMap.put("gate", tag.getGate());
-
-			List<RF_ContainerInfo> containerInfo = RF_ContainerInfo_Dao.findAllByConditions(sqlWhereMap,
-					RF_ContainerInfo.class);
-			if (containerInfo.size() != 0) {
-				if (containerInfo.get(0).getManual_Bind()) {
-					result = true;
-				}
-			}
-
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			logger.error(tag.getReader_IP() + " " + "Exception:" + StackTrace2String(e));
-		}
-		return result;
-	}
-
-	public static boolean CheckPortBinding(RF_Tag_History tag) {
-		boolean result = false;
-		try {
-
-			Map<String, Object> sqlWhereMap = new HashMap<String, Object>();
-
-			sqlWhereMap.put("fab", tag.getFab());
-			sqlWhereMap.put("area", tag.getArea());
-			sqlWhereMap.put("gate", tag.getGate());
+			sqlWhereMap.put("fab", fab);
+			sqlWhereMap.put("area", area);
+			sqlWhereMap.put("gate", gate);
 
 			if (RF_ContainerInfo_Dao.findAllByConditions(sqlWhereMap, RF_ContainerInfo.class).size() != 0) {
 				result = true;
 			}
 
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			logger.error(tag.getReader_IP() + " " + "Exception:" + StackTrace2String(e));
+			
+			logger.error(readerIP + " " + "Exception:" + StackTrace2String(e));
 		}
 		return result;
 	}
@@ -923,7 +1087,7 @@ public class ToolUtility {
 			result = RF_ContainerInfo_Dao.get(containerID, RF_ContainerInfo.class);
 
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
+			
 			logger.error("Exception:" + StackTrace2String(e));
 		}
 		return result;
@@ -942,7 +1106,7 @@ public class ToolUtility {
 			result = RF_ContainerInfo_Dao.findAllByConditions(sqlWhereMap, RF_ContainerInfo.class).get(0);
 
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
+			
 			logger.error(readerIP + " Exception:" + StackTrace2String(e));
 		}
 		return result;
@@ -955,7 +1119,7 @@ public class ToolUtility {
 			result = RF_ContainerInfo_Dao.get(tag.getTag_ID(), RF_ContainerInfo.class);
 
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
+			
 			logger.error(tag.getReader_IP() + " " + "Exception:" + StackTrace2String(e));
 		}
 		return result;
@@ -969,7 +1133,7 @@ public class ToolUtility {
 			SetMoveHistory(t, readerIP);
 
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
+			
 			logger.error(readerIP + " " + "Exception:" + StackTrace2String(e));
 		}
 	}
@@ -1002,7 +1166,7 @@ public class ToolUtility {
 			RF_Move_History_Dao.save(his);
 
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
+			
 			logger.error(readerIP + " " + "Exception:" + StackTrace2String(e));
 		}
 	}
@@ -1012,10 +1176,27 @@ public class ToolUtility {
 		try {
 			RF_Gate_Setting_Dao.update(t);
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
+			
 			logger.error(readerIP + " " + "Exception:" + StackTrace2String(e));
 		}
 
+	}
+
+	public static boolean CheckManualMode(RF_Tag_History tag) {
+		boolean result = false;
+		try {
+
+			RF_Gate_Setting gate = GetGateSetting(tag.getFab(), tag.getArea(), tag.getGate(), tag.getReader_IP());
+
+			if (gate.getManual_Bind()) {
+				result = true;
+			}
+
+		} catch (Exception e) {
+			
+			logger.error(tag.getReader_IP() + " " + "Exception:" + StackTrace2String(e));
+		}
+		return result;
 	}
 
 	public static RF_Gate_Setting GetGateSetting(RF_ContainerInfo container, String readerIP) {
@@ -1030,7 +1211,7 @@ public class ToolUtility {
 
 			result = RF_Gate_Setting_Dao.findAllByConditions(sqlWhereMap, RF_Gate_Setting.class).get(0);
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
+			
 			logger.error(readerIP + " " + "Exception:" + StackTrace2String(e));
 		}
 		return result;
@@ -1048,7 +1229,7 @@ public class ToolUtility {
 
 			result = RF_Gate_Setting_Dao.findAllByConditions(sqlWhereMap, RF_Gate_Setting.class).get(0);
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
+			
 			logger.error(readerIP + " " + "Exception:" + StackTrace2String(e));
 		}
 		return result;
@@ -1064,7 +1245,7 @@ public class ToolUtility {
 			RF_Pallet_Check_Dao.deleteAllByConditions(sqlWhereMap, RF_Pallet_Check.class);
 
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
+			
 			logger.error(readerIP + " " + "Exception:" + StackTrace2String(e));
 		}
 
@@ -1085,7 +1266,7 @@ public class ToolUtility {
 			result = RF_Pallet_Check_Dao.findAllByConditions(sqlWhereMap, RF_Pallet_Check.class).get(0);
 
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
+			
 			logger.error(readerIP + " " + "Exception:" + StackTrace2String(e));
 		}
 		return result;
@@ -1103,7 +1284,7 @@ public class ToolUtility {
 			RF_Pallet_Check_Dao.save(pallet);
 
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
+			
 			logger.error(tag.getReader_IP() + " " + "Exception:" + StackTrace2String(e));
 		}
 
@@ -1133,7 +1314,7 @@ public class ToolUtility {
 				result.add(each.getPallet_ID());
 			}
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
+			
 			logger.error(readerIP + " Exception:" + StackTrace2String(e));
 		}
 		return result;
@@ -1163,7 +1344,7 @@ public class ToolUtility {
 				result.add(each.getPallet_ID());
 			}
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
+			
 			logger.error(readerIP + " Exception:" + StackTrace2String(e));
 		}
 		return result;
@@ -1192,7 +1373,7 @@ public class ToolUtility {
 				result.add(each.getPallet_ID());
 			}
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
+			
 			logger.error(readerIP + " Exception:" + StackTrace2String(e));
 		}
 		return result;
@@ -1217,7 +1398,7 @@ public class ToolUtility {
 			}
 
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
+			
 			logger.error(tag.getReader_IP() + " Exception:" + StackTrace2String(e));
 		}
 		return result;
@@ -1230,7 +1411,7 @@ public class ToolUtility {
 			result = WMS_T2_Check_Pallet_Dao.get(tag.getTag_ID(), WMS_T2_Check_Pallet.class);
 
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
+			
 			logger.error(readerIP + " Exception:" + StackTrace2String(e));
 		}
 		return result;
@@ -1262,7 +1443,7 @@ public class ToolUtility {
 			}
 
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
+			
 			logger.error(readerIP + " Exception:" + StackTrace2String(e));
 		}
 
@@ -1281,7 +1462,7 @@ public class ToolUtility {
 				break;
 			}
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
+			
 			logger.error(tag.getReader_IP() + " Exception:" + StackTrace2String(e));
 		}
 		return result;
@@ -1299,7 +1480,7 @@ public class ToolUtility {
 				break;
 			}
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
+			
 			logger.error(readerIP + " Exception:" + StackTrace2String(e));
 		}
 		return result;
@@ -1317,7 +1498,7 @@ public class ToolUtility {
 				break;
 			}
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
+			
 			logger.error(tag.getReader_IP() + " Exception:" + StackTrace2String(e));
 		}
 		return result;
@@ -1335,7 +1516,7 @@ public class ToolUtility {
 				break;
 			}
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
+			
 			logger.error(readerIP + " Exception:" + StackTrace2String(e));
 		}
 		return result;

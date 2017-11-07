@@ -25,8 +25,10 @@ public class ReaderCmdService {
 
 			List<RF_Reader_Setting> result = RF_Reader_Setting_Dao.findAllByConditions(null, RF_Reader_Setting.class);
 			for (RF_Reader_Setting eachReader : result) {
-				if (readerList.containsKey(eachReader.getReader_IP())) {
-					readerList.put(eachReader.getReader_IP(), new ReaderCmd(eachReader));
+				if(eachReader.getTest_Mode()==GlobleVar.TestMode && eachReader.getOn_Line()) {
+					if (readerList.containsKey(eachReader.getReader_IP())) {
+						readerList.put(eachReader.getReader_IP(), new ReaderCmd(eachReader));	
+					}
 				}
 			}
 

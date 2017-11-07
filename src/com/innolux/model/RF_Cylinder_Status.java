@@ -37,7 +37,7 @@ public class RF_Cylinder_Status {
 	}
 
 	/**
-	 * Tag ID (T1 T2)
+	 * Tag ID
 	 */
 	@Id("tag_id")
 	private String Tag_ID;

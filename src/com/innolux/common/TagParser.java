@@ -57,7 +57,7 @@ public class TagParser {
 						}
 					}
 
-					tag.setCount(Attributes[4]);
+					tag.setCount(Integer.parseInt(Attributes[4]));
 					tag.setDiscover_Time(Long.parseLong(Attributes[1]));
 					tag.setReceive_Time(Long.parseLong(Attributes[2]));
 					tag.setRSSI(Attributes[5]);

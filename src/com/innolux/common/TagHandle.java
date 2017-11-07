@@ -12,12 +12,9 @@ import com.innolux.model.RF_Pallet_Check;
 import com.innolux.model.RF_Tag_History;
 import com.innolux.model.WMS_T1_ASN_Pallet;
 import com.innolux.model.WMS_T1_Check_Pallet;
-import com.innolux.service.TibcoRvSend;
 
 public class TagHandle {
 	public static Logger logger = Logger.getLogger(TagHandle.class);
-
-	
 
 	public static void Data(List<RF_Tag_History> tagList) {
 		try {
@@ -78,6 +75,9 @@ public class TagHandle {
 		if (!tag.getTag_Type().equals(GlobleVar.PalletTag)) {
 			return;
 		}
+		
+		
+		
 		RF_Cylinder_Status cylinder = ToolUtility.GetCylinder(tag.getTag_ID(), tag.getReader_IP());
 		if (cylinder != null) {
 
@@ -186,48 +186,57 @@ public class TagHandle {
 
 	private static void CenterParkingHandler(RF_Tag_History tag) {
 		RF_ContainerInfo container = ToolUtility.GetContainerInfo(tag);
-		if (container != null) {
+		if (container.getGate().equals("0")) {
+			if (container != null) {
 
-			switch (tag.getAntenna_Type()) {
-			case GlobleVar.ANT_In_CenterParking:
-				container.setFab("T2");
-				container.setArea("CP");
-				container.setGate("0");
-				ToolUtility.UpdateContainerInfo(container, tag.getReader_IP());
-				break;
-			case GlobleVar.ANT_Out_CenterParking:
-				container.setFab("T2");
-				container.setArea("SB");
-				container.setGate("0");
-				ToolUtility.UpdateContainerInfo(container, tag.getReader_IP());
-				break;
+				switch (tag.getAntenna_Type()) {
+				case GlobleVar.ANT_In_CenterParking:
+					container.setFab("T2");
+					container.setArea("CP");
+					container.setGate("0");
+					ToolUtility.UpdateContainerInfo(container, tag.getReader_IP());
+					break;
+				case GlobleVar.ANT_Out_CenterParking:
+					container.setFab("T2");
+					container.setArea("SB");
+					container.setGate("0");
+					ToolUtility.UpdateContainerInfo(container, tag.getReader_IP());
+					break;
 
+				}
 			}
+		} else {
+			logger.debug(tag.getReader_IP() + " Change location fail: This container is binding for "
+					+ ToolUtility.ConvertGateStr(tag));
 		}
 	}
 
 	private static void DispatchHandler(RF_Tag_History tag) {
 
 		RF_ContainerInfo container = ToolUtility.GetContainerInfo(tag);
-		if (container != null) {
+		if (container.getGate().equals("0")) {
+			if (container != null) {
 
-			switch (tag.getAntenna_Type()) {
-			case GlobleVar.ANT_T1_Dispatch:
-				container.setFab("T1");
-				container.setArea("SB");
-				container.setGate("0");
-				ToolUtility.UpdateContainerInfo(container, tag.getReader_IP());
-				break;
-			case GlobleVar.ANT_T2_Dispatch:
-				container.setFab("T2");
-				container.setArea("SB");
-				container.setGate("0");
-				ToolUtility.UpdateContainerInfo(container, tag.getReader_IP());
-				break;
+				switch (tag.getAntenna_Type()) {
+				case GlobleVar.ANT_T1_Dispatch:
+					container.setFab("T1");
+					container.setArea("SB");
+					container.setGate("0");
+					ToolUtility.UpdateContainerInfo(container, tag.getReader_IP());
+					break;
+				case GlobleVar.ANT_T2_Dispatch:
+					container.setFab("T2");
+					container.setArea("SB");
+					container.setGate("0");
+					ToolUtility.UpdateContainerInfo(container, tag.getReader_IP());
+					break;
 
+				}
 			}
+		} else {
+			logger.debug(tag.getReader_IP() + " Change location fail: This container is binding for "
+					+ ToolUtility.ConvertGateStr(tag));
 		}
-
 	}
 
 	private static void AbnormalHandler(RF_Tag_History tag) {
@@ -241,9 +250,12 @@ public class TagHandle {
 				String newErrorMsg = ToolUtility.GetErrorPalletSummary(container, eachErrorPallet.getOpreation_Mode(),
 						tag.getReader_IP());
 				if (newErrorMsg != "") {
-					ToolUtility.SignalTowerAutoOff(gate, GlobleVar.GreenOn, 5, tag.getReader_IP());
-					ToolUtility.SignalTower(gate, GlobleVar.RedOn, tag.getReader_IP());
-					ToolUtility.Subtitle(gate, newErrorMsg, tag.getReader_IP());
+					ToolUtility.SignalTowerAutoOff(gate.getFab(), gate.getArea(), gate.getGate(), GlobleVar.GreenOn, 5,
+							tag.getReader_IP());
+					ToolUtility.SignalTower(gate.getFab(), gate.getArea(), gate.getGate(), GlobleVar.RedOn,
+							tag.getReader_IP());
+					ToolUtility.Subtitle(gate.getFab(), gate.getArea(), gate.getGate(), newErrorMsg,
+							tag.getReader_IP());
 				} else {
 					// All error pallet is clear
 					// Delete DeliveryError
@@ -254,14 +266,19 @@ public class TagHandle {
 							tag.getReader_IP());
 					if (gateError == null) {
 						// If gate error are not exist, reset gate information.
-						ToolUtility.SignalTower(gate, GlobleVar.RedOff, tag.getReader_IP());
-						ToolUtility.Subtitle(gate, ToolUtility.ConvertCarStr(container, tag.getReader_IP()) + "進入:"
-								+ container.getContainer_ID(), tag.getReader_IP());
+						ToolUtility.SignalTower(gate.getFab(), gate.getArea(), gate.getGate(), GlobleVar.RedOff,
+								tag.getReader_IP());
+						ToolUtility.Subtitle(gate.getFab(), gate.getArea(), gate.getGate(),
+								ToolUtility.ConvertCarStr(container, tag.getReader_IP()) + "進入:"
+										+ container.getContainer_ID(),
+								tag.getReader_IP());
 
 					} else {
 						// If any gate error exist
-						ToolUtility.SignalTower(gate, GlobleVar.RedOn, tag.getReader_IP());
-						ToolUtility.Subtitle(gate, gateError.getError_Message(), tag.getReader_IP());
+						ToolUtility.SignalTower(gate.getFab(), gate.getArea(), gate.getGate(), GlobleVar.RedOn,
+								tag.getReader_IP());
+						ToolUtility.Subtitle(gate.getFab(), gate.getArea(), gate.getGate(),
+								gateError.getError_Message(), tag.getReader_IP());
 					}
 				}
 
@@ -292,18 +309,35 @@ public class TagHandle {
 	}
 
 	private static void GateHandler(RF_Tag_History tag) {
-		String Opreation = ToolUtility.GetOpreation_Mode(tag);
+		String Opreation = "";
 
 		RF_Gate_Setting gate = ToolUtility.GetGateSetting(tag.getFab(), tag.getArea(), tag.getGate(),
 				tag.getReader_IP());
 
 		if (gate != null) {
-			// Check forklift direction
-			if (tag.getReceive_Time() - gate.geDirection_EndTime() <= GlobleVar.DirectionExpire) {
-				// Check current wms opreation
+			//search for active operate gate
+			if(!gate.getShare_Gate().equals("0")) {
+				Opreation = ToolUtility.GetOperation_Mode(gate.getFab(),gate.getArea(),gate.getGate(),tag.getReader_IP());
 				if (Opreation.equals("")) {
-					ToolUtility.SignalTower(gate, GlobleVar.RedOn, tag.getReader_IP());
-					ToolUtility.Subtitle(gate, "碼頭系統無作業，偵測到棧板" + tag.getTag_ID(), tag.getReader_IP());
+					Opreation = ToolUtility.GetOperation_Mode(gate.getFab(),gate.getArea(),gate.getShare_Gate(),tag.getReader_IP());
+					if (!Opreation.equals("")) {
+						//Change to current operate gate
+						tag.setGate(gate.getShare_Gate());
+						gate = ToolUtility.GetGateSetting(tag.getFab(), tag.getArea(), tag.getGate(),
+								tag.getReader_IP());
+					}
+				}
+			}
+			
+			// Check forklift direction
+			if (tag.getReceive_Time() - gate.getDirection_EndTime() <= GlobleVar.DirectionExpire) {
+				// Check current wms opreation
+				
+				if (Opreation.equals("")) {
+					ToolUtility.SignalTower(gate.getFab(), gate.getArea(), gate.getGate(), GlobleVar.RedOn,
+							tag.getReader_IP());
+					ToolUtility.Subtitle(gate.getFab(), gate.getArea(), gate.getGate(),
+							"碼頭系統無作業，偵測到棧板" + tag.getTag_ID(), tag.getReader_IP());
 					ToolUtility.SetGateError(tag, GlobleVar.NonOpreation,
 							ToolUtility.ConvertGateStr(tag) + "系統無作業，偵測到棧板" + tag.getTag_ID());
 				} else {
@@ -400,7 +434,7 @@ public class TagHandle {
 				logger.debug(tag.getReader_IP() + " Direction Expire");
 				logger.debug(
 						tag.getReader_IP() + " tagReceive_Time:" + tag.getReceive_Time() + "- gateDirection_EndTime:"
-								+ gate.geDirection_EndTime() + " > DirectionExpire:" + GlobleVar.DirectionExpire);
+								+ gate.getDirection_EndTime() + " > DirectionExpire:" + GlobleVar.DirectionExpire);
 			}
 		} else {
 			logger.debug(tag.getReader_IP() + " PortHandler : Fetch gate setting fail.");
@@ -408,7 +442,8 @@ public class TagHandle {
 	}
 
 	private static void ASNUnload(RF_Tag_History tag, RF_Gate_Setting gate) {
-		RF_ContainerInfo container = ToolUtility.GetContainerInfo(tag.getFab(), tag.getArea(), tag.getGate(),tag.getReader_IP());
+		RF_ContainerInfo container = ToolUtility.GetContainerInfo(tag.getFab(), tag.getArea(), tag.getGate(),
+				tag.getReader_IP());
 		String voiceText = "";
 		if (container != null) {
 			RF_Pallet_Check pallet = ToolUtility.GetMarkPallet(tag.getTag_ID(), container.getContainer_ID(),
@@ -424,8 +459,10 @@ public class TagHandle {
 					ANS_Pallet.setASN_NO("N/A");
 					ANS_Pallet.setPallet_ID(tag.getTag_ID());
 
-					ToolUtility.SignalTower(gate, GlobleVar.RedOn, tag.getReader_IP());
-					ToolUtility.Subtitle(gate, "廠商" + container.getSource() + " 收貨棧板:" + tag.getTag_ID() + " 未存在ASN資料庫",
+					ToolUtility.SignalTower(gate.getFab(), gate.getArea(), gate.getGate(), GlobleVar.RedOn,
+							tag.getReader_IP());
+					ToolUtility.Subtitle(gate.getFab(), gate.getArea(), gate.getGate(),
+							"廠商" + container.getSource() + " 收貨棧板:" + tag.getTag_ID() + " 未存在ASN資料庫",
 							tag.getReader_IP());
 					ToolUtility.SetGateError(tag, GlobleVar.ASNError, ToolUtility.ConvertGateStr(tag) + "廠商"
 							+ container.getSource() + " 收貨棧板:" + tag.getTag_ID() + " 未存在ASN資料庫" + tag.getTag_ID());
@@ -434,14 +471,17 @@ public class TagHandle {
 							+ ToolUtility.AddSpace(tag.getTag_ID()) + "未存在ASN資料庫 請同仁查明";
 					ToolUtility.VoiceSend(gate.getVoice_Path(), voiceText, tag.getReader_IP());
 
-					ToolUtility.MesDaemon.sendMessage(ToolUtility.SendASNUnload(ANS_Pallet, container, "Error", tag.getReader_IP()),
+					ToolUtility.MesDaemon.sendMessage(
+							ToolUtility.SendASNUnload(ANS_Pallet, container, "Error", tag.getReader_IP()),
 							GlobleVar.SendToWMS);
 				} else {
 					if (!ANS_Pallet.getRFID_Chk().equals("TRUE")) {
 
 						ToolUtility.MarkPallet(tag, container.getContainer_ID(), GlobleVar.ASNUnload);
-						ToolUtility.SignalTowerAutoOff(gate, GlobleVar.GreenOn, 5, tag.getReader_IP());
-						ToolUtility.Subtitle(gate, "棧板" + tag.getTag_ID() + "ASN:", tag.getReader_IP());
+						ToolUtility.SignalTowerAutoOff(gate.getFab(), gate.getArea(), gate.getGate(), GlobleVar.GreenOn,
+								5, tag.getReader_IP());
+						ToolUtility.Subtitle(gate.getFab(), gate.getArea(), gate.getGate(),
+								"棧板" + tag.getTag_ID() + "ASN:", tag.getReader_IP());
 						ToolUtility.MesDaemon.sendMessage(
 								ToolUtility.SendASNUnload(ANS_Pallet, container, "Confirm", tag.getReader_IP()),
 								GlobleVar.SendToWMS);
@@ -450,8 +490,9 @@ public class TagHandle {
 			}
 		} else {
 			// 此碼頭沒有綁定任何車輛
-			ToolUtility.SignalTower(gate, GlobleVar.RedOn, tag.getReader_IP());
-			ToolUtility.Subtitle(gate, "沒有綁定車輛，偵測到棧板" + tag.getTag_ID(), tag.getReader_IP());
+			ToolUtility.SignalTower(gate.getFab(), gate.getArea(), gate.getGate(), GlobleVar.RedOn, tag.getReader_IP());
+			ToolUtility.Subtitle(gate.getFab(), gate.getArea(), gate.getGate(), "沒有綁定車輛，偵測到棧板" + tag.getTag_ID(),
+					tag.getReader_IP());
 			ToolUtility.SetGateError(tag, GlobleVar.TransferError,
 					ToolUtility.ConvertGateStr(tag) + "沒有綁定車輛，偵測到棧板" + tag.getTag_ID());
 		}
@@ -460,7 +501,8 @@ public class TagHandle {
 
 	private static void EmptyWrapUnload(RF_Tag_History tag, RF_Gate_Setting gate) {
 
-		RF_ContainerInfo container = ToolUtility.GetContainerInfo(tag.getFab(), tag.getArea(), tag.getGate(),tag.getReader_IP());
+		RF_ContainerInfo container = ToolUtility.GetContainerInfo(tag.getFab(), tag.getArea(), tag.getGate(),
+				tag.getReader_IP());
 		if (container != null) {
 			RF_Pallet_Check pallet = ToolUtility.GetMarkPallet(tag.getTag_ID(), container.getContainer_ID(),
 					GlobleVar.EmptyWrapUnload, tag.getReader_IP());
@@ -469,22 +511,26 @@ public class TagHandle {
 
 			} else {
 				ToolUtility.MarkPallet(tag, container.getContainer_ID(), GlobleVar.EmptyWrapUnload);
-				ToolUtility.SignalTowerAutoOff(gate, GlobleVar.GreenOn, 5, tag.getReader_IP());
-				ToolUtility.Subtitle(gate, "棧板" + tag.getTag_ID() + "卸包材", tag.getReader_IP());
+				ToolUtility.SignalTowerAutoOff(gate.getFab(), gate.getArea(), gate.getGate(), GlobleVar.GreenOn, 5,
+						tag.getReader_IP());
+				ToolUtility.Subtitle(gate.getFab(), gate.getArea(), gate.getGate(), "棧板" + tag.getTag_ID() + "卸包材",
+						tag.getReader_IP());
 				ToolUtility.MesDaemon.sendMessage(ToolUtility.SendTransfer(tag, container, "In", tag.getReader_IP()),
 						GlobleVar.SendToWMS);
 			}
 		} else {
 			// 此碼頭沒有綁定任何車輛
-			ToolUtility.SignalTower(gate, GlobleVar.RedOn, tag.getReader_IP());
-			ToolUtility.Subtitle(gate, "沒有綁定車輛，偵測到棧板" + tag.getTag_ID(), tag.getReader_IP());
+			ToolUtility.SignalTower(gate.getFab(), gate.getArea(), gate.getGate(), GlobleVar.RedOn, tag.getReader_IP());
+			ToolUtility.Subtitle(gate.getFab(), gate.getArea(), gate.getGate(), "沒有綁定車輛，偵測到棧板" + tag.getTag_ID(),
+					tag.getReader_IP());
 			ToolUtility.SetGateError(tag, GlobleVar.TransferError,
 					ToolUtility.ConvertGateStr(tag) + "沒有綁定車輛，偵測到棧板" + tag.getTag_ID());
 		}
 	}
 
 	private static void TransferIn(RF_Tag_History tag, RF_Gate_Setting gate) {
-		RF_ContainerInfo container = ToolUtility.GetContainerInfo(tag.getFab(), tag.getArea(), tag.getGate(),tag.getReader_IP());
+		RF_ContainerInfo container = ToolUtility.GetContainerInfo(tag.getFab(), tag.getArea(), tag.getGate(),
+				tag.getReader_IP());
 		if (container != null) {
 			RF_Pallet_Check pallet = ToolUtility.GetMarkPallet(tag.getTag_ID(), container.getContainer_ID(),
 					GlobleVar.TransferIn, tag.getReader_IP());
@@ -493,23 +539,27 @@ public class TagHandle {
 
 			} else {
 				ToolUtility.MarkPallet(tag, container.getContainer_ID(), GlobleVar.TransferIn);
-				ToolUtility.SignalTowerAutoOff(gate, GlobleVar.GreenOn, 5, tag.getReader_IP());
-				ToolUtility.Subtitle(gate, "棧板" + tag.getTag_ID() + "廠移出", tag.getReader_IP());
+				ToolUtility.SignalTowerAutoOff(gate.getFab(), gate.getArea(), gate.getGate(), GlobleVar.GreenOn, 5,
+						tag.getReader_IP());
+				ToolUtility.Subtitle(gate.getFab(), gate.getArea(), gate.getGate(), "棧板" + tag.getTag_ID() + "廠移出",
+						tag.getReader_IP());
 				ToolUtility.MesDaemon.sendMessage(ToolUtility.SendTransfer(tag, container, "In", tag.getReader_IP()),
 						GlobleVar.SendToWMS);
 			}
 
 		} else {
 			// 此碼頭沒有綁定任何車輛
-			ToolUtility.SignalTower(gate, GlobleVar.RedOn, tag.getReader_IP());
-			ToolUtility.Subtitle(gate, "沒有綁定車輛，偵測到棧板" + tag.getTag_ID(), tag.getReader_IP());
+			ToolUtility.SignalTower(gate.getFab(), gate.getArea(), gate.getGate(), GlobleVar.RedOn, tag.getReader_IP());
+			ToolUtility.Subtitle(gate.getFab(), gate.getArea(), gate.getGate(), "沒有綁定車輛，偵測到棧板" + tag.getTag_ID(),
+					tag.getReader_IP());
 			ToolUtility.SetGateError(tag, GlobleVar.TransferError,
 					ToolUtility.ConvertGateStr(tag) + "沒有綁定車輛，偵測到棧板" + tag.getTag_ID());
 		}
 	}
 
 	private static void TransferOut(RF_Tag_History tag, RF_Gate_Setting gate) {
-		RF_ContainerInfo container = ToolUtility.GetContainerInfo(tag.getFab(), tag.getArea(), tag.getGate(),tag.getReader_IP());
+		RF_ContainerInfo container = ToolUtility.GetContainerInfo(tag.getFab(), tag.getArea(), tag.getGate(),
+				tag.getReader_IP());
 		if (container != null) {
 			RF_Pallet_Check pallet = ToolUtility.GetMarkPallet(tag.getTag_ID(), container.getContainer_ID(),
 					GlobleVar.TransferOut, tag.getReader_IP());
@@ -518,16 +568,19 @@ public class TagHandle {
 
 			} else {
 				ToolUtility.MarkPallet(tag, container.getContainer_ID(), GlobleVar.TransferOut);
-				ToolUtility.SignalTowerAutoOff(gate, GlobleVar.GreenOn, 5, tag.getReader_IP());
-				ToolUtility.Subtitle(gate, "棧板" + tag.getTag_ID() + "廠移出", tag.getReader_IP());
+				ToolUtility.SignalTowerAutoOff(gate.getFab(), gate.getArea(), gate.getGate(), GlobleVar.GreenOn, 5,
+						tag.getReader_IP());
+				ToolUtility.Subtitle(gate.getFab(), gate.getArea(), gate.getGate(), "棧板" + tag.getTag_ID() + "廠移出",
+						tag.getReader_IP());
 				ToolUtility.MesDaemon.sendMessage(ToolUtility.SendTransfer(tag, container, "Out", tag.getReader_IP()),
 						GlobleVar.SendToWMS);
 			}
 
 		} else {
 			// 此碼頭沒有綁定任何車輛
-			ToolUtility.SignalTower(gate, GlobleVar.RedOn, tag.getReader_IP());
-			ToolUtility.Subtitle(gate, "沒有綁定車輛，偵測到棧板" + tag.getTag_ID(), tag.getReader_IP());
+			ToolUtility.SignalTower(gate.getFab(), gate.getArea(), gate.getGate(), GlobleVar.RedOn, tag.getReader_IP());
+			ToolUtility.Subtitle(gate.getFab(), gate.getArea(), gate.getGate(), "沒有綁定車輛，偵測到棧板" + tag.getTag_ID(),
+					tag.getReader_IP());
 			ToolUtility.SetGateError(tag, GlobleVar.TransferError,
 					ToolUtility.ConvertGateStr(tag) + "沒有綁定車輛，偵測到棧板" + tag.getTag_ID());
 		}
@@ -535,7 +588,8 @@ public class TagHandle {
 
 	private static void DeliveryLoad(RF_Tag_History tag, RF_Gate_Setting gate) {
 		String voiceText = "";
-		RF_ContainerInfo container = ToolUtility.GetContainerInfo(tag.getFab(), tag.getArea(), tag.getGate(),tag.getReader_IP());
+		RF_ContainerInfo container = ToolUtility.GetContainerInfo(tag.getFab(), tag.getArea(), tag.getGate(),
+				tag.getReader_IP());
 		if (container != null) {
 
 			RF_Pallet_Check markPallet = ToolUtility.GetMarkPallet(tag.getTag_ID(), container.getContainer_ID(),
@@ -562,9 +616,12 @@ public class TagHandle {
 							int allCount = ToolUtility.GetAllPallet(container, tag.getReader_IP()).size();
 							if (completeCount == allCount) {
 								// Delivery load complete.
-								ToolUtility.SignalTowerAutoOff(gate, GlobleVar.OrangeOn, 5, tag.getReader_IP());
-								ToolUtility.Subtitle(gate, ToolUtility.ConvertCarStr(container, tag.getReader_IP())
-										+ container.getContainer_ID() + "已裝載完成", tag.getReader_IP());
+								ToolUtility.SignalTowerAutoOff(gate.getFab(), gate.getArea(), gate.getGate(),
+										GlobleVar.OrangeOn, 5, tag.getReader_IP());
+								ToolUtility.Subtitle(gate.getFab(), gate.getArea(), gate.getGate(),
+										ToolUtility.ConvertCarStr(container, tag.getReader_IP())
+												+ container.getContainer_ID() + "已裝載完成",
+										tag.getReader_IP());
 
 								voiceText = "出貨" + ToolUtility.GetShipTo(container, tag.getReader_IP()) + " "
 										+ container.getVendor_Name() + "運輸 "
@@ -572,8 +629,9 @@ public class TagHandle {
 								ToolUtility.VoiceSend(gate.getVoice_Path(), voiceText, tag.getReader_IP());
 							} else {
 								// Not complete yet.
-								ToolUtility.SignalTowerAutoOff(gate, GlobleVar.GreenOn, 5, tag.getReader_IP());
-								ToolUtility.Subtitle(gate, "目前進度"
+								ToolUtility.SignalTowerAutoOff(gate.getFab(), gate.getArea(), gate.getGate(),
+										GlobleVar.GreenOn, 5, tag.getReader_IP());
+								ToolUtility.Subtitle(gate.getFab(), gate.getArea(), gate.getGate(), "目前進度"
 										+ (ToolUtility.GetCompletePallet(container, tag.getReader_IP()).size() + 1)
 										+ "/" + ToolUtility.GetAllPallet(container, tag.getReader_IP()).size(),
 										tag.getReader_IP());
@@ -589,12 +647,14 @@ public class TagHandle {
 								GlobleVar.ContainerMismatch) == null) {
 							ToolUtility.SetErrorPallet(tag, container, GlobleVar.DeliveryLoad,
 									GlobleVar.ContainerMismatch);
-							ToolUtility.SignalTower(gate, GlobleVar.RedOn, tag.getReader_IP());
-							String summary = ToolUtility.GetErrorPalletSummary(container,
-									GlobleVar.DeliveryLoad, tag.getReader_IP());
-							ToolUtility.Subtitle(gate, summary, tag.getReader_IP());
-							ToolUtility.SetGateError(tag, GlobleVar.DeliveryError, ToolUtility.ConvertGateStr(tag)
-									+ summary);
+							ToolUtility.SignalTower(gate.getFab(), gate.getArea(), gate.getGate(), GlobleVar.RedOn,
+									tag.getReader_IP());
+							String summary = ToolUtility.GetErrorPalletSummary(container, GlobleVar.DeliveryLoad,
+									tag.getReader_IP());
+							ToolUtility.Subtitle(gate.getFab(), gate.getArea(), gate.getGate(), summary,
+									tag.getReader_IP());
+							ToolUtility.SetGateError(tag, GlobleVar.DeliveryError,
+									ToolUtility.ConvertGateStr(tag) + summary);
 
 						}
 					}
@@ -603,10 +663,12 @@ public class TagHandle {
 					if (ToolUtility.GetErrorPallet(tag, container, GlobleVar.DeliveryLoad,
 							GlobleVar.WMSNotFound) == null) {
 						ToolUtility.SetErrorPallet(tag, container, GlobleVar.DeliveryLoad, GlobleVar.WMSNotFound);
-						ToolUtility.SignalTower(gate, GlobleVar.RedOn, tag.getReader_IP());
-						String summary = ToolUtility.GetErrorPalletSummary(container,
-								GlobleVar.DeliveryLoad, tag.getReader_IP());
-						ToolUtility.Subtitle(gate, summary, tag.getReader_IP());
+						ToolUtility.SignalTower(gate.getFab(), gate.getArea(), gate.getGate(), GlobleVar.RedOn,
+								tag.getReader_IP());
+						String summary = ToolUtility.GetErrorPalletSummary(container, GlobleVar.DeliveryLoad,
+								tag.getReader_IP());
+						ToolUtility.Subtitle(gate.getFab(), gate.getArea(), gate.getGate(), summary,
+								tag.getReader_IP());
 						ToolUtility.SetGateError(tag, GlobleVar.DeliveryError,
 								ToolUtility.ConvertGateStr(tag) + summary);
 
@@ -621,8 +683,9 @@ public class TagHandle {
 			}
 		} else {
 			// 此碼頭沒有綁定任何車輛
-			ToolUtility.SignalTower(gate, GlobleVar.RedOn, tag.getReader_IP());
-			ToolUtility.Subtitle(gate, "沒有綁定車輛，偵測到棧板" + tag.getTag_ID(), tag.getReader_IP());
+			ToolUtility.SignalTower(gate.getFab(), gate.getArea(), gate.getGate(), GlobleVar.RedOn, tag.getReader_IP());
+			ToolUtility.Subtitle(gate.getFab(), gate.getArea(), gate.getGate(), "沒有綁定車輛，偵測到棧板" + tag.getTag_ID(),
+					tag.getReader_IP());
 			ToolUtility.SetGateError(tag, GlobleVar.DeliveryError,
 					ToolUtility.ConvertGateStr(tag) + "沒有綁定車輛，偵測到棧板" + tag.getTag_ID());
 		}
@@ -640,9 +703,12 @@ public class TagHandle {
 				String newErrorMsg = ToolUtility.GetErrorPalletSummary(container, eachErrorPallet.getOpreation_Mode(),
 						tag.getReader_IP());
 				if (newErrorMsg != "") {
-					ToolUtility.SignalTowerAutoOff(gate, GlobleVar.GreenOn, 5, tag.getReader_IP());
-					ToolUtility.SignalTower(gate, GlobleVar.RedOn, tag.getReader_IP());
-					ToolUtility.Subtitle(gate, newErrorMsg, tag.getReader_IP());
+					ToolUtility.SignalTowerAutoOff(gate.getFab(), gate.getArea(), gate.getGate(), GlobleVar.GreenOn, 5,
+							tag.getReader_IP());
+					ToolUtility.SignalTower(gate.getFab(), gate.getArea(), gate.getGate(), GlobleVar.RedOn,
+							tag.getReader_IP());
+					ToolUtility.Subtitle(gate.getFab(), gate.getArea(), gate.getGate(), newErrorMsg,
+							tag.getReader_IP());
 				} else {
 					// All error pallet is clear
 					// Delete DeliveryError
@@ -653,21 +719,27 @@ public class TagHandle {
 							tag.getReader_IP());
 					if (gateError == null) {
 						// If gate error are not exist, reset gate information.
-						ToolUtility.SignalTower(gate, GlobleVar.RedOff, tag.getReader_IP());
-						ToolUtility.Subtitle(gate, ToolUtility.ConvertCarStr(container, tag.getReader_IP()) + "進入:"
-								+ container.getContainer_ID(), tag.getReader_IP());
+						ToolUtility.SignalTower(gate.getFab(), gate.getArea(), gate.getGate(), GlobleVar.RedOff,
+								tag.getReader_IP());
+						ToolUtility.Subtitle(gate.getFab(), gate.getArea(), gate.getGate(),
+								ToolUtility.ConvertCarStr(container, tag.getReader_IP()) + "進入:"
+										+ container.getContainer_ID(),
+								tag.getReader_IP());
 
 					} else {
 						// If any gate error exist
-						ToolUtility.SignalTower(gate, GlobleVar.RedOn, tag.getReader_IP());
-						ToolUtility.Subtitle(gate, gateError.getError_Message(), tag.getReader_IP());
+						ToolUtility.SignalTower(gate.getFab(), gate.getArea(), gate.getGate(), GlobleVar.RedOn,
+								tag.getReader_IP());
+						ToolUtility.Subtitle(gate.getFab(), gate.getArea(), gate.getGate(),
+								gateError.getError_Message(), tag.getReader_IP());
 					}
 				}
 
 			}
 		} else {
 			// String voiceText = "";
-			RF_ContainerInfo container = ToolUtility.GetContainerInfo(tag.getFab(), tag.getArea(), tag.getGate(),tag.getReader_IP());
+			RF_ContainerInfo container = ToolUtility.GetContainerInfo(tag.getFab(), tag.getArea(), tag.getGate(),
+					tag.getReader_IP());
 			if (container != null) {
 				// Check pallet in the container
 				WMS_T1_Check_Pallet pallet = ToolUtility.GetPalletChk(tag);
@@ -678,8 +750,9 @@ public class TagHandle {
 						// If not in container
 						if (pallet.getStatus().equals("TRUE")) {
 
-							ToolUtility.SignalTowerAutoOff(gate, GlobleVar.GreenOn, 5, tag.getReader_IP());
-							ToolUtility.Subtitle(gate,
+							ToolUtility.SignalTowerAutoOff(gate.getFab(), gate.getArea(), gate.getGate(),
+									GlobleVar.GreenOn, 5, tag.getReader_IP());
+							ToolUtility.Subtitle(gate.getFab(), gate.getArea(), gate.getGate(),
 									"目前進度" + (ToolUtility.GetCompletePallet(container, tag.getReader_IP()).size() - 1)
 											+ "/" + ToolUtility.GetAllPallet(container, tag.getReader_IP()).size(),
 									tag.getReader_IP());
@@ -719,8 +792,10 @@ public class TagHandle {
 				}
 			} else {
 				// 此碼頭沒有綁定任何車輛
-				ToolUtility.SignalTower(gate, GlobleVar.RedOn, tag.getReader_IP());
-				ToolUtility.Subtitle(gate, "沒有綁定車輛，偵測到棧板" + tag.getTag_ID(), tag.getReader_IP());
+				ToolUtility.SignalTower(gate.getFab(), gate.getArea(), gate.getGate(), GlobleVar.RedOn,
+						tag.getReader_IP());
+				ToolUtility.Subtitle(gate.getFab(), gate.getArea(), gate.getGate(), "沒有綁定車輛，偵測到棧板" + tag.getTag_ID(),
+						tag.getReader_IP());
 				ToolUtility.SetGateError(tag, GlobleVar.DeliveryError,
 						ToolUtility.ConvertGateStr(tag) + "沒有綁定車輛，偵測到棧板" + tag.getTag_ID());
 			}
@@ -734,7 +809,7 @@ public class TagHandle {
 		case GlobleVar.TruckTag:
 		case GlobleVar.ContainerTag:
 
-			if (ToolUtility.CheckPortBinding(tag)) {
+			if (ToolUtility.CheckPortBinding(tag.getFab(), tag.getArea(), tag.getGate(), tag.getReader_IP())) {
 				// get gateSetting object
 				RF_Gate_Setting gate = ToolUtility.GetGateSetting(tag.getFab(), tag.getArea(), tag.getGate(),
 						tag.getReader_IP());
@@ -790,31 +865,34 @@ public class TagHandle {
 
 		if (container == null) {
 
-			ToolUtility.SignalTower(gate, GlobleVar.RedOn, tag.getReader_IP());
-			ToolUtility.Subtitle(gate, "該車輛沒有進廠紀錄", tag.getReader_IP());
+			ToolUtility.SignalTower(gate.getFab(), gate.getArea(), gate.getGate(), GlobleVar.RedOn, tag.getReader_IP());
+			ToolUtility.Subtitle(gate.getFab(), gate.getArea(), gate.getGate(), "該車輛沒有進廠紀錄", tag.getReader_IP());
 			ToolUtility.SetGateError(tag, GlobleVar.NonEntryRecord, ToolUtility.ConvertGateStr(tag) + "，"
 					+ ToolUtility.ConvertCarStr(tag) + tag.getTag_ID() + "沒有進廠紀錄");
 		} else if (!container.getGate().equals("0")) {
-			ToolUtility.SignalTower(gate, GlobleVar.RedOn, tag.getReader_IP());
-			ToolUtility.Subtitle(gate, "靠碼頭失敗，該車輛目前被綁定在" + ToolUtility.ConvertGateStr(container, tag.getReader_IP()),
-					tag.getReader_IP());
+			ToolUtility.SignalTower(gate.getFab(), gate.getArea(), gate.getGate(), GlobleVar.RedOn, tag.getReader_IP());
+			ToolUtility.Subtitle(gate.getFab(), gate.getArea(), gate.getGate(),
+					"靠碼頭失敗，該車輛目前被綁定在" + ToolUtility.ConvertGateStr(container, tag.getReader_IP()), tag.getReader_IP());
 			ToolUtility.SetGateError(tag, GlobleVar.BindingError, tag.getTag_ID() + "無法綁定於"
 					+ ToolUtility.ConvertGateStr(tag) + "，因目前被綁定在" + ToolUtility.ConvertGateStr(tag));
 		} else {
 			// Bind start
+			gate.setManual_Bind(false);
+			ToolUtility.UpdateGateSetting(gate, tag.getReader_IP());
+
 			container.setFab(tag.getFab());
 			container.setArea(tag.getArea());
 			container.setGate(tag.getGate());
-			container.setManual_Bind(false);
 			ToolUtility.DeletePalletByCarID(container.getContainer_ID(), tag.getReader_IP());
 			ToolUtility.ClearErrorPallet(container, tag.getReader_IP());
 			// Update container object
 			ToolUtility.UpdateContainerInfo(container, tag.getReader_IP());
 			// Clear all pallet by this car ID
 
-			ToolUtility.SignalTowerAutoOff(gate, GlobleVar.GreenOn, 5, tag.getReader_IP());
-			ToolUtility.Subtitle(gate, ToolUtility.ConvertCarStr(tag) + "進入:" + container.getContainer_ID(),
+			ToolUtility.SignalTowerAutoOff(gate.getFab(), gate.getArea(), gate.getGate(), GlobleVar.GreenOn, 5,
 					tag.getReader_IP());
+			ToolUtility.Subtitle(gate.getFab(), gate.getArea(), gate.getGate(),
+					ToolUtility.ConvertCarStr(tag) + "進入:" + container.getContainer_ID(), tag.getReader_IP());
 
 			if (container.getCar_Type().equals(GlobleVar.TruckStr)) {
 				if (container.getReason() != null) {
@@ -845,7 +923,8 @@ public class TagHandle {
 
 	public static void PortUnBind(RF_Gate_Setting gate, RF_Tag_History tag) {
 		String voiceText = "";
-		RF_ContainerInfo container = ToolUtility.GetContainerInfo(tag.getFab(), tag.getArea(), tag.getGate(),tag.getReader_IP());
+		RF_ContainerInfo container = ToolUtility.GetContainerInfo(tag.getFab(), tag.getArea(), tag.getGate(),
+				tag.getReader_IP());
 
 		if (container != null) {
 
@@ -854,8 +933,10 @@ public class TagHandle {
 
 			if (notCompletePallets.size() != 0) {
 				// There are some pallet is not complete.
-				ToolUtility.SignalTower(gate, GlobleVar.RedOn, tag.getReader_IP());
-				ToolUtility.Subtitle(gate, container.getContainer_ID() + "尚未裝櫃完成即離場", tag.getReader_IP());
+				ToolUtility.SignalTower(gate.getFab(), gate.getArea(), gate.getGate(), GlobleVar.RedOn,
+						tag.getReader_IP());
+				ToolUtility.Subtitle(gate.getFab(), gate.getArea(), gate.getGate(),
+						container.getContainer_ID() + "尚未裝櫃完成即離場", tag.getReader_IP());
 				ToolUtility.SetGateError(tag, GlobleVar.LoadNotComplete, ToolUtility.ConvertGateStr(tag) + "，"
 						+ ToolUtility.ConvertCarStr(tag) + container.getContainer_ID() + "，尚未裝櫃完成即離場");
 
@@ -870,8 +951,10 @@ public class TagHandle {
 				ToolUtility.DeletePalletByCarID(container.getContainer_ID(), tag.getReader_IP());
 				ToolUtility.ClearErrorPallet(container, tag.getReader_IP());
 				ToolUtility.UpdateContainerInfo(container, tag.getReader_IP());
-				ToolUtility.SignalTowerAutoOff(gate, GlobleVar.GreenOn, 5, tag.getReader_IP());
-				ToolUtility.Subtitle(gate, container.getContainer_ID() + "已離開碼頭", tag.getReader_IP());
+				ToolUtility.SignalTowerAutoOff(gate.getFab(), gate.getArea(), gate.getGate(), GlobleVar.GreenOn, 5,
+						tag.getReader_IP());
+				ToolUtility.Subtitle(gate.getFab(), gate.getArea(), gate.getGate(),
+						container.getContainer_ID() + "已離開碼頭", tag.getReader_IP());
 
 				if (container.getCar_Type().equals(GlobleVar.TruckStr)) {
 					if (container.getReason() != null) {

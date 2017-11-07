@@ -36,7 +36,7 @@ public class RF_Cylinder_History {
 	}
 
 	/**
-	 * Tag ID (T1 T2)
+	 * Tag ID 
 	 */
 	@Column("tag_id")
 	private String Tag_ID;
