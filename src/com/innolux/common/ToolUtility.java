@@ -113,13 +113,12 @@ public class ToolUtility {
 			logger.debug("PortBinding msg:" + msg);
 
 			JSONObject org = new JSONObject(msg);
-			JSONObject each = new JSONObject(org.getString("setGateBind"));
-			String fab = each.getString("Fab");
-			String area = each.getString("Area");
-			String gate = each.getString("Gate");
-			String containerID = each.getString("ContainerID");
-			String carType = each.getString("CarType");
-			String Status = each.getString("Status");
+			String fab = org.getString("Fab");
+			String area = org.getString("Area");
+			String gate = org.getString("Gate");
+			String containerID = org.getString("ContainerID");
+			String carType = org.getString("CarType");
+			String Status = org.getString("Status");
 
 			switch (Status) {
 			case GlobleVar.BindContainer:

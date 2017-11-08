@@ -49,7 +49,7 @@ public class WebApiController {
 		
 	}
 	@POST
-	@Path("setGate")
+	@Path("PortBinding")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	public String setGate(InputStream is) throws JarException {

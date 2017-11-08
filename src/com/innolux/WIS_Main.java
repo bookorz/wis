@@ -68,4 +68,34 @@ public class WIS_Main {
 
 		timer.scheduleAtFixedRate(task, new Date(), period);
 	}
+	
+	private static void CylinderMonitor() {
+
+		Timer timer = new Timer();
+
+		// 5min
+		long period = 5 * 60 * 1000;
+		TimerTask task = new TimerTask() {
+			@Override
+			public void run() {
+
+				List<RF_Subtitle_Setting> subtitleList = ToolUtility.GetAllSubtitle();
+
+				for (RF_Subtitle_Setting eachSubtitle : subtitleList) {
+					if (eachSubtitle.getCust_Active()) {
+						if (System.currentTimeMillis() - eachSubtitle.getUpdate_Time() > (5 * 60 * 1000)) {
+							if (!eachSubtitle.getCurrent_Subtitle().equals(eachSubtitle.getCust_Subtitle())) {
+								ToolUtility.Subtitle(eachSubtitle.getFab(), eachSubtitle.getArea(),
+										eachSubtitle.getGate(), eachSubtitle.getCust_Subtitle(), "CustSubtileMonitor");
+							}
+						}
+
+					}
+				}
+
+			}
+		};
+
+		timer.scheduleAtFixedRate(task, new Date(), period);
+	}
 }
