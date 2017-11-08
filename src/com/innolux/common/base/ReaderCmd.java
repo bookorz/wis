@@ -125,6 +125,7 @@ public class ReaderCmd {
 				reader.setAutoMode(AlienClass1Reader.OFF);
 				reader.setNotifyMode(AlienClass1Reader.OFF);
 				reader.setNotifyAddress(InetAddress.getLocalHost().getHostAddress(), ReaderSet.getListen_Port());
+				
 				if (ReaderSet.getLocation().toUpperCase().equals("CYLINDER")) {
 
 					reader.setAntennaSequence("0 1 2 3");
@@ -147,7 +148,7 @@ public class ReaderCmd {
 					reader.setTagListCustomFormat(CustomFormatStr);
 
 				} else {
-					reader.notifyNow();
+					//reader.notifyNow();
 					//reader.setAntennaSequence("1 3 1 0 3 1 3 2");
 					reader.setAntennaSequence(ToolUtility.GetAntennaSequence(ReaderSet.getReader_IP()));
 					reader.setNotifyTrigger("OFF");
@@ -168,7 +169,8 @@ public class ReaderCmd {
 					CustomFormatStr = "${TAGIDW},${MSEC1},${MSEC2},${TX},${COUNT},${RSSI_MAX}";
 
 					reader.setTagListCustomFormat(CustomFormatStr);
-
+					logger.debug("notify address"  + reader.getNotifyAddress());
+					reader.notifyNow();
 				}
 				reader.saveSettings();
 				reader.close();

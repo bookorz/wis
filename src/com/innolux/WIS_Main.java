@@ -11,6 +11,8 @@ import com.innolux.model.RF_Reader_Setting;
 import com.innolux.model.RF_Subtitle_Setting;
 import com.innolux.receiver.AlienReader;
 import com.innolux.receiver.AlienReaderBySocket;
+import com.innolux.service.ReaderCmdService;
+import com.innolux.service.SubtitleService;
 
 public class WIS_Main {
 
@@ -23,7 +25,7 @@ public class WIS_Main {
 
 	private static void InitialReaders() {
 		List<RF_Reader_Setting> readerList = ToolUtility.GetAllReader();
-
+		SubtitleService.Initial();
 		for (RF_Reader_Setting eachReader : readerList) {
 			if(eachReader.getTest_Mode()==GlobleVar.TestMode && eachReader.getOn_Line()) {
 				switch (eachReader.getReader_Type()) {
@@ -37,6 +39,9 @@ public class WIS_Main {
 				}
 			}
 		}
+		
+		ReaderCmdService.Initial();
+		
 	}
 
 	private static void CustSubtileMonitor() {

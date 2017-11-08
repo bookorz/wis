@@ -17,7 +17,7 @@ public class SubtitleService {
 	private static Logger logger = Logger.getLogger(SubtitleService.class);
 	
 	
-	static{
+	public static void Initial(){
 		try {
 			GenericDao<RF_Subtitle_Setting> RF_Subtitle_Setting_Dao = new JdbcGenericDaoImpl<RF_Subtitle_Setting>(GlobleVar.WIS_DB);
 

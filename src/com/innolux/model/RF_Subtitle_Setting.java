@@ -129,7 +129,7 @@ public class RF_Subtitle_Setting {
         return Modify_Time;  
     }  
   
-    public void setUpdateTime(String Modify_Time) {  
+    public void setModify_Time(String Modify_Time) {  
         this.Modify_Time = Modify_Time;  
     }  
     

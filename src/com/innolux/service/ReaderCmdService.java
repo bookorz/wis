@@ -18,15 +18,14 @@ public class ReaderCmdService {
 	
 	
 
-	static {
+	public static void Initial(){
 		try {
-			GenericDao<RF_Reader_Setting> RF_Reader_Setting_Dao = new JdbcGenericDaoImpl<RF_Reader_Setting>(
-					GlobleVar.WIS_DB);
+			
 
-			List<RF_Reader_Setting> result = RF_Reader_Setting_Dao.findAllByConditions(null, RF_Reader_Setting.class);
+			List<RF_Reader_Setting> result = ToolUtility.GetAllReader();
 			for (RF_Reader_Setting eachReader : result) {
 				if(eachReader.getTest_Mode()==GlobleVar.TestMode && eachReader.getOn_Line()) {
-					if (readerList.containsKey(eachReader.getReader_IP())) {
+					if (!readerList.containsKey(eachReader.getReader_IP())) {
 						readerList.put(eachReader.getReader_IP(), new ReaderCmd(eachReader));	
 					}
 				}

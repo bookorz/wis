@@ -17,9 +17,9 @@ public class GlobleVar {
 
 	// Subject
 	public static final String TibDaemon = "172.20.8.13:8585";
-	public static final String ListenFromWMS = "INNOLUX.T2.PROD.WMS.DIS.RECEIVE";
-	public static final String SendToWMS = "INNOLUX.T2.PROD.WMS.DIS.SEND";
-	public static final String SendToAMS = "INNOLUX.T2.PROD.ALM.WIS";
+	public static final String ListenFromWMS = "INNOLUX.T2.TST.WMS.DIS.RECEIVE";
+	public static final String SendToWMS = "INNOLUX.T2.TST.WMS.DIS.SEND";
+	public static final String SendToAMS = "INNOLUX.T2.TST.ALM.WIS";
 
 	public static JdbcDaoHelper WIS_DB = new JdbcDaoHelper(GlobleVar.WISConnectionStr, GlobleVar.WISUser,
 			GlobleVar.WISPwd, 3);

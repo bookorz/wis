@@ -19,9 +19,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
 
+import org.apache.log4j.Logger;
+
 import com.innolux.annotation.Column;
 import com.innolux.annotation.Entity;
 import com.innolux.annotation.Id;
+import com.innolux.receiver.WebApiController;
 
 /**
  * 泛型DAO的JDBC實現
@@ -29,6 +32,7 @@ import com.innolux.annotation.Id;
  */
 public class JdbcGenericDaoImpl<T> implements GenericDao<T> {
 
+	private Logger logger =Logger.getLogger(JdbcGenericDaoImpl.class); 
 	// 表的別名
 	private static final String TABLE_ALIAS = "t";
 
@@ -75,7 +79,8 @@ public class JdbcGenericDaoImpl<T> implements GenericDao<T> {
 		ps.execute();
 		DBConn.release(conn, ps, null);
 
-		System.out.println(sql + "\n" + clazz.getSimpleName() + "添加成功!");
+		//System.out.println(sql + "\n" + clazz.getSimpleName() + "添加成功!");
+		logger.debug(sql + "\n" + clazz.getSimpleName() + "添加成功!");
 	}
 
 	@Override
@@ -106,7 +111,8 @@ public class JdbcGenericDaoImpl<T> implements GenericDao<T> {
 		ps.execute();
 		DBConn.release(conn, ps, null);
 
-		System.out.println(sql + "\n" + clazz.getSimpleName() + "刪除成功!");
+		//System.out.println(sql + "\n" + clazz.getSimpleName() + "刪除成功!");
+		logger.debug(sql + "\n" + clazz.getSimpleName() + "刪除成功!");
 	}
 
 	@Override
@@ -155,7 +161,8 @@ public class JdbcGenericDaoImpl<T> implements GenericDao<T> {
 		ps.execute();
 		DBConn.release(conn, ps, null);
 
-		System.out.println(sql + "\n" + clazz.getSimpleName() + "修改成功.");
+		//System.out.println(sql + "\n" + clazz.getSimpleName() + "修改成功.");
+		logger.debug(sql + "\n" + clazz.getSimpleName() + "修改成功.");
 	}
 
 	@Override
@@ -240,7 +247,9 @@ public class JdbcGenericDaoImpl<T> implements GenericDao<T> {
 		// 釋放資源
 		DBConn.release(conn, ps, rs);
 
-		System.out.println(sql);
+		//System.out.println(sql);
+		logger.debug(sql);
+		logger.debug(list.toString());
 		return list;
 	}
 
@@ -280,7 +289,8 @@ public class JdbcGenericDaoImpl<T> implements GenericDao<T> {
 		// 釋放資源
 		DBConn.release(conn, ps, null);
 
-		System.out.println(sql);
+		//System.out.println(sql);
+		logger.debug(sql);
 		return list;
 	}	
 
@@ -333,6 +343,7 @@ public class JdbcGenericDaoImpl<T> implements GenericDao<T> {
 			return null;
 		List<Object> list = new ArrayList<Object>();
 		List<Object> fieldValues = new ArrayList<Object>();
+		logger.debug(sqlWhereMap.toString());
 		StringBuffer sqlWhere = new StringBuffer(" where ");
 		Set<Entry<String, Object>> entrySets = sqlWhereMap.entrySet();
 		for (Iterator<Entry<String, Object>> iteraotr = entrySets.iterator(); iteraotr.hasNext();) {
@@ -383,6 +394,7 @@ public class JdbcGenericDaoImpl<T> implements GenericDao<T> {
 	 * 設置SQL參數佔位符的值
 	 */
 	private void setParameter(List<Object> values, PreparedStatement ps, boolean isSearch) throws SQLException {
+		logger.debug(values.toString());
 		for (int i = 1; i <= values.size(); i++) {
 			Object fieldValue = values.get(i - 1);
 			Class<?> clazzValue = fieldValue.getClass();
