@@ -7,7 +7,7 @@ import com.innolux.annotation.Entity;
 import com.innolux.annotation.Id;  
   
 
-@Entity("rf_containerinfo_test")   //表名  
+@Entity("rf_containerinfo")   //表名  
 public class RF_ContainerInfo {  
   
     /** 
@@ -305,8 +305,11 @@ public class RF_ContainerInfo {
     }  
     
     public String getProcess_StartString(){
-    	
-    	return new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Process_Start);
+    	String result = "";
+    	if(Process_Start!=null) {
+    		result = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Process_Start);
+    	}
+    	return result;
     }
     
     /** 
@@ -321,11 +324,16 @@ public class RF_ContainerInfo {
   
     public void setProcess_End(Date Process_End) {  
         this.Process_End = Process_End;  
+
     }  
     
     public String getProcess_EndString(){
+        String result = "";
+    	if(Process_End!=null) {
+    		result = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Process_End);
+    	}
+    	return result;
     	
-    	return new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Process_Start);
     }
     
     /** 
@@ -348,7 +356,7 @@ public class RF_ContainerInfo {
     @Column("current_operation")  
     private String Current_Operation;
     
-    public String getv() {  
+    public String getCurrent_Operation() {  
         return Current_Operation;  
     }  
   

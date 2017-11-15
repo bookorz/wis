@@ -24,6 +24,7 @@ import org.apache.log4j.Logger;
 import com.innolux.annotation.Column;
 import com.innolux.annotation.Entity;
 import com.innolux.annotation.Id;
+import com.innolux.common.ToolUtility;
 import com.innolux.receiver.WebApiController;
 
 /**
@@ -32,7 +33,7 @@ import com.innolux.receiver.WebApiController;
  */
 public class JdbcGenericDaoImpl<T> implements GenericDao<T> {
 
-	private Logger logger =Logger.getLogger(JdbcGenericDaoImpl.class); 
+	private Logger logger = Logger.getLogger(JdbcGenericDaoImpl.class);
 	// 表的別名
 	private static final String TABLE_ALIAS = "t";
 
@@ -55,13 +56,17 @@ public class JdbcGenericDaoImpl<T> implements GenericDao<T> {
 		for (Field field : fields) {
 			PropertyDescriptor pd = new PropertyDescriptor(field.getName(), t.getClass());
 			if (field.isAnnotationPresent(Id.class)) {
-				fieldNames.append(field.getAnnotation(Id.class).value()).append(",");
-				fieldValues.add(pd.getReadMethod().invoke(t));
+				if (!field.getAnnotation(Id.class).value().equals("id")) {
+					fieldNames.append(field.getAnnotation(Id.class).value()).append(",");
+					fieldValues.add(pd.getReadMethod().invoke(t));
+					placeholders.append("?").append(",");
+				}
 			} else if (field.isAnnotationPresent(Column.class)) {
 				fieldNames.append(field.getAnnotation(Column.class).value()).append(",");
 				fieldValues.add(pd.getReadMethod().invoke(t));
+				placeholders.append("?").append(",");
 			}
-			placeholders.append("?").append(",");
+
 		}
 		// 刪除最後一個逗號
 		fieldNames.deleteCharAt(fieldNames.length() - 1);
@@ -76,10 +81,11 @@ public class JdbcGenericDaoImpl<T> implements GenericDao<T> {
 		// 設置SQL參數佔位符的值
 		setParameter(fieldValues, ps, false);
 		// 執行SQL
+		logger.debug(sql);
 		ps.execute();
 		DBConn.release(conn, ps, null);
 
-		//System.out.println(sql + "\n" + clazz.getSimpleName() + "添加成功!");
+		// System.out.println( clazz.getSimpleName() + "添加成功!");
 		logger.debug(sql + "\n" + clazz.getSimpleName() + "添加成功!");
 	}
 
@@ -111,7 +117,7 @@ public class JdbcGenericDaoImpl<T> implements GenericDao<T> {
 		ps.execute();
 		DBConn.release(conn, ps, null);
 
-		//System.out.println(sql + "\n" + clazz.getSimpleName() + "刪除成功!");
+		// System.out.println(sql + "\n" + clazz.getSimpleName() + "刪除成功!");
 		logger.debug(sql + "\n" + clazz.getSimpleName() + "刪除成功!");
 	}
 
@@ -133,9 +139,11 @@ public class JdbcGenericDaoImpl<T> implements GenericDao<T> {
 				idFieldName = field.getAnnotation(Id.class).value();
 				idFieldValue = pd.getReadMethod().invoke(t);
 			} else if (field.isAnnotationPresent(Column.class)) {
-				fieldNames.add(field.getAnnotation(Column.class).value());
-				fieldValues.add(pd.getReadMethod().invoke(t));
-				placeholders.add("?");
+				if(pd.getReadMethod().invoke(t)!=null) {
+					fieldNames.add(field.getAnnotation(Column.class).value());
+					fieldValues.add(pd.getReadMethod().invoke(t));
+					placeholders.add("?");
+				}
 			}
 		}
 		// ID作為更新條件，放在集合中的最後一個元素
@@ -161,7 +169,7 @@ public class JdbcGenericDaoImpl<T> implements GenericDao<T> {
 		ps.execute();
 		DBConn.release(conn, ps, null);
 
-		//System.out.println(sql + "\n" + clazz.getSimpleName() + "修改成功.");
+		// System.out.println(sql + "\n" + clazz.getSimpleName() + "修改成功.");
 		logger.debug(sql + "\n" + clazz.getSimpleName() + "修改成功.");
 	}
 
@@ -237,17 +245,27 @@ public class JdbcGenericDaoImpl<T> implements GenericDao<T> {
 		}
 
 		// 執行SQL
-		ResultSet rs = ps.executeQuery();
-		while (rs.next()) {
-			T t = clazz.newInstance();
-			initObject(t, fields, rs);
-			list.add(t);
+		ResultSet rs = null;
+		try {
+			rs = ps.executeQuery();
+			while (rs.next()) {
+				T t = clazz.newInstance();
+				initObject(t, fields, rs);
+				list.add(t);
+
+			}
+			// 釋放資源
+			DBConn.release(conn, ps, rs);
+		} catch (Exception e) {
+			// 釋放資源
+			DBConn.release(conn, ps, rs);
+			logger.debug(ToolUtility.StackTrace2String(e) + " : " + sql);
+			throw new Exception(ToolUtility.StackTrace2String(e));
+		} finally {
+
 		}
 
-		// 釋放資源
-		DBConn.release(conn, ps, rs);
-
-		//System.out.println(sql);
+		// System.out.println(sql);
 		logger.debug(sql);
 		logger.debug(list.toString());
 		return list;
@@ -289,10 +307,10 @@ public class JdbcGenericDaoImpl<T> implements GenericDao<T> {
 		// 釋放資源
 		DBConn.release(conn, ps, null);
 
-		//System.out.println(sql);
+		// System.out.println(sql);
 		logger.debug(sql);
 		return list;
-	}	
+	}
 
 	/**
 	 * 根據結果集初始化對像
@@ -300,34 +318,38 @@ public class JdbcGenericDaoImpl<T> implements GenericDao<T> {
 	private void initObject(T t, Field[] fields, ResultSet rs)
 			throws SQLException, IntrospectionException, IllegalAccessException, InvocationTargetException {
 		for (Field field : fields) {
-			String propertyName = field.getName();
-			Object paramVal = null;
-			Class<?> clazzField = field.getType();
-			if (clazzField == String.class) {
-				paramVal = rs.getString(propertyName);
-			} else if (clazzField == short.class || clazzField == Short.class) {
-				paramVal = rs.getShort(propertyName);
-			} else if (clazzField == int.class || clazzField == Integer.class) {
-				paramVal = rs.getInt(propertyName);
-			} else if (clazzField == long.class || clazzField == Long.class) {
-				paramVal = rs.getLong(propertyName);
-			} else if (clazzField == float.class || clazzField == Float.class) {
-				paramVal = rs.getFloat(propertyName);
-			} else if (clazzField == double.class || clazzField == Double.class) {
-				paramVal = rs.getDouble(propertyName);
-			} else if (clazzField == boolean.class || clazzField == Boolean.class) {
-				paramVal = rs.getBoolean(propertyName);
-			} else if (clazzField == byte.class || clazzField == Byte.class) {
-				paramVal = rs.getByte(propertyName);
-			} else if (clazzField == char.class || clazzField == Character.class) {
-				paramVal = rs.getCharacterStream(propertyName);
-			} else if (clazzField == Date.class) {
-				paramVal = rs.getTimestamp(propertyName);
-			} else if (clazzField.isArray()) {
-				paramVal = rs.getString(propertyName).split(","); // 以逗號分隔的字符串
+			try {
+				String propertyName = field.getName();
+				Object paramVal = null;
+				Class<?> clazzField = field.getType();
+				if (clazzField == String.class) {
+					paramVal = rs.getString(propertyName);
+				} else if (clazzField == short.class || clazzField == Short.class) {
+					paramVal = rs.getShort(propertyName);
+				} else if (clazzField == int.class || clazzField == Integer.class) {
+					paramVal = rs.getInt(propertyName);
+				} else if (clazzField == long.class || clazzField == Long.class) {
+					paramVal = rs.getLong(propertyName);
+				} else if (clazzField == float.class || clazzField == Float.class) {
+					paramVal = rs.getFloat(propertyName);
+				} else if (clazzField == double.class || clazzField == Double.class) {
+					paramVal = rs.getDouble(propertyName);
+				} else if (clazzField == boolean.class || clazzField == Boolean.class) {
+					paramVal = rs.getBoolean(propertyName);
+				} else if (clazzField == byte.class || clazzField == Byte.class) {
+					paramVal = rs.getByte(propertyName);
+				} else if (clazzField == char.class || clazzField == Character.class) {
+					paramVal = rs.getCharacterStream(propertyName);
+				} else if (clazzField == Date.class) {
+					paramVal = rs.getTimestamp(propertyName);
+				} else if (clazzField.isArray()) {
+					paramVal = rs.getString(propertyName).split(","); // 以逗號分隔的字符串
+				}
+				PropertyDescriptor pd = new PropertyDescriptor(propertyName, t.getClass());
+				pd.getWriteMethod().invoke(t, paramVal);
+			} catch (Exception e) {
+				//logger.debug(ToolUtility.StackTrace2String(e));
 			}
-			PropertyDescriptor pd = new PropertyDescriptor(propertyName, t.getClass());
-			pd.getWriteMethod().invoke(t, paramVal);
 		}
 	}
 
@@ -351,23 +373,23 @@ public class JdbcGenericDaoImpl<T> implements GenericDao<T> {
 			fieldValues.add(entrySet.getValue());
 			Object value = entrySet.getValue();
 			if (value.getClass() == String.class) {
-				if(entrySet.getKey().indexOf(",")!= -1) {
+				if (entrySet.getKey().indexOf(",") != -1) {
 					String[] tmpKeyAry = entrySet.getKey().split(",");
-					if(tmpKeyAry.length<2) {
+					if (tmpKeyAry.length < 2) {
 						continue;
 					}
 					sqlWhere.append(tmpKeyAry[0]).append(tmpKeyAry[1]).append("?").append(" and ");
-				}else {
+				} else {
 					sqlWhere.append(entrySet.getKey()).append("=").append("?").append(" and ");
 				}
 			} else {
-				if(entrySet.getKey().indexOf(",")!= -1) {
+				if (entrySet.getKey().indexOf(",") != -1) {
 					String[] tmpKeyAry = entrySet.getKey().split(",");
-					if(tmpKeyAry.length<2) {
+					if (tmpKeyAry.length < 2) {
 						continue;
 					}
 					sqlWhere.append(tmpKeyAry[0]).append(tmpKeyAry[1]).append("?").append(" and ");
-				}else {
+				} else {
 					sqlWhere.append(entrySet.getKey()).append("=").append("?").append(" and ");
 				}
 			}
@@ -410,6 +432,8 @@ public class JdbcGenericDaoImpl<T> implements GenericDao<T> {
 				ps.setByte(i, (Byte) fieldValue);
 			} else if (clazzValue == char.class || clazzValue == Character.class) {
 				ps.setObject(i, fieldValue, Types.CHAR);
+			} else if (clazzValue == int.class || clazzValue == Character.class) {
+				ps.setInt(i, (int)fieldValue);
 			} else if (clazzValue == Date.class) {
 				ps.setTimestamp(i, new Timestamp(((Date) fieldValue).getTime()));
 			} else if (clazzValue.isArray()) {
@@ -421,6 +445,7 @@ public class JdbcGenericDaoImpl<T> implements GenericDao<T> {
 				ps.setString(i, sb.deleteCharAt(sb.length() - 1).toString());
 			} else {
 				ps.setObject(i, fieldValue, Types.NUMERIC);
+				
 			}
 		}
 	}

@@ -23,7 +23,7 @@ public class SubtitleService {
 
 			List<RF_Subtitle_Setting> result = RF_Subtitle_Setting_Dao.findAllByConditions(null, RF_Subtitle_Setting.class);
 			for(RF_Subtitle_Setting eachsubtitle:result){
-				if(subtitleList.containsKey(eachsubtitle.getSubtitle_IP())){
+				if(!subtitleList.containsKey(eachsubtitle.getSubtitle_IP())){
 					subtitleList.put(eachsubtitle.getSubtitle_IP(), new Subtitle(eachsubtitle));
 				}
 			}

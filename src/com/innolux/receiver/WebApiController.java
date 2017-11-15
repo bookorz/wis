@@ -30,6 +30,24 @@ public class WebApiController {
 	public String test() {
 		return "Test";
 	}
+	
+	@POST
+	@Path("SetSignalTower")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	public String SetSignalTower(InputStream is) throws JarException {
+		String msg = "";
+		if (is != null) {
+			msg = ConvertToString(is);
+		} else {
+			new JSONObject().put("statuscode", 500).put("Message", "content is null").toString();
+		}
+		
+		ResponseBase<String> response = ToolUtility.SetSignalTower(msg);
+			
+		return new JSONObject().put("statuscode", response.getStatus()).put("Message", response.getMessage()).toString();
+		
+	}
 
 	@POST
 	@Path("setcaption")
@@ -52,7 +70,7 @@ public class WebApiController {
 	@Path("PortBinding")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	public String setGate(InputStream is) throws JarException {
+	public String PortBinding(InputStream is) throws JarException {
 		String msg = "";
 		if (is != null) {
 			msg = ConvertToString(is);
@@ -116,6 +134,7 @@ public class WebApiController {
 				buffer.append((char) ch);
 			}
 			in.close();
+			result = buffer.toString();
 		} catch (IOException e) {
 			logger.error("ConvertToString "+ToolUtility.StackTrace2String(e));
 		}

@@ -5,6 +5,7 @@ import java.util.Calendar;
 import org.apache.log4j.Logger;
 
 import com.innolux.common.GlobleVar;
+import com.innolux.common.MessageFormat;
 import com.innolux.common.ToolUtility;
 import com.innolux.interfaces.ITibcoRvListenService;
 import com.innolux.model.RF_ContainerInfo;
@@ -55,7 +56,7 @@ public class WMS_Message implements ITibcoRvListenService {
 			ToolUtility.Subtitle(fab, area, gate,
 					ToolUtility.ConvertCarStr(container, "RV") + "進入:" + container.getContainer_ID(), "RV");
 
-			ToolUtility.MesDaemon.sendMessage(ToolUtility.ReplyRfidErrorReset(fab, area, gate, palletStr, empno,
+			ToolUtility.MesDaemon.sendMessage(MessageFormat.ReplyRfidErrorReset(fab, area, gate, palletStr, empno,
 					container.getContainer_ID(), "RV"), GlobleVar.SendToWMS);
 
 			break;

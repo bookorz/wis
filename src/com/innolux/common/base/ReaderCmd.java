@@ -43,9 +43,11 @@ public class ReaderCmd {
 	public synchronized boolean TimeSync() {
 		boolean result = false;
 		try {
-			reader.open();
+			if(!reader.isOpen()) {
+				reader.open();
+			}
 			reader.setTime();
-			reader.close();
+			
 			result = true;
 		} catch (Exception e) {
 			
@@ -57,9 +59,13 @@ public class ReaderCmd {
 	public synchronized boolean Send(String cmdStr) {
 		boolean result = false;
 		try {
-			reader.open();
+			logger.debug(ReaderSet.getReader_IP() + " Send cmd:"+cmdStr);
+			if(!reader.isOpen()) {
+				reader.open();
+			}
+			
 			reader.macroRun(cmdStr);
-			reader.close();
+			
 			result = true;
 		} catch (Exception e) {
 			
@@ -81,12 +87,14 @@ public class ReaderCmd {
 					RF_Antenna_Setting.class);
 
 			if (antSets.size() != 0) {
-				reader.open();
+				if(!reader.isOpen()) {
+					reader.open();
+				}
 				for (RF_Antenna_Setting eachSet : antSets) {
 					reader.setRFAttenuation(eachSet.getAntenna_No(), eachSet.getRFAttenuation());
 				}
 				reader.saveSettings();
-				reader.close();
+				
 			}
 			result = true;
 		} catch (Exception e) {
@@ -101,9 +109,11 @@ public class ReaderCmd {
 		try {
 			if (reader != null) {
 
-				reader.open();				
+				if(!reader.isOpen()) {
+					reader.open();
+				}	
 				reader.setAntennaSequence(ToolUtility.GetAntennaSequence(ReaderSet.getReader_IP()));
-				reader.close();
+				
 				result = true;
 			} else {
 				logger.error(ReaderSet.getReader_IP() + " " + "reader is null");
@@ -121,7 +131,9 @@ public class ReaderCmd {
 			
 			if (reader != null) {
 
-				reader.open();
+				if(!reader.isOpen()) {
+					reader.open();
+				}
 				reader.setAutoMode(AlienClass1Reader.OFF);
 				reader.setNotifyMode(AlienClass1Reader.OFF);
 				reader.setNotifyAddress(InetAddress.getLocalHost().getHostAddress(), ReaderSet.getListen_Port());
@@ -173,7 +185,7 @@ public class ReaderCmd {
 					reader.notifyNow();
 				}
 				reader.saveSettings();
-				reader.close();
+			
 			} else {
 				logger.error(ReaderSet.getReader_IP() + " " + "reader is null");
 			}

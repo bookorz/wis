@@ -8,6 +8,21 @@ import com.innolux.annotation.Id;
 
 @Entity("rf_pallet_check") // 表名
 public class RF_Pallet_Check { 
+	
+	/**
+	 * ID
+	 */
+	@Id("id")
+	private String ID;
+
+	public String getID() {
+		return ID;
+	}
+
+	public void setID(String ID) {
+		this.ID = ID;
+	}
+	
 	/** 
      * Container ID
      */  
@@ -25,7 +40,7 @@ public class RF_Pallet_Check {
     /** 
      * Pallet ID
      */  
-	@Id("pallet_id")  
+    @Column("pallet_id")  
     private String Pallet_ID;  
 	
 	public String getPallet_ID() {  
@@ -95,30 +110,25 @@ public class RF_Pallet_Check {
 	/**
 	 * TimeStamp
 	 */
-	@Column("timestamp")
-	private Date TimeStamp;
+	@Column("UpdateTime")
+	private String UpdateTime;
 	
-	public Date getTimeStamp() {  
-        return TimeStamp;  
+	public String getUpdateTime() {  
+        return UpdateTime;  
     }  
   
-    public void setTimeStamp(Date TimeStamp) {  
-        this.TimeStamp = TimeStamp;  
+    public void setUpdateTime(String UpdateTime) {  
+        this.UpdateTime = UpdateTime;  
     }  
-    
-    public String getTimeStampString(){
-    	
-    	return new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(TimeStamp);
-    }
     
     @Override  
     public String toString() {  
-        return "Container_ID: " + Container_ID + 
+        return "ID: " + ID +" Container_ID: " + Container_ID + 
         		" Pallet_ID: " + Pallet_ID+
         		" In_Container: " + In_Container+
         		" Opreation_Mode: " + Opreation_Mode+       		
         		" Position: " + Position+
         		" DN_No: " + DN_No+
-        		" TimeStamp: " + getTimeStampString();   		
+        		" UpdateTime: " + UpdateTime;   		
     }  
 }

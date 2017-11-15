@@ -105,8 +105,12 @@ public class RF_Gate_Error {
 	}
 
 	public String getTimeStampString() {
-
-		return new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(TimeStamp);
+		String result = "";
+    	if(TimeStamp!=null) {
+    		result = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(TimeStamp);
+    	}
+    	return result;
+	
 	}
 
 	@Override

@@ -29,7 +29,7 @@ public class AlienReader implements MessageListener {
 		Initial();
 
 		MessageListenerService service = new MessageListenerService(setting.getListen_Port());
-
+		logger.debug("setting.getListen_Port()" + setting.getListen_Port());
 		service.setMessageListener(this);
 		try {
 			service.startService();
@@ -115,6 +115,10 @@ public class AlienReader implements MessageListener {
 
 			for (RF_Antenna_Setting eachAnt : ToolUtility.GetAntSettingList(setting.getReader_IP())) {
 				if (!antSetting.containsKey(eachAnt.getAntenna_No())) {
+					if(eachAnt.getAntenna_Type().equals(GlobleVar.ANT_Pallet)) {
+						eachAnt.setActive(false);
+						ToolUtility.UpdateAntSetting(eachAnt, setting.getReader_IP());
+					}
 					antSetting.put(eachAnt.getAntenna_No(), eachAnt);
 				}
 			}

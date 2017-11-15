@@ -78,8 +78,12 @@ public class RF_Cylinder_History {
 	}
 	
 	public String getUpdateTimeString(){
+		String result = "";
+    	if(UpdateTime!=null) {
+    		result = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(UpdateTime);
+    	}
+    	return result;
     	
-    	return new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(UpdateTime);
     }
 	
 	/**

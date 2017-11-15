@@ -77,20 +77,7 @@ public class RF_Gate_Setting {
 		this.Share_Gate = Share_Gate;
 	}
 
-	/**
-	 * SignalTower Name
-	 */
-	@Column("signaltower_name")
-	private String SignalTower_Name;
-
-	public String getSignalTower_Name() {
-		return SignalTower_Name;
-	}
-
-	public void setSignalTower_Name(String SignalTower_Name) {
-		this.SignalTower_Name = SignalTower_Name;
-	}
-
+	
 	/**
 	 * For car binding to gate use
 	 */
@@ -160,6 +147,20 @@ public class RF_Gate_Setting {
 	public void setForkLift_Direction(String ForkLift_Direction) {
 		this.ForkLift_Direction = ForkLift_Direction;
 	}
+	
+	/**
+	 * For forklift use
+	 */
+	@Column("direction_reporttime")
+	private long Direction_ReportTime;
+
+	public long getDirection_ReportTime() {
+		return Direction_EndTime;
+	}
+
+	public void setDirection_ReportTime(long Direction_ReportTime) {
+		this.Direction_ReportTime = Direction_ReportTime;
+	}
 
 	/**
 	 * For forklift use
@@ -167,7 +168,7 @@ public class RF_Gate_Setting {
 	@Column("direction_starttime")
 	private long Direction_StartTime;
 
-	public long geDirection_StartTime() {
+	public long getDirection_StartTime() {
 		return Direction_StartTime;
 	}
 
@@ -206,7 +207,7 @@ public class RF_Gate_Setting {
 	@Override
 	public String toString() {
 		return "ID: " + ID + " Fab: " + Fab + " Area: " + Area + " Gate: " + Gate + " Share_Gate: " + Share_Gate
-				+ " SignalTower_Name: " + SignalTower_Name + " Mark_Tag: " + Mark_Tag + " Last_MarkTag_Time: "
+				 + " Mark_Tag: " + Mark_Tag + " Last_MarkTag_Time: "
 				+ Last_MarkTag_Time + " Last_ContainerTag_Time: " + Last_ContainerTag_Time + " Voice_Path: "
 				+ Voice_Path + " ForkLift_Direction: " + ForkLift_Direction + " Direction_StartTime: "
 				+ Direction_StartTime + " Direction_EndTime: " + Direction_EndTime + " Manual_Bind: " + Manual_Bind;

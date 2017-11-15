@@ -144,13 +144,39 @@ public class RF_Antenna_Setting {
 		this.Active = Active;
 	}
 	
+	/**
+	 * ModifyUser
+	 */
+	@Column("modifyuser")
+	private String ModifyUser;
+
+	public String getModifyUser() {
+		return ModifyUser;
+	}
+
+	public void setModifyUser(String ModifyUser) {
+		this.ModifyUser = ModifyUser;
+	}
 	
+	/**
+	 * ModifyTime
+	 */
+	@Column("modifytime")
+	private String ModifyTime;
+
+	public String getModifyTime() {
+		return ModifyTime;
+	}
+
+	public void setModifyTime(String ModifyTime) {
+		this.ModifyTime = ModifyTime;
+	}
 
 	@Override
 	public String toString() {
 		return "ID: " + ID +" Reader_IP: " + Reader_IP + " Antenna_No: " + Antenna_No + " Antenna_Type: " + Antenna_Type + " Fab: "
 				+ Fab + " Area: " + Area + " Gate: " + Gate + " Setting_ID: " + Setting_ID + " RFAttenuation: "
-				+ RFAttenuation + " Active: " + Active;
+				+ RFAttenuation + " Active: " + Active+ " ModifyUser: " + ModifyUser+ " ModifyTime: " + ModifyTime;
 
 	}
 }

@@ -21,17 +21,45 @@ public class RF_Error_Pallet {
 	}
 
 	/**
-	 * Container ID
+	 * Fab (T1 T2)
 	 */
-	@Column("container_id")
-	private String Container_ID;
+	@Column("fab")
+	private String Fab;
 
-	public String getContainer_ID() {
-		return Container_ID;
+	public String getFab() {
+		return Fab;
 	}
 
-	public void setContainer_ID(String Container_ID) {
-		this.Container_ID = Container_ID;
+	public void setFab(String Fab) {
+		this.Fab = Fab;
+	}
+
+	/**
+	 * Area (Receive, Delivery, Cylinders, CentralParking)
+	 */
+	@Column("area")
+	private String Area;
+
+	public String getArea() {
+		return Area;
+	}
+
+	public void setArea(String Area) {
+		this.Area = Area;
+	}
+
+	/**
+	 * Gate
+	 */
+	@Column("gate")
+	private String Gate;
+
+	public String getGate() {
+		return Gate;
+	}
+
+	public void setGate(String Gate) {
+		this.Gate = Gate;
 	}
 
 	/**
@@ -91,13 +119,17 @@ public class RF_Error_Pallet {
 	}
 
 	public String getTimeStampString() {
-
-		return new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(TimeStamp);
+		String result = "";
+    	if(TimeStamp!=null) {
+    		result = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(TimeStamp);
+    	}
+    	return result;
+		
 	}
 
 	@Override
 	public String toString() {
-		return "ID: " + ID + "Container_ID: " + Container_ID + " Pallet_ID: " + Pallet_ID + " Reason: "
+		return "ID: " + ID + " Fab: " + Fab + " Area: " + Area + " Gate: " + Gate + " Pallet_ID: " + Pallet_ID + " Reason: "
 				+ Reason + " Opreation_Mode: " + Opreation_Mode + " TimeStamp: " + getTimeStampString();
 	}
 }

@@ -15,7 +15,6 @@ public class TagParser {
 	public Logger logger = Logger.getLogger(TagParser.class);
 
 
-	@SuppressWarnings("unlikely-arg-type")
 	public List<RF_Tag_History> Parse(String Raw_Str, Hashtable<Integer, RF_Antenna_Setting> antSetting) {
 		List<RF_Tag_History> result = new ArrayList<RF_Tag_History>();
 		String[] TagListStr = Raw_Str.split("\n");
@@ -33,13 +32,14 @@ public class TagParser {
 					// eachTag.setReceiveAntenna(Attributes[3]);
 					// eachTag.setRenewCount(Attributes[4]);
 					// eachTag.setRSSI(Attributes[5]);
-
-					ant = antSetting.get(Attributes[3]);
+					tag.setAntenna_No(Integer.parseInt(Attributes[3]));
+					ant = antSetting.get(tag.getAntenna_No());
 
 					tag.setFab(ant.getFab());
 					tag.setArea(ant.getArea());
 					tag.setGate(ant.getGate());
 					tag.setAntenna_Type(ant.getAntenna_Type());
+					
 					tag.setReader_IP(ant.getReader_IP());
 					tag.setRawData(Attributes[0]);
 					tag.setTag_ID(Ascii2Alphabet(tag.getRawData()));
@@ -59,7 +59,8 @@ public class TagParser {
 
 					tag.setCount(Integer.parseInt(Attributes[4]));
 					tag.setDiscover_Time(Long.parseLong(Attributes[1]));
-					tag.setReceive_Time(Long.parseLong(Attributes[2]));
+					//tag.setReceive_Time(Long.parseLong(Attributes[2]));
+					tag.setReceive_Time(System.currentTimeMillis());
 					tag.setRSSI(Attributes[5]);
 					tag.setTimeStamp(Calendar.getInstance().getTime());
 

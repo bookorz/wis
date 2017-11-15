@@ -46,6 +46,7 @@ public class GlobleVar {
 	//IR
 	public static final String RawDataReport = "RawDataReport";
 	public static final String DirectionReport = "DirectionReport";
+	public static final String TimeSync = "TimeSync";
 	public static final String On = "ON";
 	public static final String Off = "OFF";
 
@@ -82,7 +83,7 @@ public class GlobleVar {
 	public static final String ForkLiftIN = "IN";
 	public static final String ForkLiftOUT = "OUT";
 	public static final String ForkLiftAll = "ALL";
-	public static final long DirectionExpire = 1000;
+	public static final long DirectionExpire = 2000;
 	public static final int Later = 1;
 	public static final int Early = 2;
 	public static final int Front = 1;
@@ -112,7 +113,6 @@ public class GlobleVar {
 	public static final String BindContainer = "BindContainer";
 	public static final String UnBindContainer = "UnBindContainer";
 	public static final String IR = "IR";
-	public static final String TimeSync = "TimeSync";
 	public static final String WMSErrorMsg = "WMSErrorMsg";
 
 	// Container Status

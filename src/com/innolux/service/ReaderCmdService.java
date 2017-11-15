@@ -7,8 +7,6 @@ import org.apache.log4j.Logger;
 import com.innolux.common.GlobleVar;
 import com.innolux.common.ToolUtility;
 import com.innolux.common.base.ReaderCmd;
-import com.innolux.dao.GenericDao;
-import com.innolux.dao.JdbcGenericDaoImpl;
 import com.innolux.model.RF_Reader_Setting;
 
 public class ReaderCmdService {
@@ -43,7 +41,7 @@ public class ReaderCmdService {
 			ReaderCmd t = readerList.get(readerIP);
 
 			result = t.Send(cmdStr);
-
+			logger.info(readerIP+" SendCmd:"+cmdStr +" result:"+result);
 		} else {
 			logger.error(readerIP + " is not exist.");
 		}

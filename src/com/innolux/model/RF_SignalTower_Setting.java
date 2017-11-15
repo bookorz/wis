@@ -9,15 +9,15 @@ public class RF_SignalTower_Setting {
 	/**
 	 * SignalTower Name Name
 	 */
-	@Id("signaltower_name")
-	private String SignalTower_Name;
+	@Id("id")
+	private String ID;
 
-	public String getSignalTower_Name_Name() {
-		return SignalTower_Name;
+	public String getID() {
+		return ID;
 	}
 
-	public void setSignalTower_Name(String SignalTower_Name) {
-		this.SignalTower_Name = SignalTower_Name;
+	public void setID(String ID) {
+		this.ID = ID;
 	}
 
 	/**
@@ -37,15 +37,43 @@ public class RF_SignalTower_Setting {
 	/**
 	 * State
 	 */
-	@Column("state")
-	private String State;
+	@Column("red_state")
+	private boolean Red_State;
 
-	public String getState() {
-		return State;
+	public boolean getRed_State() {
+		return Red_State;
 	}
 
-	public void setState(String State) {
-		this.State = State;
+	public void setRed_State(boolean Red_State) {
+		this.Red_State = Red_State;
+	}
+	
+	/**
+	 * State
+	 */
+	@Column("orange_state")
+	private boolean Orange_State;
+
+	public boolean getOrange_State() {
+		return Orange_State;
+	}
+
+	public void setOrange_State(boolean Orange_State) {
+		this.Orange_State = Orange_State;
+	}
+	
+	/**
+	 * State
+	 */
+	@Column("green_state")
+	private boolean Green_State;
+
+	public boolean getGreen_State() {
+		return Green_State;
+	}
+
+	public void setGreen_State(boolean Green_State) {
+		this.Green_State = Green_State;
 	}
 	
 	/**
@@ -131,18 +159,62 @@ public class RF_SignalTower_Setting {
     public void setGreen_Off_Cmd(String Green_Off_Cmd) {  
         this.Green_Off_Cmd = Green_Off_Cmd;  
     }
+    
+    /**
+	 * Fab (T1 T2)
+	 */
+	@Column("fab")
+	private String Fab;
+
+	public String getFab() {
+		return Fab;
+	}
+
+	public void setFab(String Fab) {
+		this.Fab = Fab;
+	}
+
+	/**
+	 * Area (Receive, Delivery, Cylinders, CentralParking)
+	 */
+	@Column("area")
+	private String Area;
+
+	public String getArea() {
+		return Area;
+	}
+
+	public void setArea(String Area) {
+		this.Area = Area;
+	}
+
+	/**
+	 * Gate
+	 */
+	@Column("gate")
+	private String Gate;
+
+	public String getGate() {
+		return Gate;
+	}
+
+	public void setGate(String Gate) {
+		this.Gate = Gate;
+	}
 	
 	@Override  
     public String toString() {  
-        return "SignalTower_Name: " + SignalTower_Name + 
+        return "ID: " + ID + 
         		" Reader_IP: " + Reader_IP+
-        		" State: " + State+
+        		" Red_State: " + Red_State+
+        		" Orange_State: " + Orange_State+
+        		" Green_State: " + Green_State+
         		" Red_On_Cmd: " + Red_On_Cmd+
         		" Red_Off_Cmd: " + Red_Off_Cmd+
         		" Orange_On_Cmd: " + Orange_On_Cmd+
         		" Orange_Off_Cmd: " + Orange_Off_Cmd+
         		" Green_On_Cmd: " + Green_On_Cmd+
-        		" Green_Off_Cmd: " + Green_Off_Cmd;
+        		" Green_Off_Cmd: " + Green_Off_Cmd+ " Fab: " + Fab + " Area: " + Area + " Gate: " + Gate;
         		
     }  
 }

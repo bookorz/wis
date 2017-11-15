@@ -1,5 +1,6 @@
 package com.innolux;
 
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Timer;
@@ -7,27 +8,58 @@ import java.util.TimerTask;
 
 import com.innolux.common.GlobleVar;
 import com.innolux.common.ToolUtility;
+import com.innolux.common.MessageFormat;
+import com.innolux.model.RF_ContainerInfo;
+import com.innolux.model.RF_Cylinder_Status;
+import com.innolux.model.RF_Gate_Setting;
 import com.innolux.model.RF_Reader_Setting;
 import com.innolux.model.RF_Subtitle_Setting;
 import com.innolux.receiver.AlienReader;
 import com.innolux.receiver.AlienReaderBySocket;
 import com.innolux.service.ReaderCmdService;
 import com.innolux.service.SubtitleService;
+import com.innolux.service.WebApiService;
 
 public class WIS_Main {
 
 	public static void main(String[] args) {
-
+		SubtitleService.Initial();
+		ToolUtility.Initial();
+		InitialGates();
+		SetAliveNotify();
 		InitialReaders();
 
 		CustSubtileMonitor();
+		CylinderMonitor();
+		new WebApiService().start();
+	}
+
+	private static void InitialGates() {
+		List<RF_Gate_Setting> gateList = ToolUtility.GetAllGateSetting("InitialGates");
+		for (RF_Gate_Setting each : gateList) {
+			RF_ContainerInfo container = ToolUtility.GetContainerInfo(each.getFab(), each.getArea(), each.getGate(),
+					"WIS_Main");
+			if(container!=null) {
+				ToolUtility.Subtitle(each.getFab(), each.getArea(), each.getGate(),
+						container.getCar_Type().replace("Container", "貨櫃").replace("Truck", "貨車")+"進入:"+container.getContainer_ID(),
+						"WIS_Main");
+			}else {
+				ToolUtility.Subtitle(each.getFab(), each.getArea(), each.getGate(),
+						"無車輛進入",
+						"WIS_Main");
+			}
+			each.setDirection_StartTime(0);
+			each.setDirection_EndTime(0);
+			each.setLast_MarkTag_Time(System.currentTimeMillis());
+			ToolUtility.UpdateGateSetting(each, "InitialGates");
+		}
 	}
 
 	private static void InitialReaders() {
 		List<RF_Reader_Setting> readerList = ToolUtility.GetAllReader();
-		SubtitleService.Initial();
+		
 		for (RF_Reader_Setting eachReader : readerList) {
-			if(eachReader.getTest_Mode()==GlobleVar.TestMode && eachReader.getOn_Line()) {
+			if (eachReader.getTest_Mode() == GlobleVar.TestMode && eachReader.getOn_Line()) {
 				switch (eachReader.getReader_Type()) {
 				case GlobleVar.AlienType:
 					new AlienReader(eachReader);
@@ -39,9 +71,35 @@ public class WIS_Main {
 				}
 			}
 		}
-		
+
 		ReaderCmdService.Initial();
-		
+
+	}
+
+	private static void SetAliveNotify() {
+		TimerTask task = new TimerTask() {
+			@Override
+			public void run() {
+
+				ToolUtility.MesDaemon.sendMessage(MessageFormat.SendAms("SetAliveNotify", "T2", "庫存訊息", "WISErrorPallet",
+						"庫存訊息", ToolUtility.GetCylinderSummary("T2", "SetAliveNotify")), GlobleVar.SendToWMS);
+			}
+		};
+
+		Calendar calendar = Calendar.getInstance();
+		int year = calendar.get(Calendar.YEAR);
+		int month = calendar.get(Calendar.MONTH);
+		int day = calendar.get(Calendar.DAY_OF_MONTH);
+
+		calendar.set(year, month, day, 8, 00, 00);
+		calendar.add(Calendar.DAY_OF_MONTH, 1);
+		Date date = calendar.getTime();
+		Timer timer = new Timer();
+		System.out.println(date);
+
+		long period = 86400 * 1000;
+
+		timer.scheduleAtFixedRate(task, date, period);
 	}
 
 	private static void CustSubtileMonitor() {
@@ -73,7 +131,7 @@ public class WIS_Main {
 
 		timer.scheduleAtFixedRate(task, new Date(), period);
 	}
-	
+
 	private static void CylinderMonitor() {
 
 		Timer timer = new Timer();
@@ -84,15 +142,67 @@ public class WIS_Main {
 			@Override
 			public void run() {
 
-				List<RF_Subtitle_Setting> subtitleList = ToolUtility.GetAllSubtitle();
+				List<RF_Cylinder_Status> cylinderList = ToolUtility.GetAllCylinders("CylinderMonitor");
 
-				for (RF_Subtitle_Setting eachSubtitle : subtitleList) {
-					if (eachSubtitle.getCust_Active()) {
-						if (System.currentTimeMillis() - eachSubtitle.getUpdate_Time() > (5 * 60 * 1000)) {
-							if (!eachSubtitle.getCurrent_Subtitle().equals(eachSubtitle.getCust_Subtitle())) {
-								ToolUtility.Subtitle(eachSubtitle.getFab(), eachSubtitle.getArea(),
-										eachSubtitle.getGate(), eachSubtitle.getCust_Subtitle(), "CustSubtileMonitor");
+				for (RF_Cylinder_Status eachCylinder : cylinderList) {
+					if (System.currentTimeMillis() - eachCylinder.getUpdateTime() > 1400000) {
+						switch (eachCylinder.getPosition()) {
+						case GlobleVar.ANT_Small_Stock:
+						case GlobleVar.ANT_Big_Stock:
+							if (eachCylinder.getStatus().equals(GlobleVar.Cylinder_Empty)) {
+								ToolUtility.DeleteCylinder(eachCylinder, "CylinderMonitor");
+								eachCylinder.setStatus(GlobleVar.Cylinder_Destroy);
+								ToolUtility.SetCylinderHistory(eachCylinder, "CylinderMonitor");
+								ToolUtility.MesDaemon.sendMessage(
+										MessageFormat.SendCylinderStatus(eachCylinder, "CylinderMonitor"),
+										GlobleVar.SendToAMS);
+							} else {
+								ToolUtility.DeleteCylinder(eachCylinder, "CylinderMonitor");
+								eachCylinder.setStatus(GlobleVar.Cylinder_Disappear);
+								ToolUtility.MesDaemon.sendMessage(
+										MessageFormat.SendCylinderStatus(eachCylinder, "CylinderMonitor"),
+										GlobleVar.SendToAMS);
+								ToolUtility.SetCylinderHistory(eachCylinder, "CylinderMonitor");
+
+								String Text = "鋼瓶" + ToolUtility.AddSpace(eachCylinder.getTag_ID()) + "無讀取資料，請進行檢查";
+								RF_Gate_Setting gate = ToolUtility.GetGateSetting(eachCylinder.getFab(),
+										eachCylinder.getArea(), "0", "CylinderMonitor");
+
+								if (gate != null) {
+
+									ToolUtility.VoiceSend(gate.getVoice_Path(), Text, "CylinderMonitor");
+								}
+								ToolUtility.MesDaemon
+										.sendMessage(
+												MessageFormat.SendAms(eachCylinder.getFab(), GlobleVar.Cylinder_Disappear,
+														"WISCylinders", "鋼瓶不見", Text, "CylinderMonitor"),
+												GlobleVar.SendToAMS);
+
 							}
+							break;
+						case GlobleVar.ANT_Small_Use:
+						case GlobleVar.ANT_Big_Use:
+							ToolUtility.DeleteCylinder(eachCylinder, "CylinderMonitor");
+							eachCylinder.setStatus(GlobleVar.Cylinder_Disappear);
+							ToolUtility.MesDaemon.sendMessage(
+									MessageFormat.SendCylinderStatus(eachCylinder, "CylinderMonitor"),
+									GlobleVar.SendToWMS);
+							ToolUtility.SetCylinderHistory(eachCylinder, "CylinderMonitor");
+
+							String Text = "鋼瓶" + ToolUtility.AddSpace(eachCylinder.getTag_ID()) + "無讀取資料，請進行檢查";
+							RF_Gate_Setting gate = ToolUtility.GetGateSetting(eachCylinder.getFab(),
+									eachCylinder.getArea(), "0", "CylinderMonitor");
+
+							if (gate != null) {
+
+								ToolUtility.VoiceSend(gate.getVoice_Path(), Text, "CylinderMonitor");
+							}
+							ToolUtility.MesDaemon
+									.sendMessage(
+											MessageFormat.SendAms(eachCylinder.getFab(), GlobleVar.Cylinder_Disappear,
+													"WISCylinders", "鋼瓶不見", Text, "CylinderMonitor"),
+											GlobleVar.SendToAMS);
+							break;
 						}
 
 					}
