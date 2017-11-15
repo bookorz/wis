@@ -116,11 +116,11 @@ public class GlobleVar {
 	public static final String WMSErrorMsg = "WMSErrorMsg";
 
 	// Container Status
-	public static final String ASNUnload = "ASNUNLOAD"; // ASN卸貨
-	public static final String EmptyWrapUnload = "EMPTYWRAPUNLOAD"; // 卸包材
-	public static final String TransferOut = "TRANSFEROUT"; // 廠移出
-	public static final String TransferIn = "TRANSFERIN"; // 廠移入
-	public static final String DeliveryLoad = "DELIVERYLOAD"; // 出貨
+	public static final String ASNUnload = "ASNUnload"; // ASN卸貨
+	public static final String EmptyWrapUnload = "EmptyWrapUnload"; // 卸包材
+	public static final String TransferOut = "TransferOut"; // 廠移出
+	public static final String TransferIn = "TransferIn"; // 廠移入
+	public static final String DeliveryLoad = "DeliveryLoad"; // 出貨
 	// Container Actions
 	public static final String Error = "Error"; // 碼頭異常
 	public static final String InProgress = "InProgress"; // 作業中

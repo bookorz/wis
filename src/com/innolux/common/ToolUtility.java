@@ -978,13 +978,15 @@ public class ToolUtility {
 
 	}
 
-	public static void ClearErrorPallet(RF_ContainerInfo container, String readerIP) {
+	public static void ClearErrorPallet(String fab, String area, String gate, String readerIP) {
 
 		try {
 
 			Map<String, Object> sqlWhereMap = new HashMap<String, Object>();
 
-			sqlWhereMap.put("container_id", container.getContainer_ID());
+			sqlWhereMap.put("fab", fab);
+			sqlWhereMap.put("area", area);
+			sqlWhereMap.put("gate", gate);
 
 			RF_Error_Pallet_Dao.deleteAllByConditions(sqlWhereMap, RF_Error_Pallet.class);
 

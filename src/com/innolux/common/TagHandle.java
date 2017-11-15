@@ -272,35 +272,31 @@ public class TagHandle {
 
 					ToolUtility.Subtitle(gate.getFab(), gate.getArea(), gate.getGate(), newErrorMsg,
 							tag.getReader_IP());
-					ToolUtility.SignalTower(gate.getFab(), gate.getArea(), gate.getGate(), GlobleVar.RedOn,
-							tag.getReader_IP());
+
 					ToolUtility.SignalTowerAutoOff(gate.getFab(), gate.getArea(), gate.getGate(), GlobleVar.GreenOn,
 							5000, tag.getReader_IP());
+					ToolUtility.SignalTower(gate.getFab(), gate.getArea(), gate.getGate(), GlobleVar.RedOn,
+							tag.getReader_IP());
 				} else {
 					logger.info(tag.getReader_IP() + " All error pallet is clear.");
 					// All error pallet is clear
 					// Delete DeliveryError
-					ToolUtility.DeleteGateError(tag.getFab(), tag.getArea(), tag.getGate(), GlobleVar.DeliveryError,
-							tag.getReader_IP());
-					// Check gate error
-					RF_Gate_Error gateError = ToolUtility.GetGateError(tag.getFab(), tag.getArea(), tag.getGate(), "",
-							tag.getReader_IP());
-					if (gateError == null) {
-						// If gate error are not exist, reset gate information.
-						RF_ContainerInfo container = ToolUtility.GetContainerInfo(gate.getFab(), gate.getArea(),
-								gate.getGate(), tag.getReader_IP());
-						ToolUtility.Subtitle(gate.getFab(), gate.getArea(), gate.getGate(),
-								ToolUtility.InitSubtitleStr(container, tag.getReader_IP()), tag.getReader_IP());
-						ToolUtility.SignalTower(gate.getFab(), gate.getArea(), gate.getGate(), GlobleVar.RedOff,
+					if (eachErrorPallet.getOpreation_Mode().equals(GlobleVar.DeliveryLoad)) {
+						ToolUtility.DeleteGateError(tag.getFab(), tag.getArea(), tag.getGate(), GlobleVar.DeliveryError,
 								tag.getReader_IP());
-					} else {
-						// If any gate error exist
-
-						ToolUtility.Subtitle(gate.getFab(), gate.getArea(), gate.getGate(),
-								gateError.getError_Message(), tag.getReader_IP());
-						ToolUtility.SignalTower(gate.getFab(), gate.getArea(), gate.getGate(), GlobleVar.RedOn,
+					} else if (eachErrorPallet.getOpreation_Mode().equals(GlobleVar.ASNUnload)) {
+						ToolUtility.DeleteGateError(tag.getFab(), tag.getArea(), tag.getGate(), GlobleVar.ASNError,
 								tag.getReader_IP());
 					}
+
+					// If gate error are not exist, reset gate information.
+					RF_ContainerInfo container = ToolUtility.GetContainerInfo(gate.getFab(), gate.getArea(),
+							gate.getGate(), tag.getReader_IP());
+					ToolUtility.Subtitle(gate.getFab(), gate.getArea(), gate.getGate(),
+							ToolUtility.InitSubtitleStr(container, tag.getReader_IP()), tag.getReader_IP());
+					ToolUtility.SignalTower(gate.getFab(), gate.getArea(), gate.getGate(), GlobleVar.RedOff,
+							tag.getReader_IP());
+
 				}
 
 			}
@@ -322,6 +318,8 @@ public class TagHandle {
 					pallet.setTag_ID(tag.getTag_ID());
 					logger.info(tag.getReader_IP() + " Cancel pallet " + tag.getTag_ID() + ".");
 					DeliveryUnLoad(pallet, gate);
+				}else {
+					logger.info(tag.getReader_IP() + " Gate is not found.");
 				}
 			} else {
 				logger.info(tag.getReader_IP() + " " + ToolUtility.ConvertGateStr(tag) + " is not binding container.");
@@ -740,15 +738,14 @@ public class TagHandle {
 		RF_Error_Pallet errorPalle = ToolUtility.GetErrorPallet(tag, GlobleVar.DeliveryLoad, "");
 		if (errorPalle != null) {
 			// had error
-			logger.info(tag.getReader_IP() + " Error pallet founded.");
+			logger.info(tag.getReader_IP() + " This pallet is error pallet.");
 
-			ToolUtility.DeleteErrorPallet(errorPalle,
-					tag.getReader_IP());
+			ToolUtility.DeleteErrorPallet(errorPalle, tag.getReader_IP());
 
 			String newErrorMsg = ToolUtility.GetErrorPalletSummary(gate.getFab(), gate.getArea(), gate.getGate(),
 					GlobleVar.DeliveryLoad, tag.getReader_IP());
 			if (newErrorMsg != "") {
-				logger.info(tag.getReader_IP() + " Another error exist.");
+				logger.info(tag.getReader_IP() + " Another error pallet exist.");
 
 				ToolUtility.Subtitle(gate.getFab(), gate.getArea(), gate.getGate(), newErrorMsg, tag.getReader_IP());
 				ToolUtility.SignalTowerAutoOff(gate.getFab(), gate.getArea(), gate.getGate(), GlobleVar.GreenOn, 5000,
@@ -761,27 +758,16 @@ public class TagHandle {
 				// Delete DeliveryError
 				ToolUtility.DeleteGateError(tag.getFab(), tag.getArea(), tag.getGate(), GlobleVar.DeliveryError,
 						tag.getReader_IP());
-				// Check gate error
-				RF_Gate_Error gateError = ToolUtility.GetGateError(tag.getFab(), tag.getArea(), tag.getGate(), "",
-						tag.getReader_IP());
-				if (gateError == null) {
-					// If gate error are not exist, reset gate information.
-					logger.info(tag.getReader_IP() + "All gate error is clear, reset gate information.");
-					RF_ContainerInfo container = ToolUtility.GetContainerInfo(tag.getFab(), tag.getArea(),
-							tag.getGate(), tag.getReader_IP());
-					ToolUtility.Subtitle(gate.getFab(), gate.getArea(), gate.getGate(),
-							ToolUtility.InitSubtitleStr(container, tag.getReader_IP()), tag.getReader_IP());
-					ToolUtility.SignalTower(gate.getFab(), gate.getArea(), gate.getGate(), GlobleVar.RedOff,
-							tag.getReader_IP());
-				} else {
-					// If any gate error exist
-					logger.info(tag.getReader_IP() + "Gate error is found.");
 
-					ToolUtility.Subtitle(gate.getFab(), gate.getArea(), gate.getGate(), gateError.getError_Message(),
-							tag.getReader_IP());
-					ToolUtility.SignalTower(gate.getFab(), gate.getArea(), gate.getGate(), GlobleVar.RedOn,
-							tag.getReader_IP());
-				}
+				// If gate error are not exist, reset gate information.
+				logger.info(tag.getReader_IP() + "All gate error is clear, reset gate information.");
+				RF_ContainerInfo container = ToolUtility.GetContainerInfo(tag.getFab(), tag.getArea(), tag.getGate(),
+						tag.getReader_IP());
+				ToolUtility.Subtitle(gate.getFab(), gate.getArea(), gate.getGate(),
+						ToolUtility.InitSubtitleStr(container, tag.getReader_IP()), tag.getReader_IP());
+				ToolUtility.SignalTower(gate.getFab(), gate.getArea(), gate.getGate(), GlobleVar.RedOff,
+						tag.getReader_IP());
+
 			}
 
 		} else {
@@ -862,12 +848,14 @@ public class TagHandle {
 				// 此碼頭沒有綁定任何車輛
 				logger.info(tag.getReader_IP() + "This gate is not bonding any car.");
 
-				ToolUtility.Subtitle(gate.getFab(), gate.getArea(), gate.getGate(), "沒有綁定車輛，偵測到棧板" + tag.getTag_ID(),
-						tag.getReader_IP());
-				ToolUtility.SignalTower(gate.getFab(), gate.getArea(), gate.getGate(), GlobleVar.RedOn,
-						tag.getReader_IP());
-				ToolUtility.SetGateError(tag, GlobleVar.DeliveryError,
-						ToolUtility.ConvertGateStr(tag) + "沒有綁定車輛，偵測到棧板" + tag.getTag_ID());
+				// ToolUtility.Subtitle(gate.getFab(), gate.getArea(), gate.getGate(),
+				// "沒有綁定車輛，偵測到棧板" + tag.getTag_ID(),
+				// tag.getReader_IP());
+				// ToolUtility.SignalTower(gate.getFab(), gate.getArea(), gate.getGate(),
+				// GlobleVar.RedOn,
+				// tag.getReader_IP());
+				// ToolUtility.SetGateError(tag, GlobleVar.DeliveryError,
+				// ToolUtility.ConvertGateStr(tag) + "沒有綁定車輛，偵測到棧板" + tag.getTag_ID());
 			}
 		}
 	}
@@ -942,7 +930,7 @@ public class TagHandle {
 		} else if (!container.getGate().equals("0")) {
 
 			ToolUtility.Subtitle(gate.getFab(), gate.getArea(), gate.getGate(),
-					"靠碼頭失敗，該車輛目前被綁定在" + ToolUtility.ConvertGateStr(container, tag.getReader_IP()), tag.getReader_IP());
+					"綁定失敗，該車輛目前被綁定在" + ToolUtility.ConvertGateStr(container, tag.getReader_IP()), tag.getReader_IP());
 			ToolUtility.SignalTower(gate.getFab(), gate.getArea(), gate.getGate(), GlobleVar.RedOn, tag.getReader_IP());
 			ToolUtility.SetGateError(tag, GlobleVar.BindingError,
 					tag.getTag_ID() + "無法綁定於" + ToolUtility.ConvertGateStr(tag) + "，因目前被綁定在"
@@ -956,7 +944,7 @@ public class TagHandle {
 			container.setArea(tag.getArea());
 			container.setGate(tag.getGate());
 			ToolUtility.DeletePalletByCarID(container.getContainer_ID(), tag.getReader_IP());
-			ToolUtility.ClearErrorPallet(container, tag.getReader_IP());
+			ToolUtility.ClearErrorPallet(gate.getFab(), gate.getArea(), gate.getGate(), tag.getReader_IP());
 			// Update container object
 			ToolUtility.UpdateContainerInfo(container, tag.getReader_IP());
 			// Clear all pallet by this car ID
@@ -1021,7 +1009,7 @@ public class TagHandle {
 				container.setArea("WH");
 				container.setGate("0");
 				ToolUtility.DeletePalletByCarID(container.getContainer_ID(), tag.getReader_IP());
-				ToolUtility.ClearErrorPallet(container, tag.getReader_IP());
+				ToolUtility.ClearErrorPallet(gate.getFab(), gate.getArea(), gate.getGate(), tag.getReader_IP());
 				ToolUtility.UpdateContainerInfo(container, tag.getReader_IP());
 
 				ToolUtility.Subtitle(gate.getFab(), gate.getArea(), gate.getGate(),

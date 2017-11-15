@@ -43,18 +43,13 @@ public class WMS_Message implements ITibcoRvListenService {
 			String empno = msg.substring(msg.indexOf("<EMPNO>") + 7, msg.indexOf("</EMPNO>"));
 			String palletStr = ToolUtility.GetGateError(fab, area, gate, "", "RV").getError_Message();
 
-			RF_Gate_Setting gateSetting = ToolUtility.GetGateSetting(fab, area, gate, "RV");
-			RF_ContainerInfo container = ToolUtility.GetContainerInfo(gateSetting.getFab(), gateSetting.getArea(),
-					gateSetting.getGate(), "RV");
-
 			ToolUtility.DeleteGateError(fab, area, gate, "", "RV");
-			if (container != null) {
-				ToolUtility.ClearErrorPallet(container, "RV");
-			}
+
+			ToolUtility.ClearErrorPallet(fab, area, gate, "RV");
+			RF_ContainerInfo container = ToolUtility.GetContainerInfo(fab, area, gate, "RV");
+			ToolUtility.Subtitle(fab, area, gate, ToolUtility.InitSubtitleStr(container, "RV"), "RV");
 
 			ToolUtility.SignalTower(fab, area, gate, GlobleVar.RedOff, "RV");
-			ToolUtility.Subtitle(fab, area, gate,
-					ToolUtility.ConvertCarStr(container, "RV") + "進入:" + container.getContainer_ID(), "RV");
 
 			ToolUtility.MesDaemon.sendMessage(MessageFormat.ReplyRfidErrorReset(fab, area, gate, palletStr, empno,
 					container.getContainer_ID(), "RV"), GlobleVar.SendToWMS);
@@ -86,7 +81,7 @@ public class WMS_Message implements ITibcoRvListenService {
 
 					logger.debug("WMS Set empty error: the pallet " + PalletID + " is not exist in db");
 				} else {
-					gateSetting = ToolUtility.GetGateSetting(cylinder.getFab(), cylinder.getArea(), "0", "RV");
+					RF_Gate_Setting gateSetting = ToolUtility.GetGateSetting(cylinder.getFab(), cylinder.getArea(), "0", "RV");
 
 					ToolUtility.VoiceSend(gateSetting.getVoice_Path(), ERR_MSG, "RV");
 
@@ -135,7 +130,7 @@ public class WMS_Message implements ITibcoRvListenService {
 					container.setCurrent_Operation(GlobleVar.ASNUnload);
 					break;
 				}
-				
+
 				switch (status) {
 				case "BEGIN":
 					container.setProcess_Start(Calendar.getInstance().getTime());
@@ -144,7 +139,7 @@ public class WMS_Message implements ITibcoRvListenService {
 					container.setProcess_End(Calendar.getInstance().getTime());
 					break;
 				}
-				
+
 				ToolUtility.UpdateContainerInfo(container, "RV");
 			} else {
 				logger.debug("Container is not found.");
