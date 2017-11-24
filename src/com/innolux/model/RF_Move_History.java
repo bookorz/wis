@@ -63,6 +63,34 @@ public class RF_Move_History {
     }  
     
     /** 
+     * Start Time of check-in
+     */  
+    @Column("starttime")  
+    private String StartTime;  
+    
+    public String getStartTime() {  
+        return StartTime;  
+    }  
+  
+    public void setStartTime(String StartTime) {  
+        this.StartTime = StartTime;  
+    }  
+    
+    /** 
+     * End Time of check-out(not use)
+     */  
+    @Column("endtime")  
+    private String EndTime; 
+    
+    public String getEndTime() {  
+        return EndTime;  
+    }  
+  
+    public void setEndTime(String EndTime) {  
+        this.EndTime = EndTime;  
+    }  
+    
+    /** 
      * Car ID
      */  
     @Column("car_id")  
@@ -133,6 +161,20 @@ public class RF_Move_History {
     }  
     
     /** 
+     * Imp No
+     */  
+    @Column("impno")  
+    private String ImpNo;
+    
+    public String getImpNo() {  
+        return ImpNo;  
+    }  
+  
+    public void setImpNo(String ImpNo) {  
+        this.ImpNo = ImpNo;  
+    }  
+    
+    /** 
      * Reason of check-in
      */  
     @Column("reason")  
@@ -175,6 +217,62 @@ public class RF_Move_History {
     }  
     
     /** 
+     * Vendor ID
+     */  
+    @Column("vendorid")  
+    private String VendorID;
+    
+    public String getVendorID() {  
+        return VendorID;  
+    }  
+  
+    public void setVendorID(String VendorID) {  
+        this.VendorID = VendorID;  
+    }  
+    
+    /** 
+     * Vendor Count
+     */  
+    @Column("vendorcount")  
+    private String VendorCount;
+    
+    public String getVendorCount() {  
+        return VendorCount;  
+    }  
+  
+    public void setVendorCount(String VendorCount) {  
+        this.VendorCount = VendorCount;  
+    }  
+    
+    /** 
+     * Current status
+     */  
+    @Column("currentstatus")  
+    private String CurrentStatus;
+    
+    public String getCurrentStatus() {  
+        return CurrentStatus;  
+    }  
+  
+    public void setCurrentStatus(String CurrentStatus) {  
+        this.CurrentStatus = CurrentStatus;  
+    }  
+    
+    /** 
+     * Current action
+     */  
+    @Column("currentaction")  
+    private String CurrentAction;
+    
+    public String getCurrentAction() {  
+        return CurrentAction;  
+    }  
+  
+    public void setCurrentAction(String CurrentAction) {  
+        this.CurrentAction = CurrentAction;  
+    }  
+    
+    /** 
      * Source
      */  
     @Column("source")  
@@ -186,6 +284,63 @@ public class RF_Move_History {
   
     public void setSource(String Source) {  
         this.Source = Source;  
+    }  
+    
+    /** 
+     * Opreation start time
+     */  
+    @Column("process_start")  
+    private String Process_Start;
+    
+    public String getProcess_Start() {  
+        return Process_Start;  
+    }  
+  
+    public void setProcess_Start(String Process_Start) {  
+        this.Process_Start = Process_Start;  
+    }  
+    
+    /** 
+     * Opreation end time
+     */  
+    @Column("process_end")  
+    private String Process_End;
+    
+    public String getProcess_End() {
+        return Process_End;  
+    }  
+  
+    public void setProcess_End(String Process_End) {  
+        this.Process_End = Process_End;  
+
+    }  
+    
+    /** 
+     * Process_Count
+     */  
+    @Column("process_count")  
+    private String Process_Count;
+    
+    public String getProcess_Count() {  
+        return Process_Count;  
+    }  
+  
+    public void setProcess_Count(String Process_Count) {  
+        this.Process_Count = Process_Count;  
+    }  
+    
+    /** 
+     * Current Operation
+     */  
+    @Column("current_operation")  
+    private String Current_Operation;
+    
+    public String getCurrent_Operation() {  
+        return Current_Operation;  
+    }  
+  
+    public void setCurrent_Operation(String Current_Operation) {  
+        this.Current_Operation = Current_Operation;  
     }  
     
     /**
@@ -207,16 +362,27 @@ public class RF_Move_History {
         return "Container_ID: " + Container_ID + 
         		" Container_Type: " + Container_Type+
         		" Container_Status: " + Container_Status+
-        		" Vendor_Name: " + Vendor_Name+       		
+        		" Vendor_Name: " + Vendor_Name+       
+        		" StartTime: " + StartTime+
+        		" EndTime: " + EndTime+
         		" Car_ID: " + Car_ID+
         		" Fab: " + Fab+
         		" Area: " + Area+
         		" Gate: " + Gate+
-        		" Car_Type: " + Car_Type+     		
+        		" Car_Type: " + Car_Type+   
+        		" ImpNo: " + ImpNo+
         		" Reason: " + Reason+
         		" DriverName: " + DriverName+
         		" DriverPhone: " + DriverPhone+
+        		" VendorID: " + VendorID+
+        		" VendorCount: " + VendorCount+
+        		" CurrentStatus: " + CurrentStatus+
+        		" CurrentAction: " + CurrentAction+
         		" Source: " + Source+
+        		" Process_Start: " + Process_Start+
+        		" Process_End: " + Process_End+
+        		" Process_Count: " + Process_Count+
+        		" Current_Operation: " + Current_Operation+
         		" TimeStamp: " + TimeStamp;   		
     }  
 }

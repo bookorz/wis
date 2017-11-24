@@ -12,6 +12,7 @@ import com.innolux.model.RF_Pallet_Check;
 import com.innolux.model.RF_Tag_History;
 import com.innolux.model.WMS_T1_ASN_Pallet;
 import com.innolux.model.WMS_T1_Check_Pallet;
+import com.innolux.model.WMS_T2_ASN_Pallet;
 
 public class TagHandle {
 	public static Logger logger = Logger.getLogger(TagHandle.class);
@@ -31,10 +32,12 @@ public class TagHandle {
 							GlobleVar.NonEntryRecord, tag.getReader_IP()) != null) {
 						logger.info(tag.getReader_IP() + " Error exist, skip handle:" + GlobleVar.NonEntryRecord);
 						continue;
-					} else if (ToolUtility.GetGateError(tag.getFab(), tag.getArea(), tag.getGate(),
-							GlobleVar.NonStatusError, tag.getReader_IP()) != null) {
-						logger.info(tag.getReader_IP() + " Error exist, skip handle:" + GlobleVar.NonStatusError);
-						continue;
+						// } else if (ToolUtility.GetGateError(tag.getFab(), tag.getArea(),
+						// tag.getGate(),
+						// GlobleVar.NonStatusError, tag.getReader_IP()) != null) {
+						// logger.info(tag.getReader_IP() + " Error exist, skip handle:" +
+						// GlobleVar.NonStatusError);
+						// continue;
 					} else {
 						GateHandler(tag);
 					}
@@ -289,7 +292,7 @@ public class TagHandle {
 								tag.getReader_IP());
 					}
 
-					// If gate error are not exist, reset gate information.
+					// Gate error are not exist, reset gate information.
 					RF_ContainerInfo container = ToolUtility.GetContainerInfo(gate.getFab(), gate.getArea(),
 							gate.getGate(), tag.getReader_IP());
 					ToolUtility.Subtitle(gate.getFab(), gate.getArea(), gate.getGate(),
@@ -318,7 +321,7 @@ public class TagHandle {
 					pallet.setTag_ID(tag.getTag_ID());
 					logger.info(tag.getReader_IP() + " Cancel pallet " + tag.getTag_ID() + ".");
 					DeliveryUnLoad(pallet, gate);
-				}else {
+				} else {
 					logger.info(tag.getReader_IP() + " Gate is not found.");
 				}
 			} else {
@@ -341,12 +344,30 @@ public class TagHandle {
 			Opreation = ToolUtility.GetOperation_Mode(gate.getFab(), gate.getArea(), gate.getGate(),
 					tag.getReader_IP());
 
-			// Check forklift direction
-			if (tag.getReceive_Time() - gate.getDirection_ReportTime() <= GlobleVar.DirectionExpire) {
-				// Check current wms opreation
-				logger.info(tag.getReader_IP() + " Check current wms opreation.");
-				if (Opreation.equals("")) {
+			// Check forklift direction (Only T2)
+			if (tag.getFab().equals("T2")) {
+				if (tag.getReceive_Time() - gate.getDirection_ReportTime() >= GlobleVar.DirectionExpire) {
+					logger.info(tag.getReader_IP() + " Direction Expire");
+					logger.info(tag.getReader_IP() + " tagReceive_Time:" + tag.getReceive_Time()
+							+ "- getDirection_ReportTime:" + gate.getDirection_ReportTime() + " > DirectionExpire:"
+							+ GlobleVar.DirectionExpire);
+					return;
+				}
+			}
+			// Check current wms opreation
+			logger.info(tag.getReader_IP() + " Check current wms opreation.");
+			if (Opreation.equals("")) {
 
+				if (gate.getForkLift_Direction().equals(GlobleVar.ForkLiftOUT)) {
+					logger.info(tag.getReader_IP() + " NoOperation:" + GlobleVar.ForkLiftOUT);
+					ToolUtility.Subtitle(gate.getFab(), gate.getArea(), gate.getGate(),
+							"碼頭系統無作業，偵測到棧板" + tag.getTag_ID(), tag.getReader_IP());
+					ToolUtility.SignalTower(gate.getFab(), gate.getArea(), gate.getGate(), GlobleVar.RedOn,
+							tag.getReader_IP());
+					ToolUtility.SetGateError(tag, GlobleVar.NonOpreation,
+							ToolUtility.ConvertGateStr(tag) + "系統無作業，偵測到棧板" + tag.getTag_ID());
+				} else if (gate.getForkLift_Direction().equals(GlobleVar.ForkLiftIN)) {
+					logger.info(tag.getReader_IP() + " NoOperation:" + GlobleVar.ForkLiftIN);
 					ToolUtility.Subtitle(gate.getFab(), gate.getArea(), gate.getGate(),
 							"碼頭系統無作業，偵測到棧板" + tag.getTag_ID(), tag.getReader_IP());
 					ToolUtility.SignalTower(gate.getFab(), gate.getArea(), gate.getGate(), GlobleVar.RedOn,
@@ -354,104 +375,103 @@ public class TagHandle {
 					ToolUtility.SetGateError(tag, GlobleVar.NonOpreation,
 							ToolUtility.ConvertGateStr(tag) + "系統無作業，偵測到棧板" + tag.getTag_ID());
 				} else {
-					logger.info(tag.getReader_IP() + " Current wms opreation:" + Opreation);
-					switch (tag.getTag_Type()) {
-					case GlobleVar.PalletTag:
-						switch (Opreation) {
-						case GlobleVar.ASNUnload:
-							if (gate.getFab().equals("T1")) {
-								if (gate.getForkLift_Direction().equals(GlobleVar.ForkLiftAll)) {
-									ASNUnload(tag, gate);
-								} else {
-									logger.info(tag.getReader_IP() + " ForkLift_Direction is not define.");
-								}
-							} else if (gate.getFab().equals("T2")) {
-								if (gate.getForkLift_Direction().equals(GlobleVar.ForkLiftIN)) {
-									ASNUnload(tag, gate);
-								} else {
-									logger.info(tag.getReader_IP() + " ForkLift_Direction is not define.");
-								}
-							}
-							break;
-						case GlobleVar.EmptyWrapUnload:
-							if (gate.getFab().equals("T1")) {
-								if (gate.getForkLift_Direction().equals(GlobleVar.ForkLiftAll)) {
-									EmptyWrapUnload(tag, gate);
-								} else {
-									logger.info(tag.getReader_IP() + " ForkLift_Direction is not define.");
-								}
-							} else if (gate.getFab().equals("T2")) {
-								if (gate.getForkLift_Direction().equals(GlobleVar.ForkLiftIN)) {
-									EmptyWrapUnload(tag, gate);
-								} else {
-									logger.info(tag.getReader_IP() + " ForkLift_Direction is not define.");
-								}
-							}
-							break;
-						case GlobleVar.TransferOut:
-							if (gate.getFab().equals("T1")) {
-								if (gate.getForkLift_Direction().equals(GlobleVar.ForkLiftAll)) {
-									TransferOut(tag, gate);
-								} else {
-									logger.info(tag.getReader_IP() + " ForkLift_Direction is not define.");
-								}
-							} else if (gate.getFab().equals("T2")) {
-								if (gate.getForkLift_Direction().equals(GlobleVar.ForkLiftIN)) {
-									TransferOut(tag, gate);
-								} else {
-									logger.info(tag.getReader_IP() + " ForkLift_Direction is not define.");
-								}
-							}
-							break;
-						case GlobleVar.TransferIn:
-							if (gate.getFab().equals("T1")) {
-								if (gate.getForkLift_Direction().equals(GlobleVar.ForkLiftAll)) {
-									TransferIn(tag, gate);
-								} else {
-									logger.info(tag.getReader_IP() + " ForkLift_Direction is not define.");
-								}
-							} else if (gate.getFab().equals("T2")) {
-								if (gate.getForkLift_Direction().equals(GlobleVar.ForkLiftOUT)) {
-									TransferIn(tag, gate);
-								} else {
-									logger.info(tag.getReader_IP() + " ForkLift_Direction is not define.");
-								}
-							}
-							break;
-						case GlobleVar.DeliveryLoad:
-							if (gate.getFab().equals("T1")) {
-								if (gate.getForkLift_Direction().equals(GlobleVar.ForkLiftAll)) {
-									logger.info(tag.getReader_IP() + " Delivery Load");
-									DeliveryLoad(tag, gate);
-								} else {
-									logger.info(tag.getReader_IP() + " ForkLift_Direction is not define.");
-								}
-							} else if (gate.getFab().equals("T2")) {
-								if (gate.getForkLift_Direction().equals(GlobleVar.ForkLiftOUT)) {
-									logger.info(tag.getReader_IP() + " Delivery Load");
-									DeliveryLoad(tag, gate);
-								} else if (gate.getForkLift_Direction().equals(GlobleVar.ForkLiftIN)) {
-									logger.info(tag.getReader_IP() + " Delivery UnLoad");
-									DeliveryUnLoad(tag, gate);
-								} else {
-									logger.info(tag.getReader_IP() + " ForkLift_Direction is not define.");
-								}
-							}
-							break;
-						default:
+					logger.info(tag.getReader_IP() + " ForkLift_Direction is not define.");
+				}
 
-							break;
+			} else {
+				logger.info(tag.getReader_IP() + " Current wms opreation:" + Opreation);
+				switch (tag.getTag_Type()) {
+				case GlobleVar.PalletTag:
+					switch (Opreation) {
+					case GlobleVar.ASNUnload:
+						if (gate.getFab().equals("T1")) {
+							if (gate.getForkLift_Direction().equals(GlobleVar.ForkLiftAll)) {
+								ASNUnload(tag, gate);
+							} else {
+								logger.info(tag.getReader_IP() + " ForkLift_Direction is not define.");
+							}
+						} else if (gate.getFab().equals("T2")) {
+							if (gate.getForkLift_Direction().equals(GlobleVar.ForkLiftIN)) {
+								ASNUnload(tag, gate);
+							} else {
+								logger.info(tag.getReader_IP() + " ForkLift_Direction is not define.");
+							}
 						}
 						break;
+					case GlobleVar.EmptyWrapUnload:
+						if (gate.getFab().equals("T1")) {
+							if (gate.getForkLift_Direction().equals(GlobleVar.ForkLiftAll)) {
+								EmptyWrapUnload(tag, gate);
+							} else {
+								logger.info(tag.getReader_IP() + " ForkLift_Direction is not define.");
+							}
+						} else if (gate.getFab().equals("T2")) {
+							if (gate.getForkLift_Direction().equals(GlobleVar.ForkLiftIN)) {
+								EmptyWrapUnload(tag, gate);
+							} else {
+								logger.info(tag.getReader_IP() + " ForkLift_Direction is not define.");
+							}
+						}
+						break;
+					case GlobleVar.TransferOut:
+						if (gate.getFab().equals("T1")) {
+							if (gate.getForkLift_Direction().equals(GlobleVar.ForkLiftAll)) {
+								TransferOut(tag, gate);
+							} else {
+								logger.info(tag.getReader_IP() + " ForkLift_Direction is not define.");
+							}
+						} else if (gate.getFab().equals("T2")) {
+							if (gate.getForkLift_Direction().equals(GlobleVar.ForkLiftIN)) {
+								TransferOut(tag, gate);
+							} else {
+								logger.info(tag.getReader_IP() + " ForkLift_Direction is not define.");
+							}
+						}
+						break;
+					case GlobleVar.TransferIn:
+						if (gate.getFab().equals("T1")) {
+							if (gate.getForkLift_Direction().equals(GlobleVar.ForkLiftAll)) {
+								TransferIn(tag, gate);
+							} else {
+								logger.info(tag.getReader_IP() + " ForkLift_Direction is not define.");
+							}
+						} else if (gate.getFab().equals("T2")) {
+							if (gate.getForkLift_Direction().equals(GlobleVar.ForkLiftOUT)) {
+								TransferIn(tag, gate);
+							} else {
+								logger.info(tag.getReader_IP() + " ForkLift_Direction is not define.");
+							}
+						}
+						break;
+					case GlobleVar.DeliveryLoad:
+						if (gate.getFab().equals("T1")) {
+							if (gate.getForkLift_Direction().equals(GlobleVar.ForkLiftAll)) {
+								logger.info(tag.getReader_IP() + " Delivery Load");
+								DeliveryLoad(tag, gate);
+							} else {
+								logger.info(tag.getReader_IP() + " ForkLift_Direction is not define.");
+							}
+						} else if (gate.getFab().equals("T2")) {
+							if (gate.getForkLift_Direction().equals(GlobleVar.ForkLiftOUT)) {
+								logger.info(tag.getReader_IP() + " Delivery Load");
+								DeliveryLoad(tag, gate);
+							} else if (gate.getForkLift_Direction().equals(GlobleVar.ForkLiftIN)) {
+								logger.info(tag.getReader_IP() + " Delivery UnLoad");
+								DeliveryUnLoad(tag, gate);
+							} else {
+								logger.info(tag.getReader_IP() + " ForkLift_Direction is not define.");
+							}
+						}
+						break;
+					default:
 
+						break;
 					}
+					break;
+
 				}
-			} else {
-				logger.info(tag.getReader_IP() + " Direction Expire");
-				logger.info(
-						tag.getReader_IP() + " tagReceive_Time:" + tag.getReceive_Time() + "- gateDirection_EndTime:"
-								+ gate.getDirection_EndTime() + " > DirectionExpire:" + GlobleVar.DirectionExpire);
 			}
+
 		} else {
 			logger.info(tag.getReader_IP() + " PortHandler : Fetch gate setting fail.");
 		}
@@ -468,23 +488,35 @@ public class TagHandle {
 				logger.debug(tag.getReader_IP() + " the tag is already send to wms.");
 
 			} else {
-				ToolUtility.MarkPallet(tag, container.getContainer_ID(), GlobleVar.ASNUnload, false);
+				
 				WMS_T1_ASN_Pallet ANS_Pallet = ToolUtility.GetASNPallet(tag);
+				//test
+//				if(ANS_Pallet==null) {
+//					ANS_Pallet = new WMS_T1_ASN_Pallet();
+//					
+//					ANS_Pallet.setASN_NO("BOOK1234");
+//					ANS_Pallet.setCar_NO("115522");
+//					ANS_Pallet.setPallet_ID("NA539");
+//					ANS_Pallet.setRFID_Chk("");
+//				}
+				//test
 				if (ANS_Pallet == null) {
 
 					ANS_Pallet = new WMS_T1_ASN_Pallet();
 					ANS_Pallet.setASN_NO("N/A");
 					ANS_Pallet.setPallet_ID(tag.getTag_ID());
-
+					
+					ToolUtility.SetErrorPallet(tag, GlobleVar.ASNUnload, GlobleVar.WMSNotFound);
 					ToolUtility.Subtitle(gate.getFab(), gate.getArea(), gate.getGate(),
 							"廠商" + container.getSource() + " 收貨棧板:" + tag.getTag_ID() + " 未存在ASN資料庫",
 							tag.getReader_IP());
 					ToolUtility.SignalTower(gate.getFab(), gate.getArea(), gate.getGate(), GlobleVar.RedOn,
 							tag.getReader_IP());
 					ToolUtility.SetGateError(tag, GlobleVar.ASNError, ToolUtility.ConvertGateStr(tag) + "廠商"
-							+ container.getSource() + " 收貨棧板:" + tag.getTag_ID() + " 未存在ASN資料庫" + tag.getTag_ID());
-					ToolUtility.SetErrorPallet(tag, GlobleVar.ASNUnload, GlobleVar.WMSNotFound);
-					voiceText = "注意 注意 廠商" + container.getSource() + " " + container.getVendor_Name() + "運輸 棧板"
+							+ container.getSource() + " 收貨棧板:" + tag.getTag_ID() + " 未存在ASN資料庫" + ToolUtility.GetErrorPalletSummary(gate.getFab(), gate.getArea(),
+									gate.getGate(), GlobleVar.ASNUnload, tag.getReader_IP()));
+					
+					voiceText = "注意 注意 廠商" + container.getSource() + " 由" + container.getVendor_Name() + "運輸 棧板"
 							+ ToolUtility.AddSpace(tag.getTag_ID()) + "未存在ASN資料庫 請同仁查明";
 					ToolUtility.VoiceSend(gate.getVoice_Path(), voiceText, tag.getReader_IP());
 
@@ -492,28 +524,30 @@ public class TagHandle {
 							MessageFormat.SendASNUnload(ANS_Pallet, container, "Error", tag.getReader_IP()),
 							GlobleVar.SendToWMS);
 				} else {
+					ToolUtility.MarkPallet(tag, container.getContainer_ID(), GlobleVar.ASNUnload, false);
 					if (!ANS_Pallet.getRFID_Chk().equals("TRUE")) {
 
 						logger.info(tag.getReader_IP() + " Pallet " + tag.getTag_ID() + " " + GlobleVar.ASNUnload);
 
 						ToolUtility.Subtitle(gate.getFab(), gate.getArea(), gate.getGate(),
-								"棧板" + tag.getTag_ID() + "ASN:", tag.getReader_IP());
+								"棧板" + ANS_Pallet.getPallet_ID() + "ASN:"+ANS_Pallet.getASN_NO(), tag.getReader_IP());
 						ToolUtility.SignalTowerAutoOff(gate.getFab(), gate.getArea(), gate.getGate(), GlobleVar.GreenOn,
 								5000, tag.getReader_IP());
 						ToolUtility.MesDaemon.sendMessage(
 								MessageFormat.SendASNUnload(ANS_Pallet, container, "Confirm", tag.getReader_IP()),
 								GlobleVar.SendToWMS);
+						
 					}
 				}
 			}
 		} else {
 			// 此碼頭沒有綁定任何車輛
 			logger.info(tag.getReader_IP() + "This gate is not bonding any car.");
-
+			
 			ToolUtility.Subtitle(gate.getFab(), gate.getArea(), gate.getGate(), "沒有綁定車輛，偵測到棧板" + tag.getTag_ID(),
 					tag.getReader_IP());
 			ToolUtility.SignalTower(gate.getFab(), gate.getArea(), gate.getGate(), GlobleVar.RedOn, tag.getReader_IP());
-			ToolUtility.SetGateError(tag, GlobleVar.TransferError,
+			ToolUtility.SetGateError(tag, GlobleVar.ASNUnload,
 					ToolUtility.ConvertGateStr(tag) + "沒有綁定車輛，偵測到棧板" + tag.getTag_ID());
 		}
 
@@ -630,7 +664,7 @@ public class TagHandle {
 				logger.info(tag.getReader_IP() + " the tag " + tag.getTag_ID() + " is already send to wms.");
 
 			} else {
-				ToolUtility.MarkPallet(tag, container.getContainer_ID(), GlobleVar.DeliveryLoad, true);
+				
 				// Check pallet in the container
 				logger.info(tag.getReader_IP() + " Check container " + container.getContainer_ID() + "pallet list.");
 				WMS_T1_Check_Pallet pallet = ToolUtility.GetPalletChk(tag);
@@ -640,6 +674,7 @@ public class TagHandle {
 					if (pallet.getContainer_NO().equals(container.getContainer_ID())
 							|| pallet.getTruck_NO().equals(container.getCar_ID())) {
 						logger.info(tag.getReader_IP() + " Pallet " + tag.getTag_ID() + " is in list.");
+						ToolUtility.MarkPallet(tag, container.getContainer_ID(), GlobleVar.DeliveryLoad, true);
 						// If not in container
 						if (pallet.getStatus().equals("TRUE")) {
 
@@ -647,6 +682,7 @@ public class TagHandle {
 									tag.getReader_IP() + " Pallet " + tag.getTag_ID() + " is already in container.");
 
 						} else {
+							
 							logger.info(tag.getReader_IP() + " Pallet " + tag.getTag_ID() + " is not in container.");
 							int completeCount = ToolUtility.GetCompletePallet(container, tag.getReader_IP()).size() + 1;
 							int allCount = ToolUtility.GetAllPallet(container, tag.getReader_IP()).size();
@@ -659,7 +695,7 @@ public class TagHandle {
 										tag.getReader_IP());
 								ToolUtility.SignalTowerAutoOff(gate.getFab(), gate.getArea(), gate.getGate(),
 										GlobleVar.OrangeOn, 5000, tag.getReader_IP());
-								voiceText = "出貨" + ToolUtility.GetShipTo(container, tag.getReader_IP()) + " "
+								voiceText = "出貨" + ToolUtility.GetShipTo(container, tag.getReader_IP()) + " 由"
 										+ container.getVendor_Name() + "運輸 "
 										+ ToolUtility.ConvertGateStr(container, tag.getReader_IP()) + "已裝櫃完成";
 								ToolUtility.VoiceSend(gate.getVoice_Path(), voiceText, tag.getReader_IP());
@@ -712,9 +748,9 @@ public class TagHandle {
 						ToolUtility.SetGateError(tag, GlobleVar.DeliveryError,
 								ToolUtility.ConvertGateStr(tag) + summary);
 
-						voiceText = "注意 注意 出貨" + ToolUtility.GetShipTo(container, tag.getReader_IP()) + " "
-								+ container.getVendor_Name() + "運輸 "
-								+ ToolUtility.ConvertGateStr(container, tag.getReader_IP()) + "棧板"
+						voiceText = "注意 注意 出貨" + ToolUtility.GetShipTo(container, tag.getReader_IP()) + " 由"
+								+ container.getVendor_Name() + "運輸  "
+								+ ToolUtility.ConvertGateStr(container, tag.getReader_IP()) + " 棧板"
 								+ ToolUtility.AddSpace(tag.getTag_ID()) + "未存在出貨資料庫 請同仁查明";
 						ToolUtility.VoiceSend(gate.getVoice_Path(), voiceText, tag.getReader_IP());
 
@@ -763,11 +799,16 @@ public class TagHandle {
 				logger.info(tag.getReader_IP() + "All gate error is clear, reset gate information.");
 				RF_ContainerInfo container = ToolUtility.GetContainerInfo(tag.getFab(), tag.getArea(), tag.getGate(),
 						tag.getReader_IP());
-				ToolUtility.Subtitle(gate.getFab(), gate.getArea(), gate.getGate(),
-						ToolUtility.InitSubtitleStr(container, tag.getReader_IP()), tag.getReader_IP());
+
+				ToolUtility
+						.Subtitle(gate.getFab(), gate.getArea(), gate.getGate(),
+								"目前進度" + (ToolUtility.GetCompletePallet(container, tag.getReader_IP()).size()) + "/"
+										+ ToolUtility.GetAllPallet(container, tag.getReader_IP()).size(),
+								tag.getReader_IP());
 				ToolUtility.SignalTower(gate.getFab(), gate.getArea(), gate.getGate(), GlobleVar.RedOff,
 						tag.getReader_IP());
-
+				ToolUtility.SignalTowerAutoOff(gate.getFab(), gate.getArea(), gate.getGate(), GlobleVar.GreenOn, 5000,
+						tag.getReader_IP());
 			}
 
 		} else {
@@ -795,9 +836,10 @@ public class TagHandle {
 									+ " is found by wms database.");
 							// If not in container
 							// if (true) {//for test
-							if (pallet.getStatus().equals("")) {
+							if (pallet.getStatus().equals("TRUE")) {
 								logger.info(
 										tag.getReader_IP() + "Pallet " + pallet + " is not yet enter into container.");
+
 								ToolUtility.Subtitle(gate.getFab(), gate.getArea(), gate.getGate(), "目前進度"
 										+ (ToolUtility.GetCompletePallet(container, tag.getReader_IP()).size() - 1)
 										+ "/" + ToolUtility.GetAllPallet(container, tag.getReader_IP()).size(),
@@ -811,7 +853,7 @@ public class TagHandle {
 
 							} else {
 
-								logger.debug(tag.getReader_IP() + " Pallet is not in container.");
+								logger.debug(tag.getReader_IP() + " Pallet is not in container. ");
 
 							}
 						} else {
@@ -872,7 +914,13 @@ public class TagHandle {
 				RF_Gate_Setting gate = ToolUtility.GetGateSetting(tag.getFab(), tag.getArea(), tag.getGate(),
 						tag.getReader_IP());
 				if (gate != null) {
-					gate.setLast_ContainerTag_Time(System.currentTimeMillis());
+					RF_ContainerInfo container = ToolUtility.GetContainerInfo(tag.getFab(), tag.getArea(), tag.getGate(),
+							tag.getReader_IP());
+					if(container!=null) {
+						if(container.getContainer_ID().equals(tag.getTag_ID())) {
+							gate.setLast_ContainerTag_Time(System.currentTimeMillis());
+						}
+					}
 					if (tag.getReceive_Time() - gate.getLast_MarkTag_Time() > GlobleVar.TagMaskInTime) {
 						PortBind(gate, tag);
 
@@ -929,12 +977,16 @@ public class TagHandle {
 					+ ToolUtility.ConvertCarStr(tag) + tag.getTag_ID() + "沒有進廠紀錄");
 		} else if (!container.getGate().equals("0")) {
 
-			ToolUtility.Subtitle(gate.getFab(), gate.getArea(), gate.getGate(),
-					"綁定失敗，該車輛目前被綁定在" + ToolUtility.ConvertGateStr(container, tag.getReader_IP()), tag.getReader_IP());
-			ToolUtility.SignalTower(gate.getFab(), gate.getArea(), gate.getGate(), GlobleVar.RedOn, tag.getReader_IP());
-			ToolUtility.SetGateError(tag, GlobleVar.BindingError,
-					tag.getTag_ID() + "無法綁定於" + ToolUtility.ConvertGateStr(tag) + "，因目前被綁定在"
-							+ ToolUtility.ConvertGateStr(container, tag.getReader_IP()));
+			logger.info(tag.getReader_IP() + " " + tag.getTag_ID() + "無法綁定於" + ToolUtility.ConvertGateStr(tag)
+					+ "，因目前被綁定在" + ToolUtility.ConvertGateStr(container, tag.getReader_IP()));
+			// ToolUtility.Subtitle(gate.getFab(), gate.getArea(), gate.getGate(),
+			// "綁定失敗，該車輛目前被綁定在" + ToolUtility.ConvertGateStr(container, tag.getReader_IP()),
+			// tag.getReader_IP());
+			// ToolUtility.SignalTower(gate.getFab(), gate.getArea(), gate.getGate(),
+			// GlobleVar.RedOn, tag.getReader_IP());
+			// ToolUtility.SetGateError(tag, GlobleVar.BindingError,
+			// tag.getTag_ID() + "無法綁定於" + ToolUtility.ConvertGateStr(tag) + "，因目前被綁定在"
+			// + ToolUtility.ConvertGateStr(container, tag.getReader_IP()));
 		} else {
 			// Bind start
 			gate.setManual_Bind(false);
@@ -943,6 +995,7 @@ public class TagHandle {
 			container.setFab(tag.getFab());
 			container.setArea(tag.getArea());
 			container.setGate(tag.getGate());
+
 			ToolUtility.DeletePalletByCarID(container.getContainer_ID(), tag.getReader_IP());
 			ToolUtility.ClearErrorPallet(gate.getFab(), gate.getArea(), gate.getGate(), tag.getReader_IP());
 			// Update container object
@@ -956,7 +1009,7 @@ public class TagHandle {
 			if (container.getCar_Type().equals(GlobleVar.TruckStr)) {
 				if (container.getReason() != null) {
 					if (container.getReason().equals("Delivery")) {
-						voiceText = "廠商" + container.getSource() + " " + container.getVendor_Name() + "運輸已停靠"
+						voiceText = "廠商" + container.getSource() + " 由" + container.getVendor_Name() + "運輸 已停靠"
 								+ ToolUtility.ConvertGateStr(container, tag.getReader_IP()) + " 請同仁收貨";
 					} else if (container.getReason().equals("Receive")) {
 						voiceText = container.getVendor_Name() + "運輸已停靠"
@@ -1000,14 +1053,15 @@ public class TagHandle {
 				ToolUtility.SetGateError(tag, GlobleVar.LoadNotComplete, ToolUtility.ConvertGateStr(tag) + "，"
 						+ ToolUtility.ConvertCarStr(tag) + container.getContainer_ID() + "，尚未裝櫃完成即離場");
 
-				voiceText = "注意 注意 出貨" + ToolUtility.GetShipTo(container, tag.getReader_IP()) + " "
-						+ container.getVendor_Name() + "運輸" + ToolUtility.ConvertGateStr(container, tag.getReader_IP())
+				voiceText = "注意 注意 出貨" + ToolUtility.GetShipTo(container, tag.getReader_IP()) + " 由"
+						+ container.getVendor_Name() + "運輸 " + ToolUtility.ConvertGateStr(container, tag.getReader_IP())
 						+ " 尚未裝櫃完成即離場 請同仁查明";
 				ToolUtility.VoiceSend(gate.getVoice_Path(), voiceText, tag.getReader_IP());
 			} else {
 				// All pallet are complete, car exit normally.
 				container.setArea("WH");
 				container.setGate("0");
+
 				ToolUtility.DeletePalletByCarID(container.getContainer_ID(), tag.getReader_IP());
 				ToolUtility.ClearErrorPallet(gate.getFab(), gate.getArea(), gate.getGate(), tag.getReader_IP());
 				ToolUtility.UpdateContainerInfo(container, tag.getReader_IP());
@@ -1019,21 +1073,21 @@ public class TagHandle {
 				if (container.getCar_Type().equals(GlobleVar.TruckStr)) {
 					if (container.getReason() != null) {
 						if (container.getReason().equals("Delivery")) {
-							voiceText = "廠商" + container.getSource() + " " + container.getVendor_Name() + "運輸 卸貨完成已離開"
+							voiceText = "廠商" + container.getSource() + " 由" + container.getVendor_Name() + "運輸 卸貨完成已離開"
 									+ ToolUtility.ConvertGateStr(container, tag.getReader_IP());
 						} else if (container.getReason().equals("Receive")) {
-							voiceText = "出貨" + ToolUtility.GetShipTo(container, tag.getReader_IP()) + " "
-									+ container.getVendor_Name() + "運輸裝櫃完成已離開"
+							voiceText = "出貨" + ToolUtility.GetShipTo(container, tag.getReader_IP()) + " 由"
+									+ container.getVendor_Name() + "運輸 裝櫃完成已離開"
 									+ ToolUtility.ConvertGateStr(container, tag.getReader_IP());
 						}
 					}
 				} else if (container.getCar_Type().equals(GlobleVar.ContainerStr)) {
 					if (container.getContainer_Status().equals("NonEmpty")) {
-						voiceText = "出貨" + ToolUtility.GetShipTo(container, tag.getReader_IP()) + " "
+						voiceText = "出貨" + ToolUtility.GetShipTo(container, tag.getReader_IP()) + " 由"
 								+ container.getVendor_Name() + "運輸 裝櫃完成已離開"
 								+ ToolUtility.ConvertGateStr(container, tag.getReader_IP());
 					} else {
-						voiceText = container.getVendor_Name() + "運輸卸櫃完成已離開"
+						voiceText = container.getVendor_Name() + "運輸卸櫃完成 已離開"
 								+ ToolUtility.ConvertGateStr(container, tag.getReader_IP());
 					}
 				}

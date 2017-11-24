@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import org.apache.log4j.Logger;
+
 import com.innolux.common.GlobleVar;
 import com.innolux.common.ToolUtility;
 import com.innolux.common.MessageFormat;
@@ -16,11 +18,14 @@ import com.innolux.model.RF_Reader_Setting;
 import com.innolux.model.RF_Subtitle_Setting;
 import com.innolux.receiver.AlienReader;
 import com.innolux.receiver.AlienReaderBySocket;
+import com.innolux.receiver.WMS_Message;
 import com.innolux.service.ReaderCmdService;
 import com.innolux.service.SubtitleService;
 import com.innolux.service.WebApiService;
 
 public class WIS_Main {
+	
+	private static Logger logger = Logger.getLogger(WIS_Main.class);
 
 	public static void main(String[] args) {
 		SubtitleService.Initial();
@@ -29,9 +34,11 @@ public class WIS_Main {
 		SetAliveNotify();
 		InitialReaders();
 
+		
+		new WebApiService().start();
+		new WMS_Message();
 		CustSubtileMonitor();
 		CylinderMonitor();
-		new WebApiService().start();
 	}
 
 	private static void InitialGates() {
@@ -95,7 +102,7 @@ public class WIS_Main {
 		calendar.add(Calendar.DAY_OF_MONTH, 1);
 		Date date = calendar.getTime();
 		Timer timer = new Timer();
-		System.out.println(date);
+		
 
 		long period = 86400 * 1000;
 
@@ -133,7 +140,12 @@ public class WIS_Main {
 	}
 
 	private static void CylinderMonitor() {
-
+		try {
+			Thread.sleep(5 * 60 * 1000);
+		} catch (InterruptedException e) {
+			
+			logger.error("CylinderMonitor exception:"+ToolUtility.StackTrace2String(e));
+		}
 		Timer timer = new Timer();
 
 		// 5min

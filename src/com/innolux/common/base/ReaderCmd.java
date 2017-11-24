@@ -24,10 +24,10 @@ public class ReaderCmd {
 		try {
 			Thread.sleep(_ReaderSet.getStart_Delay());
 		} catch (InterruptedException e) {
-			
+
 			logger.error(ReaderSet.getReader_IP() + " " + "Exception:" + ToolUtility.StackTrace2String(e));
 		}
-		
+
 		ReaderSet = _ReaderSet;
 		reader.setConnection(ReaderSet.getReader_IP(), 23);
 		reader.setUsername("alien");
@@ -43,14 +43,32 @@ public class ReaderCmd {
 	public synchronized boolean TimeSync() {
 		boolean result = false;
 		try {
-			if(!reader.isOpen()) {
-				reader.open();
-			}
+
+			reader.open();
+
 			reader.setTime();
-			
+			reader.close();
 			result = true;
 		} catch (Exception e) {
-			
+
+			logger.error(ReaderSet.getReader_IP() + " " + "Exception:" + ToolUtility.StackTrace2String(e));
+		}
+		return result;
+	}
+	
+	public synchronized boolean NotifyNow() {
+		boolean result = false;
+		try {
+
+			reader.open();
+			reader.setAutoMode(AlienClass1Reader.ON);
+			reader.setNotifyMode(AlienClass1Reader.ON);
+			reader.notifyNow();
+			reader.close();
+			result = true;
+			logger.debug(ReaderSet.getReader_IP() + " NotifyNow success.");
+		} catch (Exception e) {
+
 			logger.error(ReaderSet.getReader_IP() + " " + "Exception:" + ToolUtility.StackTrace2String(e));
 		}
 		return result;
@@ -59,16 +77,15 @@ public class ReaderCmd {
 	public synchronized boolean Send(String cmdStr) {
 		boolean result = false;
 		try {
-			logger.debug(ReaderSet.getReader_IP() + " Send cmd:"+cmdStr);
-			if(!reader.isOpen()) {
-				reader.open();
-			}
-			
+			logger.debug(ReaderSet.getReader_IP() + " Send cmd:" + cmdStr);
+
+			reader.open();
+
 			reader.macroRun(cmdStr);
-			
+			reader.close();
 			result = true;
 		} catch (Exception e) {
-			
+
 			logger.error(ReaderSet.getReader_IP() + " " + "Exception:" + ToolUtility.StackTrace2String(e));
 		}
 		return result;
@@ -87,18 +104,18 @@ public class ReaderCmd {
 					RF_Antenna_Setting.class);
 
 			if (antSets.size() != 0) {
-				if(!reader.isOpen()) {
-					reader.open();
-				}
+
+				reader.open();
+
 				for (RF_Antenna_Setting eachSet : antSets) {
 					reader.setRFAttenuation(eachSet.getAntenna_No(), eachSet.getRFAttenuation());
 				}
 				reader.saveSettings();
-				
+				reader.close();
 			}
 			result = true;
 		} catch (Exception e) {
-			
+
 			logger.error(ReaderSet.getReader_IP() + " " + "Exception:" + ToolUtility.StackTrace2String(e));
 		}
 		return result;
@@ -109,11 +126,10 @@ public class ReaderCmd {
 		try {
 			if (reader != null) {
 
-				if(!reader.isOpen()) {
-					reader.open();
-				}	
+				reader.open();
+
 				reader.setAntennaSequence(ToolUtility.GetAntennaSequence(ReaderSet.getReader_IP()));
-				
+				reader.close();
 				result = true;
 			} else {
 				logger.error(ReaderSet.getReader_IP() + " " + "reader is null");
@@ -128,16 +144,15 @@ public class ReaderCmd {
 		boolean result = false;
 
 		try {
-			
+
 			if (reader != null) {
 
-				if(!reader.isOpen()) {
-					reader.open();
-				}
+				reader.open();
+
 				reader.setAutoMode(AlienClass1Reader.OFF);
 				reader.setNotifyMode(AlienClass1Reader.OFF);
 				reader.setNotifyAddress(InetAddress.getLocalHost().getHostAddress(), ReaderSet.getListen_Port());
-				
+
 				if (ReaderSet.getLocation().toUpperCase().equals("CYLINDER")) {
 
 					reader.setAntennaSequence("0 1 2 3");
@@ -160,8 +175,8 @@ public class ReaderCmd {
 					reader.setTagListCustomFormat(CustomFormatStr);
 
 				} else {
-					//reader.notifyNow();
-					//reader.setAntennaSequence("1 3 1 0 3 1 3 2");
+					// reader.notifyNow();
+					// reader.setAntennaSequence("1 3 1 0 3 1 3 2");
 					reader.setAntennaSequence(ToolUtility.GetAntennaSequence(ReaderSet.getReader_IP()));
 					reader.setNotifyTrigger("OFF");
 					reader.setTagListAntennaCombine(AlienClass1Reader.OFF);
@@ -181,11 +196,11 @@ public class ReaderCmd {
 					CustomFormatStr = "${TAGIDW},${MSEC1},${MSEC2},${TX},${COUNT},${RSSI_MAX}";
 
 					reader.setTagListCustomFormat(CustomFormatStr);
-					logger.debug("notify address"  + reader.getNotifyAddress());
+					logger.debug("notify address" + reader.getNotifyAddress());
 					reader.notifyNow();
 				}
 				reader.saveSettings();
-			
+				reader.close();
 			} else {
 				logger.error(ReaderSet.getReader_IP() + " " + "reader is null");
 			}

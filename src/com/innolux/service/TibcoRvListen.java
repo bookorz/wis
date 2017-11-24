@@ -33,7 +33,7 @@ public class TibcoRvListen extends Thread implements TibrvMsgCallback{
 		targetObject = RvListener;
 	}
 	
-	public void startService(){
+	public void run(){
 		try {
 			Tibrv.open(Tibrv.IMPL_NATIVE);
 		} catch (TibrvException e) {

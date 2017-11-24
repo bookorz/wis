@@ -1,7 +1,5 @@
 package com.innolux.receiver;
 
-import java.util.Calendar;
-
 import org.apache.log4j.Logger;
 
 import com.innolux.common.GlobleVar;
@@ -10,6 +8,7 @@ import com.innolux.common.ToolUtility;
 import com.innolux.interfaces.ITibcoRvListenService;
 import com.innolux.model.RF_ContainerInfo;
 import com.innolux.model.RF_Cylinder_Status;
+import com.innolux.model.RF_Gate_Error;
 import com.innolux.model.RF_Gate_Setting;
 import com.innolux.service.TibcoRvListen;
 
@@ -18,13 +17,14 @@ public class WMS_Message implements ITibcoRvListenService {
 	private Logger logger = Logger.getLogger(this.getClass());
 
 	public WMS_Message() {
-		TibcoRvListen rv = new TibcoRvListen("tcp:8585", GlobleVar.ListenFromWMS, "8585", "");
+		TibcoRvListen rv = new TibcoRvListen("172.20.8.13:8585", GlobleVar.ListenFromWMS, "8585", "");
 		rv.setRvListener(this);
-		rv.startService();
+		rv.start();;
 	}
 
 	@Override
 	public void onRvMsg(String msg) {
+		
 		int beginIdx = 0;
 		int endIdx = 0;
 		String searchText = "";
@@ -41,8 +41,13 @@ public class WMS_Message implements ITibcoRvListenService {
 			String area = msg.substring(msg.indexOf("<AREA>") + 6, msg.indexOf("</AREA>"));
 			String gate = msg.substring(msg.indexOf("<GATEID>") + 8, msg.indexOf("</GATEID>"));
 			String empno = msg.substring(msg.indexOf("<EMPNO>") + 7, msg.indexOf("</EMPNO>"));
-			String palletStr = ToolUtility.GetGateError(fab, area, gate, "", "RV").getError_Message();
-
+			RF_Gate_Error gateErr =  ToolUtility.GetGateError(fab, area, gate, "", "RV");
+			String palletStr = "";
+			if(gateErr != null) {
+				palletStr = gateErr.getError_Message();
+			}else {
+				palletStr = "No Error Exist";
+			}
 			ToolUtility.DeleteGateError(fab, area, gate, "", "RV");
 
 			ToolUtility.ClearErrorPallet(fab, area, gate, "RV");
@@ -133,10 +138,12 @@ public class WMS_Message implements ITibcoRvListenService {
 
 				switch (status) {
 				case "BEGIN":
-					container.setProcess_Start(Calendar.getInstance().getTime());
+					
+					container.setProcess_Start(ToolUtility.GetNowTimeStr());
 					break;
 				case "END":
-					container.setProcess_End(Calendar.getInstance().getTime());
+					container.setProcess_End(ToolUtility.GetNowTimeStr());
+			
 					break;
 				}
 

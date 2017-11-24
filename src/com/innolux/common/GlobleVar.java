@@ -17,18 +17,18 @@ public class GlobleVar {
 
 	// Subject
 	public static final String TibDaemon = "172.20.8.13:8585";
-	public static final String ListenFromWMS = "INNOLUX.T2.TST.WMS.DIS.RECEIVE";
-	public static final String SendToWMS = "INNOLUX.T2.TST.WMS.DIS.SEND";
-	public static final String SendToAMS = "INNOLUX.T2.TST.ALM.WIS";
+	public static final String ListenFromWMS = "INNOLUX.T2.PROD.WMS.DIS.RECEIVE";
+	public static final String SendToWMS = "INNOLUX.T2.PROD.WMS.DIS.SEND";
+	public static final String SendToAMS = "INNOLUX.T2.PROD.ALM.WIS";
 
 	public static JdbcDaoHelper WIS_DB = new JdbcDaoHelper(GlobleVar.WISConnectionStr, GlobleVar.WISUser,
-			GlobleVar.WISPwd, 3);
+			GlobleVar.WISPwd, 6);
 
 	public static JdbcDaoHelper T1WMS_DB = new JdbcDaoHelper(GlobleVar.T1WMSConnectionStr, GlobleVar.T1WMSUser,
-			GlobleVar.T1WMSPwd, 3);
+			GlobleVar.T1WMSPwd, 6);
 
 	public static JdbcDaoHelper T2WMS_DB = new JdbcDaoHelper(GlobleVar.T2WMSConnectionStr, GlobleVar.T2WMSUser,
-			GlobleVar.T2WMSPwd, 3);
+			GlobleVar.T2WMSPwd, 6);
 	
 	public static final boolean TestMode = false;
 
@@ -116,7 +116,7 @@ public class GlobleVar {
 	public static final String WMSErrorMsg = "WMSErrorMsg";
 
 	// Container Status
-	public static final String ASNUnload = "ASNUnload"; // ASN卸貨
+	public static final String ASNUnload = "ASNUNLOAD"; // ASN卸貨
 	public static final String EmptyWrapUnload = "EmptyWrapUnload"; // 卸包材
 	public static final String TransferOut = "TransferOut"; // 廠移出
 	public static final String TransferIn = "TransferIn"; // 廠移入

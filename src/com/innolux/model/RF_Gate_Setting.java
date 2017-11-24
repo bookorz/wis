@@ -155,7 +155,7 @@ public class RF_Gate_Setting {
 	private long Direction_ReportTime;
 
 	public long getDirection_ReportTime() {
-		return Direction_EndTime;
+		return Direction_ReportTime;
 	}
 
 	public void setDirection_ReportTime(long Direction_ReportTime) {
@@ -210,7 +210,7 @@ public class RF_Gate_Setting {
 				 + " Mark_Tag: " + Mark_Tag + " Last_MarkTag_Time: "
 				+ Last_MarkTag_Time + " Last_ContainerTag_Time: " + Last_ContainerTag_Time + " Voice_Path: "
 				+ Voice_Path + " ForkLift_Direction: " + ForkLift_Direction + " Direction_StartTime: "
-				+ Direction_StartTime + " Direction_EndTime: " + Direction_EndTime + " Manual_Bind: " + Manual_Bind;
+				+ Direction_StartTime + " Direction_EndTime: " + Direction_EndTime + " Direction_ReportTime:" + Direction_ReportTime + " Manual_Bind: " + Manual_Bind;
 
 	}
 }

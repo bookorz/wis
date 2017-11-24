@@ -203,6 +203,37 @@ public class ToolUtility {
 		}
 		return result;
 	}
+	
+	public static ResponseBase<String> ResetAllError(String msg) {
+		ResponseBase<String> result = new ResponseBase<String>();
+		try {
+			logger.debug("ResetAllError msg:" + msg);
+			JSONObject orgJson = new JSONObject(msg);
+
+			String fab = orgJson.getString("Fab");
+			String area = orgJson.getString("Area");
+			String gate = orgJson.getString("Gate");
+			
+
+			ToolUtility.DeleteGateError(fab, area, gate, "", "RV");
+
+			ToolUtility.ClearErrorPallet(fab, area, gate, "RV");
+			RF_ContainerInfo container = ToolUtility.GetContainerInfo(fab, area, gate, "RV");
+		
+			ToolUtility.Subtitle(fab, area, gate, ToolUtility.InitSubtitleStr(container, "RV"), "RV");
+
+			ToolUtility.SignalTower(fab, area, gate, GlobleVar.RedOff, "RV");
+			
+			result.setStatus("200");
+			result.setMessage("Success");
+			
+		} catch (Exception e) {
+			logger.error("ResetAllError Exception:" + StackTrace2String(e));
+			result.setStatus("500");
+			result.setMessage(StackTrace2String(e));
+		}
+		return result;
+	}
 
 	public static ResponseBase<String> SetSignalTower(String msg) {
 		ResponseBase<String> result = new ResponseBase<String>();
@@ -253,6 +284,12 @@ public class ToolUtility {
 			result.setMessage(StackTrace2String(e));
 		}
 		return result;
+	}
+	
+	public static String GetNowTimeStr() {
+		DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		Date today = Calendar.getInstance().getTime();
+		return df.format(today);
 	}
 
 	public static String GetReaderIP(String fab, String area, String gate) {
@@ -552,12 +589,15 @@ public class ToolUtility {
 				result = WMS_T1_ASN_Pallet_Dao.get(tag.getTag_ID(), WMS_T1_ASN_Pallet.class);
 				break;
 			case "T2":
-				result = new WMS_T1_ASN_Pallet();
+				
 				WMS_T2_ASN_Pallet t2 = WMS_T2_ASN_Pallet_Dao.get(tag.getTag_ID(), WMS_T2_ASN_Pallet.class);
-				result.setASN_NO(t2.getASN_NO());
-				result.setCar_NO(t2.getCar_NO());
-				result.setPallet_ID(t2.getPallet_ID());
-				result.setRFID_Chk(t2.getRFID_Chk());
+				if(t2!=null) {
+					result = new WMS_T1_ASN_Pallet();
+					result.setASN_NO(t2.getASN_NO());
+					result.setCar_NO(t2.getCar_NO());
+					result.setPallet_ID(t2.getPallet_ID());
+					result.setRFID_Chk(t2.getRFID_Chk());
+				}
 				break;
 			}
 		} catch (Exception e) {
@@ -599,7 +639,7 @@ public class ToolUtility {
 		} catch (Exception e) {
 			logger.error(readerIP + " " + "Exception:" + StackTrace2String(e));
 		}
-		return result.toUpperCase();
+		return result;
 	}
 
 	public static void InsertLog(List<RF_Tag_History> tagList, String readerIP) {
@@ -814,11 +854,11 @@ public class ToolUtility {
 			sqlWhereMap.put("fab", fab);
 			sqlWhereMap.put("area", area);
 			sqlWhereMap.put("gate", gate);
-			RF_Subtitle_Setting SubtitleSetting = RF_Subtitle_Setting_Dao
-					.findAllByConditions(sqlWhereMap, RF_Subtitle_Setting.class).get(0);
+			List<RF_Subtitle_Setting> SubtitleSettings = RF_Subtitle_Setting_Dao
+					.findAllByConditions(sqlWhereMap, RF_Subtitle_Setting.class);
 
-			if (SubtitleSetting != null) {
-
+			if (SubtitleSettings.size()!=0) {
+				RF_Subtitle_Setting SubtitleSetting = SubtitleSettings.get(0);
 				if (SubtitleService.Show(SubtitleSetting.getSubtitle_IP(), showStr)) {
 					logger.info(readerIP + " " + showStr);
 					SubtitleSetting.setCurrent_Subtitle(showStr);
@@ -1170,9 +1210,7 @@ public class ToolUtility {
 	public static void SetMoveHistory(RF_ContainerInfo t, String readerIP) {
 		try {
 
-			DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-			Date today = Calendar.getInstance().getTime();
-			String reportDate = df.format(today);
+			
 
 			RF_Move_History his = new RF_Move_History();
 
@@ -1190,7 +1228,18 @@ public class ToolUtility {
 			his.setReason(t.getReason());
 			his.setSource(t.getSource());
 			his.setVendor_Name(t.getVendor_Name());
-			his.setTimeStamp(reportDate);
+			his.setTimeStamp(GetNowTimeStr());
+			his.setStartTime(t.getStartTime());
+			his.setEndTime(t.getEndTime());
+			his.setImpNo(t.getImpNo());
+			his.setVendorID(t.getVendorID());
+			his.setVendorCount(t.getVendorCount());
+			his.setCurrentStatus(t.getCurrentStatus());
+			his.setCurrentAction(t.getCurrentAction());
+			his.setProcess_Start(t.getProcess_Start());
+			his.setProcess_End(t.getProcess_End());
+			his.setProcess_Count(t.getProcess_Count());
+			his.setCurrent_Operation(t.getCurrent_Operation());
 
 			RF_Move_History_Dao.save(his);
 
@@ -1264,6 +1313,17 @@ public class ToolUtility {
 			if (resultList.size() != 0) {
 				result = resultList.get(0);
 			}
+			// For T2 Delivery 1&2
+			if (!result.getShare_Gate().equals("0")) {
+				logger.info(readerIP + " Looking for current operation gate");
+				if (!ToolUtility.GetOperation_Mode(result.getFab(), result.getArea(), result.getShare_Gate(), readerIP)
+						.equals("")) {
+					result = GetGateSetting(result.getFab(), result.getArea(), result.getShare_Gate(),
+							readerIP);
+					
+				}
+				logger.info(readerIP + " Current operation gate:"+result.getGate() + " " +result.getFab()+result.getArea());
+			}
 
 		} catch (Exception e) {
 
@@ -1331,9 +1391,8 @@ public class ToolUtility {
 	public static void MarkPallet(RF_Tag_History tag, String containerID, String Opreation, boolean in_Container) {
 		try {
 			RF_Pallet_Check pallet = null;
-			DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-			Date today = Calendar.getInstance().getTime();
-			String reportDate = df.format(today);
+			
+			String reportDate = GetNowTimeStr();
 			Map<String, Object> sqlWhereMap = new HashMap<String, Object>();
 			sqlWhereMap.put("pallet_id", tag.getTag_ID());
 

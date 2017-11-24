@@ -13,6 +13,7 @@ import com.innolux.common.TagHandle;
 import com.innolux.common.TagParser;
 import com.innolux.common.ToolUtility;
 import com.innolux.model.RF_Antenna_Setting;
+import com.innolux.model.RF_Gate_Setting;
 import com.innolux.model.RF_Reader_Setting;
 import com.innolux.model.RF_Tag_History;
 import com.innolux.model.RF_Tag_Setting;
@@ -23,6 +24,7 @@ public class AlienReader implements MessageListener {
 	private RF_Reader_Setting setting;
 	private Hashtable<Integer, RF_Antenna_Setting> antSetting = new Hashtable<Integer, RF_Antenna_Setting>();
 	private Hashtable<String, RF_Tag_Setting> tagSetting = new Hashtable<String, RF_Tag_Setting>();
+	private Hashtable<String, RF_Gate_Setting> gateSetting = new Hashtable<String, RF_Gate_Setting>();
 
 	public AlienReader(RF_Reader_Setting _setting) {
 		setting = _setting;
@@ -45,7 +47,7 @@ public class AlienReader implements MessageListener {
 		String MessageRawData;
 		MessageRawData = message.getRawData();
 		logger.debug(setting.getReader_IP() + " " + MessageRawData);
-		List<RF_Tag_History> tagList = new TagParser().Parse(MessageRawData, antSetting);
+		List<RF_Tag_History> tagList = new TagParser().Parse(MessageRawData, antSetting, gateSetting);
 		ToolUtility.InsertLog(tagList, setting.getReader_IP());
 		
 		if (tagList.size() != 0) {
@@ -113,6 +115,13 @@ public class AlienReader implements MessageListener {
 
 		try {
 
+			for(RF_Gate_Setting eachGate:ToolUtility.GetAllGateSetting(setting.getReader_IP())) {
+				String key = eachGate.getFab()+eachGate.getArea()+eachGate.getGate();
+				if(!gateSetting.containsKey(key)) {
+					gateSetting.put(key, eachGate);
+				}
+			}
+			
 			for (RF_Antenna_Setting eachAnt : ToolUtility.GetAntSettingList(setting.getReader_IP())) {
 				if (!antSetting.containsKey(eachAnt.getAntenna_No())) {
 					if(eachAnt.getAntenna_Type().equals(GlobleVar.ANT_Pallet)) {

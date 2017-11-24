@@ -7,6 +7,7 @@ import java.util.List;
 import org.apache.log4j.Logger;
 
 import com.innolux.model.RF_Antenna_Setting;
+import com.innolux.model.RF_Gate_Setting;
 import com.innolux.model.RF_Tag_History;
 import com.innolux.model.RF_Tag_Mapping;
 
@@ -15,7 +16,7 @@ public class TagParser {
 	public Logger logger = Logger.getLogger(TagParser.class);
 
 
-	public List<RF_Tag_History> Parse(String Raw_Str, Hashtable<Integer, RF_Antenna_Setting> antSetting) {
+	public List<RF_Tag_History> Parse(String Raw_Str, Hashtable<Integer, RF_Antenna_Setting> antSetting, Hashtable<String, RF_Gate_Setting> gateSetting ) {
 		List<RF_Tag_History> result = new ArrayList<RF_Tag_History>();
 		String[] TagListStr = Raw_Str.split("\n");
 		try {
@@ -34,10 +35,18 @@ public class TagParser {
 					// eachTag.setRSSI(Attributes[5]);
 					tag.setAntenna_No(Integer.parseInt(Attributes[3]));
 					ant = antSetting.get(tag.getAntenna_No());
+					
+					RF_Gate_Setting gate = gateSetting.get(ant.getFab()+ant.getArea()+ant.getGate());
 
 					tag.setFab(ant.getFab());
 					tag.setArea(ant.getArea());
-					tag.setGate(ant.getGate());
+					if(gate.getShare_Gate().equals("0")) {
+						tag.setGate(ant.getGate());
+					}else {
+						RF_Gate_Setting gateInfo = ToolUtility.GetGateSetting(ant.getFab(),ant.getArea(),ant.getGate(), ant.getReader_IP());
+						tag.setGate(gateInfo.getGate());
+					}
+	
 					tag.setAntenna_Type(ant.getAntenna_Type());
 					
 					tag.setReader_IP(ant.getReader_IP());

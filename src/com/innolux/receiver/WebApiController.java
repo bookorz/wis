@@ -32,6 +32,24 @@ public class WebApiController {
 	}
 	
 	@POST
+	@Path("ResetAllError")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	public String ResetAllError(InputStream is) throws JarException {
+		String msg = "";
+		if (is != null) {
+			msg = ConvertToString(is);
+		} else {
+			new JSONObject().put("Status", 500).put("Message", "content is null").toString();
+		}
+		
+		ResponseBase<String> response = ToolUtility.ResetAllError(msg);
+			
+		return new JSONObject().put("Status", response.getStatus()).put("Message", response.getMessage()).toString();
+		
+	}
+	
+	@POST
 	@Path("SetSignalTower")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
@@ -40,12 +58,12 @@ public class WebApiController {
 		if (is != null) {
 			msg = ConvertToString(is);
 		} else {
-			new JSONObject().put("statuscode", 500).put("Message", "content is null").toString();
+			new JSONObject().put("Status", 500).put("Message", "content is null").toString();
 		}
 		
 		ResponseBase<String> response = ToolUtility.SetSignalTower(msg);
 			
-		return new JSONObject().put("statuscode", response.getStatus()).put("Message", response.getMessage()).toString();
+		return new JSONObject().put("Status", response.getStatus()).put("Message", response.getMessage()).toString();
 		
 	}
 
@@ -58,12 +76,12 @@ public class WebApiController {
 		if (is != null) {
 			msg = ConvertToString(is);
 		} else {
-			new JSONObject().put("statuscode", 500).put("Message", "content is null").toString();
+			new JSONObject().put("Status", 500).put("Message", "content is null").toString();
 		}
 		
 		ResponseBase<String> response = ToolUtility.SetSubtitle(msg);
 			
-		return new JSONObject().put("statuscode", response.getStatus()).put("Message", response.getMessage()).toString();
+		return new JSONObject().put("Status", response.getStatus()).put("Message", response.getMessage()).toString();
 		
 	}
 	@POST
@@ -75,12 +93,12 @@ public class WebApiController {
 		if (is != null) {
 			msg = ConvertToString(is);
 		} else {
-			new JSONObject().put("statuscode", 500).put("Message", "content is null").toString();
+			new JSONObject().put("Status", 500).put("Message", "content is null").toString();
 		}
 		
 		ResponseBase<String> response = ToolUtility.PortBinding(msg);
 		
-		return new JSONObject().put("statuscode", response.getStatus()).put("Message", response.getMessage()).toString();
+		return new JSONObject().put("Status", response.getStatus()).put("Message", response.getMessage()).toString();
 		
 	}
 	@POST
@@ -92,13 +110,13 @@ public class WebApiController {
 		if (is != null) {
 			msg = ConvertToString(is);
 		} else {
-			new JSONObject().put("statuscode", 500).put("Message", "content is null").toString();
+			new JSONObject().put("Status", 500).put("Message", "content is null").toString();
 		}
 		IR_MessageBase irMsg = ToolUtility.Parse_T1_IR(msg);
 		
 		ResponseBase<String> response = IRHandle.Data(irMsg);
 		
-		return new JSONObject().put("statuscode", response.getStatus()).put("Message", response.getMessage()).toString();
+		return new JSONObject().put("Status", response.getStatus()).put("Message", response.getMessage()).toString();
 		
 	}
 	
@@ -111,14 +129,14 @@ public class WebApiController {
 		if (is != null) {
 			msg = ConvertToString(is);
 		} else {
-			new JSONObject().put("statuscode", 500).put("Message", "content is null").toString();
+			new JSONObject().put("Status", 500).put("Message", "content is null").toString();
 		}
 		
 		IR_MessageBase irMsg = ToolUtility.Parse_T2_IR(msg);
 		
 		ResponseBase<String> response = IRHandle.Data(irMsg);
 		
-		return new JSONObject().put("statuscode", response.getStatus()).put("Message", response.getMessage()).toString();
+		return new JSONObject().put("Status", response.getStatus()).put("Message", response.getMessage()).toString();
 		
 	}
 	

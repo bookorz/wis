@@ -1,7 +1,5 @@
 package com.innolux.model;  
 
-import java.util.Date;
-
 import com.innolux.annotation.Column;
 import com.innolux.annotation.Entity;
 import com.innolux.annotation.Id;  
@@ -294,47 +292,30 @@ public class RF_ContainerInfo {
      * Opreation start time
      */  
     @Column("process_start")  
-    private Date Process_Start;
+    private String Process_Start;
     
-    public Date getProcess_Start() {  
+    public String getProcess_Start() {  
         return Process_Start;  
     }  
   
-    public void setProcess_Start(Date Process_Start) {  
+    public void setProcess_Start(String Process_Start) {  
         this.Process_Start = Process_Start;  
     }  
-    
-    public String getProcess_StartString(){
-    	String result = "";
-    	if(Process_Start!=null) {
-    		result = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Process_Start);
-    	}
-    	return result;
-    }
     
     /** 
      * Opreation end time
      */  
     @Column("process_end")  
-    private Date Process_End;
+    private String Process_End;
     
-    public Date getProcess_End() {  
+    public String getProcess_End() {  
         return Process_End;  
     }  
   
-    public void setProcess_End(Date Process_End) {  
+    public void setProcess_End(String Process_End) {  
         this.Process_End = Process_End;  
 
     }  
-    
-    public String getProcess_EndString(){
-        String result = "";
-    	if(Process_End!=null) {
-    		result = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Process_End);
-    	}
-    	return result;
-    	
-    }
     
     /** 
      * Process_Count
@@ -386,8 +367,8 @@ public class RF_ContainerInfo {
         		" CurrentStatus: " + CurrentStatus+
         		" CurrentAction: " + CurrentAction+
         		" Source: " + Source+
-        		" Process_Start: " + getProcess_StartString()+
-        		" Process_End: " + getProcess_EndString()+
+        		" Process_Start: " + Process_Start+
+        		" Process_End: " + Process_End+
         		" Process_Count: " + Process_Count+
         		" Current_Operation: " + Current_Operation;
         		
