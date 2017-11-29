@@ -11,6 +11,7 @@ import com.innolux.model.RF_ContainerInfo;
 import com.innolux.model.RF_Cylinder_Status;
 import com.innolux.model.RF_Tag_History;
 import com.innolux.model.WMS_T1_ASN_Pallet;
+import com.innolux.model.WMS_T1_Check_Pallet;
 
 public class MessageFormat {
 	private static Logger logger = Logger.getLogger(MessageFormat.class);
@@ -93,12 +94,12 @@ public class MessageFormat {
 		return RvFormat;
 	}
 
-	public static String SendDeliveryLoad(RF_Tag_History tag, RF_ContainerInfo container, String Action,
+	public static String SendDeliveryLoad(RF_Tag_History tag, WMS_T1_Check_Pallet wmsPallet, String Action,
 			String readerIP) {
 		String RvFormat = ">>L WmsRfidPalletInfoXml USERID=\"DIS\" xml=\"<ZDIS01><HEADER><PALLET_ID>" + tag.getTag_ID()
 				+ "</PALLET_ID><FAB>" + tag.getFab() + "</FAB><AREA>" + tag.getArea() + "</AREA><GATEID>"
-				+ tag.getGate() + "</GATEID><CONTAINERID>" + container.getContainer_ID() + "</CONTAINERID><VEHICLE_NO>"
-				+ container.getCar_ID() + "</VEHICLE_NO><ACTION>" + Action + "</ACTION></HEADER></ZDIS01>\"";
+				+ tag.getGate() + "</GATEID><CONTAINERID>" + wmsPallet.getContainer_NO() + "</CONTAINERID><VEHICLE_NO>"
+				+ wmsPallet.getTruck_NO() + "</VEHICLE_NO><ACTION>" + Action + "</ACTION></HEADER></ZDIS01>\"";
 		logger.info(readerIP + " " + "send to WMS:" + RvFormat);
 		return RvFormat;
 	}

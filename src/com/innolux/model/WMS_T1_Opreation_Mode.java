@@ -50,29 +50,29 @@ public class WMS_T1_Opreation_Mode {
    /** 
     * Opreation Mode
     */  
-   @Column("opreation_type")  
-   private String Opreation_Type;
+   @Column("operation_type")  
+   private String Operation_Type;
    
-   public String getOpreation_Type() {  
-       return Opreation_Type;  
+   public String getOperation_Type() {  
+       return Operation_Type;  
    }  
  
-   public void setOpreation_Type(String Opreation_Type) {  
-       this.Opreation_Type = Opreation_Type;  
+   public void setOperation_Type(String Operation_Type) {  
+       this.Operation_Type = Operation_Type;  
    }  
    
    /** 
     * Opreator
     */  
-   @Column("opreator")  
-   private String Opreator;
+   @Column("operator")  
+   private String Operator;
    
-   public String getOpreator() {  
-       return Opreator;  
+   public String getOperator() {  
+       return Operator;  
    }  
  
-   public void setOpreator(String Opreator) {  
-       this.Opreator = Opreator;  
+   public void setOperator(String Operator) {  
+       this.Operator = Operator;  
    }  
    
    @Override  
@@ -80,7 +80,7 @@ public class WMS_T1_Opreation_Mode {
        return " WH: " + WH+
        		" Area: " + Area+
        		" Gate_ID: " + Gate_ID+
-       		" Opreation_Type: " + Opreation_Type+
-       		" Opreator: " + Opreator;   		
+       		" Operation_Type: " + Operation_Type+
+       		" Operator: " + Operator;   		
    }  
 }

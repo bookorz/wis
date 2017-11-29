@@ -12,16 +12,16 @@ import com.innolux.model.RF_Pallet_Check;
 import com.innolux.model.RF_Tag_History;
 import com.innolux.model.WMS_T1_ASN_Pallet;
 import com.innolux.model.WMS_T1_Check_Pallet;
-import com.innolux.model.WMS_T2_ASN_Pallet;
 
 public class TagHandle {
 	public static Logger logger = Logger.getLogger(TagHandle.class);
 
 	public static void Data(List<RF_Tag_History> tagList) {
+		
 		try {
-
+			
 			for (RF_Tag_History tag : tagList) {
-
+				long startTime = System.currentTimeMillis();
 				switch (tag.getAntenna_Type()) {
 				case GlobleVar.ANT_Pallet:
 					if (ToolUtility.GetGateError(tag.getFab(), tag.getArea(), tag.getGate(), GlobleVar.BindingError,
@@ -73,11 +73,14 @@ public class TagHandle {
 
 					break;
 				}
+				
+				logger.debug(tag.getReader_IP()+" Tag process time:"+(System.currentTimeMillis() - startTime));
 			}
 
 		} catch (Exception e) {
 			logger.error(tagList.get(0).getReader_IP() + " " + "Exception:" + ToolUtility.StackTrace2String(e));
 		}
+		
 	}
 
 	private static void CylinderHandler(RF_Tag_History tag) {
@@ -111,7 +114,7 @@ public class TagHandle {
 						cylinder.setNew_Position(GlobleVar.ANT_Big_Stock);
 						cylinder.setCheck_Times(1);
 					}
-
+					ToolUtility.SetCylinderHistory(cylinder, tag.getReader_IP());
 				}
 
 				break;
@@ -136,7 +139,7 @@ public class TagHandle {
 						cylinder.setNew_Position(GlobleVar.ANT_Big_Use);
 						cylinder.setCheck_Times(1);
 					}
-
+					ToolUtility.SetCylinderHistory(cylinder, tag.getReader_IP());
 				}
 
 				break;
@@ -159,6 +162,7 @@ public class TagHandle {
 						cylinder.setNew_Position(GlobleVar.ANT_Small_Stock);
 						cylinder.setCheck_Times(1);
 					}
+					ToolUtility.SetCylinderHistory(cylinder, tag.getReader_IP());
 				}
 				break;
 			case GlobleVar.ANT_Small_Use:
@@ -181,7 +185,7 @@ public class TagHandle {
 						cylinder.setNew_Position(GlobleVar.ANT_Small_Use);
 						cylinder.setCheck_Times(1);
 					}
-
+					ToolUtility.SetCylinderHistory(cylinder, tag.getReader_IP());
 				}
 
 				break;
@@ -189,16 +193,20 @@ public class TagHandle {
 
 		} else {
 			// new tag found
-			cylinder = new RF_Cylinder_Status();
-			cylinder.setFab(tag.getFab());
-			cylinder.setArea(tag.getArea());
-			cylinder.setTag_ID(tag.getTag_ID());
-			cylinder.setPosition(tag.getAntenna_Type());
-			cylinder.setNew_Position("");
-			cylinder.setStatus(GlobleVar.Cylinder_Create);
-			ToolUtility.MesDaemon.sendMessage(MessageFormat.SendCylinderStatus(cylinder, tag.getReader_IP()),
-					GlobleVar.SendToWMS);
+			if(tag.getTag_Type().equals(GlobleVar.PalletTag)) {
+				cylinder = new RF_Cylinder_Status();
+				cylinder.setFab(tag.getFab());
+				cylinder.setArea(tag.getArea());
+				cylinder.setTag_ID(tag.getTag_ID());
+				cylinder.setPosition(tag.getAntenna_Type());
+				cylinder.setNew_Position("");
+				cylinder.setStatus(GlobleVar.Cylinder_Create);
+				ToolUtility.MesDaemon.sendMessage(MessageFormat.SendCylinderStatus(cylinder, tag.getReader_IP()),
+						GlobleVar.SendToWMS);
+				ToolUtility.SetCylinderHistory(cylinder, tag.getReader_IP());
+			}
 		}
+		cylinder.setUpdateTime(System.currentTimeMillis());
 		ToolUtility.SetCylinder(cylinder, tag.getReader_IP());
 	}
 
@@ -421,7 +429,7 @@ public class TagHandle {
 								logger.info(tag.getReader_IP() + " ForkLift_Direction is not define.");
 							}
 						} else if (gate.getFab().equals("T2")) {
-							if (gate.getForkLift_Direction().equals(GlobleVar.ForkLiftIN)) {
+							if (gate.getForkLift_Direction().equals(GlobleVar.ForkLiftOUT)) {
 								TransferOut(tag, gate);
 							} else {
 								logger.info(tag.getReader_IP() + " ForkLift_Direction is not define.");
@@ -436,7 +444,7 @@ public class TagHandle {
 								logger.info(tag.getReader_IP() + " ForkLift_Direction is not define.");
 							}
 						} else if (gate.getFab().equals("T2")) {
-							if (gate.getForkLift_Direction().equals(GlobleVar.ForkLiftOUT)) {
+							if (gate.getForkLift_Direction().equals(GlobleVar.ForkLiftIN)) {
 								TransferIn(tag, gate);
 							} else {
 								logger.info(tag.getReader_IP() + " ForkLift_Direction is not define.");
@@ -599,7 +607,7 @@ public class TagHandle {
 				ToolUtility.MarkPallet(tag, container.getContainer_ID(), GlobleVar.TransferIn, true);
 				logger.info(tag.getReader_IP() + " Pallet " + tag.getTag_ID() + " " + GlobleVar.TransferIn);
 
-				ToolUtility.Subtitle(gate.getFab(), gate.getArea(), gate.getGate(), "棧板" + tag.getTag_ID() + "廠移出",
+				ToolUtility.Subtitle(gate.getFab(), gate.getArea(), gate.getGate(), "棧板" + tag.getTag_ID() + "廠移入",
 						tag.getReader_IP());
 				ToolUtility.SignalTowerAutoOff(gate.getFab(), gate.getArea(), gate.getGate(), GlobleVar.GreenOn, 5000,
 						tag.getReader_IP());
@@ -710,7 +718,7 @@ public class TagHandle {
 										GlobleVar.GreenOn, 5000, tag.getReader_IP());
 							}
 							ToolUtility.MesDaemon.sendMessage(
-									MessageFormat.SendDeliveryLoad(tag, container, "Confirm", tag.getReader_IP()),
+									MessageFormat.SendDeliveryLoad(tag, pallet, "Confirm", tag.getReader_IP()),
 									GlobleVar.SendToWMS);
 
 						}
@@ -848,7 +856,7 @@ public class TagHandle {
 										GlobleVar.GreenOn, 5000, tag.getReader_IP());
 
 								ToolUtility.MesDaemon.sendMessage(
-										MessageFormat.SendDeliveryLoad(tag, container, "Cancel", tag.getReader_IP()),
+										MessageFormat.SendDeliveryLoad(tag, pallet, "Cancel", tag.getReader_IP()),
 										GlobleVar.SendToWMS);
 
 							} else {
@@ -919,6 +927,7 @@ public class TagHandle {
 					if(container!=null) {
 						if(container.getContainer_ID().equals(tag.getTag_ID())) {
 							gate.setLast_ContainerTag_Time(System.currentTimeMillis());
+							ToolUtility.UpdateGateSetting(gate, tag.getReader_IP());
 						}
 					}
 					if (tag.getReceive_Time() - gate.getLast_MarkTag_Time() > GlobleVar.TagMaskInTime) {
@@ -928,7 +937,7 @@ public class TagHandle {
 						logger.error(tag.getReader_IP() + " PortHandler error: gate setting not exist.");
 					}
 					// update gateSetting object
-					ToolUtility.UpdateGateSetting(gate, tag.getReader_IP());
+					
 				} else {
 					logger.debug(tag.getReader_IP() + " PortHandler : Fetch gate setting fail.");
 				}
@@ -944,6 +953,7 @@ public class TagHandle {
 						tag.getReader_IP());
 				if (gate != null) {
 					if (gate.getMark_Tag().equals(tag.getTag_ID())) {
+						
 						if (tag.getReceive_Time() - gate.getLast_ContainerTag_Time() > GlobleVar.TagMaskOutTime) {
 
 							PortUnBind(gate, tag);
@@ -971,10 +981,11 @@ public class TagHandle {
 
 		if (container == null) {
 
-			ToolUtility.Subtitle(gate.getFab(), gate.getArea(), gate.getGate(), "該車輛沒有進廠紀錄", tag.getReader_IP());
-			ToolUtility.SignalTower(gate.getFab(), gate.getArea(), gate.getGate(), GlobleVar.RedOn, tag.getReader_IP());
-			ToolUtility.SetGateError(tag, GlobleVar.NonEntryRecord, ToolUtility.ConvertGateStr(tag) + "，"
-					+ ToolUtility.ConvertCarStr(tag) + tag.getTag_ID() + "沒有進廠紀錄");
+//			ToolUtility.Subtitle(gate.getFab(), gate.getArea(), gate.getGate(), "該車輛沒有進廠紀錄", tag.getReader_IP());
+//			ToolUtility.SignalTower(gate.getFab(), gate.getArea(), gate.getGate(), GlobleVar.RedOn, tag.getReader_IP());
+//			ToolUtility.SetGateError(tag, GlobleVar.NonEntryRecord, ToolUtility.ConvertGateStr(tag) + "，"
+//					+ ToolUtility.ConvertCarStr(tag) + tag.getTag_ID() + "沒有進廠紀錄");
+			logger.info(tag.getReader_IP() + " " +ToolUtility.ConvertGateStr(tag)+" "+ tag.getTag_ID() + "沒有進場紀錄");
 		} else if (!container.getGate().equals("0")) {
 
 			logger.info(tag.getReader_IP() + " " + tag.getTag_ID() + "無法綁定於" + ToolUtility.ConvertGateStr(tag)
@@ -989,7 +1000,8 @@ public class TagHandle {
 			// + ToolUtility.ConvertGateStr(container, tag.getReader_IP()));
 		} else {
 			// Bind start
-			gate.setManual_Bind(false);
+			//gate.setManual_Bind(false);
+			gate.setLast_ContainerTag_Time(System.currentTimeMillis());
 			ToolUtility.UpdateGateSetting(gate, tag.getReader_IP());
 
 			container.setFab(tag.getFab());
@@ -1097,7 +1109,10 @@ public class TagHandle {
 
 		} else {
 			logger.debug(tag.getReader_IP() + " This gate is not binding any car.");
+			
 		}
+		gate.setLast_MarkTag_Time(System.currentTimeMillis());
+		ToolUtility.UpdateGateSetting(gate, tag.getReader_IP());
 
 	}
 

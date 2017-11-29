@@ -81,12 +81,12 @@ public class JdbcGenericDaoImpl<T> implements GenericDao<T> {
 		// 設置SQL參數佔位符的值
 		setParameter(fieldValues, ps, false);
 		// 執行SQL
-		logger.debug(sql);
+		long StartTime = System.currentTimeMillis();
 		ps.execute();
 		DBConn.release(conn, ps, null);
 
 		// System.out.println( clazz.getSimpleName() + "添加成功!");
-		logger.debug(sql + "\n" + clazz.getSimpleName() + "添加成功!");
+		logger.debug(sql + "\n" + clazz.getSimpleName() + "添加成功!sqlTime:"+(System.currentTimeMillis()-StartTime));
 	}
 
 	@Override
@@ -114,11 +114,12 @@ public class JdbcGenericDaoImpl<T> implements GenericDao<T> {
 		PreparedStatement ps = conn.prepareStatement(sql);
 		ps.setObject(1, id);
 		// 執行SQL
+		long StartTime = System.currentTimeMillis();
 		ps.execute();
 		DBConn.release(conn, ps, null);
 
 		// System.out.println(sql + "\n" + clazz.getSimpleName() + "刪除成功!");
-		logger.debug(sql + "\n" + clazz.getSimpleName() + "刪除成功!");
+		logger.debug(sql + "\n" + clazz.getSimpleName() + "刪除成功!sqlTime:"+(System.currentTimeMillis()-StartTime));
 	}
 
 	@Override
@@ -166,11 +167,13 @@ public class JdbcGenericDaoImpl<T> implements GenericDao<T> {
 		setParameter(fieldValues, ps, false);
 
 		// 執行SQL
+		long StartTime = System.currentTimeMillis();
 		ps.execute();
+		
 		DBConn.release(conn, ps, null);
 
 		// System.out.println(sql + "\n" + clazz.getSimpleName() + "修改成功.");
-		logger.debug(sql + "\n" + clazz.getSimpleName() + "修改成功.");
+		logger.debug(sql + "\n" + clazz.getSimpleName() + "修改成功.sqlTime:"+(System.currentTimeMillis()-StartTime));
 	}
 
 	@Override
@@ -245,8 +248,10 @@ public class JdbcGenericDaoImpl<T> implements GenericDao<T> {
 		}
 
 		// 執行SQL
+		long StartTime = System.currentTimeMillis();
 		ResultSet rs = null;
 		try {
+			
 			rs = ps.executeQuery();
 			while (rs.next()) {
 				T t = clazz.newInstance();
@@ -266,7 +271,7 @@ public class JdbcGenericDaoImpl<T> implements GenericDao<T> {
 		}
 
 		// System.out.println(sql);
-		logger.debug(sql);
+		logger.debug(sql + " sqlTime:"+(System.currentTimeMillis()-StartTime));
 		logger.debug(list.toString());
 		return list;
 	}
@@ -302,13 +307,14 @@ public class JdbcGenericDaoImpl<T> implements GenericDao<T> {
 		}
 
 		// 執行SQL
+		long StartTime = System.currentTimeMillis();
 		ps.executeUpdate();
 
 		// 釋放資源
 		DBConn.release(conn, ps, null);
 
 		// System.out.println(sql);
-		logger.debug(sql);
+		logger.debug(sql+" sqlTime:"+(System.currentTimeMillis()-StartTime));
 		return list;
 	}
 

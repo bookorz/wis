@@ -42,9 +42,9 @@ public class WebApiController {
 		} else {
 			new JSONObject().put("Status", 500).put("Message", "content is null").toString();
 		}
-		
+		long startTime = System.currentTimeMillis();
 		ResponseBase<String> response = ToolUtility.ResetAllError(msg);
-			
+		logger.debug("ResetAllError process time:"+(System.currentTimeMillis() - startTime));
 		return new JSONObject().put("Status", response.getStatus()).put("Message", response.getMessage()).toString();
 		
 	}
@@ -60,9 +60,27 @@ public class WebApiController {
 		} else {
 			new JSONObject().put("Status", 500).put("Message", "content is null").toString();
 		}
-		
+		long startTime = System.currentTimeMillis();
 		ResponseBase<String> response = ToolUtility.SetSignalTower(msg);
-			
+		logger.debug("SetSignalTower process time:"+(System.currentTimeMillis() - startTime));
+		return new JSONObject().put("Status", response.getStatus()).put("Message", response.getMessage()).toString();
+		
+	}
+	
+	@POST
+	@Path("SetAttenuation")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	public String SetAttenuation(InputStream is) throws JarException {
+		String msg = "";
+		if (is != null) {
+			msg = ConvertToString(is);
+		} else {
+			new JSONObject().put("Status", 500).put("Message", "content is null").toString();
+		}
+		long startTime = System.currentTimeMillis();
+		ResponseBase<String> response = ToolUtility.SetAttenuation(msg);
+		logger.debug("SetAttenuation process time:"+(System.currentTimeMillis() - startTime));
 		return new JSONObject().put("Status", response.getStatus()).put("Message", response.getMessage()).toString();
 		
 	}
@@ -78,9 +96,9 @@ public class WebApiController {
 		} else {
 			new JSONObject().put("Status", 500).put("Message", "content is null").toString();
 		}
-		
+		long startTime = System.currentTimeMillis();
 		ResponseBase<String> response = ToolUtility.SetSubtitle(msg);
-			
+		logger.debug("setcaption process time:"+(System.currentTimeMillis() - startTime));
 		return new JSONObject().put("Status", response.getStatus()).put("Message", response.getMessage()).toString();
 		
 	}
@@ -95,9 +113,9 @@ public class WebApiController {
 		} else {
 			new JSONObject().put("Status", 500).put("Message", "content is null").toString();
 		}
-		
+		long startTime = System.currentTimeMillis();
 		ResponseBase<String> response = ToolUtility.PortBinding(msg);
-		
+		logger.debug("PortBinding process time:"+(System.currentTimeMillis() - startTime));
 		return new JSONObject().put("Status", response.getStatus()).put("Message", response.getMessage()).toString();
 		
 	}
@@ -113,9 +131,9 @@ public class WebApiController {
 			new JSONObject().put("Status", 500).put("Message", "content is null").toString();
 		}
 		IR_MessageBase irMsg = ToolUtility.Parse_T1_IR(msg);
-		
+		long startTime = System.currentTimeMillis();
 		ResponseBase<String> response = IRHandle.Data(irMsg);
-		
+		logger.debug("IR process time:"+(System.currentTimeMillis() - startTime));
 		return new JSONObject().put("Status", response.getStatus()).put("Message", response.getMessage()).toString();
 		
 	}
@@ -133,9 +151,9 @@ public class WebApiController {
 		}
 		
 		IR_MessageBase irMsg = ToolUtility.Parse_T2_IR(msg);
-		
+		long startTime = System.currentTimeMillis();
 		ResponseBase<String> response = IRHandle.Data(irMsg);
-		
+		logger.debug("T2IR process time:"+(System.currentTimeMillis() - startTime));
 		return new JSONObject().put("Status", response.getStatus()).put("Message", response.getMessage()).toString();
 		
 	}

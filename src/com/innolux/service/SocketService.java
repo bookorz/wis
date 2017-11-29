@@ -14,26 +14,29 @@ import com.innolux.interfaces.ISocketService;
 
 
 
-public class SocketService {
+public class SocketService extends Thread{
 	
 	public Logger logger = Logger.getLogger(this.getClass());
 	private Socket clientSocket;
 	private BufferedReader clientReader;
 	private PrintStream clientWriter;
-	private String ip;
-	private int port;
+	public String ip;
+	public int port;
 	private boolean isDead = true;
 	private ISocketService SocketListener;
 	
-	public SocketService(String ip,int port){
-		
+	public SocketService(String _ip,int _port){
+		this.ip = _ip;
+		this.port=_port;
 	}
 	
 	public void setSocketListener(ISocketService _SocketListener){
 		SocketListener = _SocketListener;
 	}
 	
-	public void startService(){
+	
+	
+	public void run(){
 		if(SocketListener == null){
 			logger.error("startService error: SocketListener is null");
 		}else{

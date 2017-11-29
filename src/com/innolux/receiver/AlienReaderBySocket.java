@@ -28,26 +28,31 @@ public class AlienReaderBySocket implements ISocketService {
 
 		SocketService sc = new SocketService(setting.getReader_IP(), setting.getListen_Port());
 		sc.setSocketListener(this);
-		sc.startService();
+		sc.run();
 	}
 
 	@Override
 	public void onSocketMsg(String msg) {
 		// TODO Auto-generated method stub
 		logger.debug(setting.getReader_IP() + " " + msg);
-		List<RF_Tag_History> tagList = new TagParser().Parse(msg, antSetting,gateSetting);
-		ToolUtility.InsertLog(tagList, setting.getReader_IP());
-		if (tagList.size() != 0) {
-			TagHandle.Data(tagList);
+
+		if (msg.indexOf("(No Tags)") != -1) {
+			logger.debug(setting.getReader_IP() + " notag skip.");
+		} else {
+			List<RF_Tag_History> tagList = new TagParser().Parse(msg, antSetting, gateSetting, setting.getReader_IP());
+			ToolUtility.InsertLog(tagList, setting.getReader_IP());
+			if (tagList.size() != 0) {
+				TagHandle.Data(tagList);
+			}
 		}
 	}
 
 	private void Initial() {
 
 		try {
-			for(RF_Gate_Setting eachGate:ToolUtility.GetAllGateSetting(setting.getReader_IP())) {
-				String key = eachGate.getFab()+eachGate.getArea()+eachGate.getGate();
-				if(!gateSetting.containsKey(key)) {
+			for (RF_Gate_Setting eachGate : ToolUtility.GetAllGateSetting(setting.getReader_IP())) {
+				String key = eachGate.getFab() + eachGate.getArea() + eachGate.getGate();
+				if (!gateSetting.containsKey(key)) {
 					gateSetting.put(key, eachGate);
 				}
 			}

@@ -22,7 +22,7 @@ public class GlobleVar {
 	public static final String SendToAMS = "INNOLUX.T2.PROD.ALM.WIS";
 
 	public static JdbcDaoHelper WIS_DB = new JdbcDaoHelper(GlobleVar.WISConnectionStr, GlobleVar.WISUser,
-			GlobleVar.WISPwd, 6);
+			GlobleVar.WISPwd, 16);
 
 	public static JdbcDaoHelper T1WMS_DB = new JdbcDaoHelper(GlobleVar.T1WMSConnectionStr, GlobleVar.T1WMSUser,
 			GlobleVar.T1WMSPwd, 6);
@@ -73,7 +73,7 @@ public class GlobleVar {
 	public static final String ANT_Small_Use = "SU";
 
 	public static final Long TagMaskInTime = (long) 10000;
-	public static final Long TagMaskOutTime = (long) 5000;
+	public static final Long TagMaskOutTime = (long) 10000;
 	public static final int EffectiveLimit = 4000;
 	public static final int DescoverLimit = 4000;
 	public static final long PalletDefaultExpire = 4000;

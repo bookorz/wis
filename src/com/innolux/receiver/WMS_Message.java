@@ -1,5 +1,7 @@
 package com.innolux.receiver;
 
+import java.util.List;
+
 import org.apache.log4j.Logger;
 
 import com.innolux.common.GlobleVar;
@@ -8,6 +10,7 @@ import com.innolux.common.ToolUtility;
 import com.innolux.interfaces.ITibcoRvListenService;
 import com.innolux.model.RF_ContainerInfo;
 import com.innolux.model.RF_Cylinder_Status;
+import com.innolux.model.RF_Error_Pallet;
 import com.innolux.model.RF_Gate_Error;
 import com.innolux.model.RF_Gate_Setting;
 import com.innolux.service.TibcoRvListen;
@@ -50,6 +53,11 @@ public class WMS_Message implements ITibcoRvListenService {
 			}
 			ToolUtility.DeleteGateError(fab, area, gate, "", "RV");
 
+			List<RF_Error_Pallet> errPallets = ToolUtility.GetErrorPalletList(fab, area, gate, "RV");
+			for(RF_Error_Pallet each:errPallets) {
+				ToolUtility.DeletePallet(each.getPallet_ID(), "RV");
+			}
+			
 			ToolUtility.ClearErrorPallet(fab, area, gate, "RV");
 			RF_ContainerInfo container = ToolUtility.GetContainerInfo(fab, area, gate, "RV");
 			ToolUtility.Subtitle(fab, area, gate, ToolUtility.InitSubtitleStr(container, "RV"), "RV");

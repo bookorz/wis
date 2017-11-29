@@ -12,7 +12,6 @@ import com.innolux.common.GlobleVar;
 import com.innolux.common.ToolUtility;
 import com.innolux.common.base.ReaderCmd;
 import com.innolux.model.RF_Reader_Setting;
-import com.innolux.model.RF_Subtitle_Setting;
 
 public class ReaderCmdService {
 
@@ -24,7 +23,8 @@ public class ReaderCmdService {
 
 			List<RF_Reader_Setting> result = ToolUtility.GetAllReader();
 			for (RF_Reader_Setting eachReader : result) {
-				if (eachReader.getTest_Mode() == GlobleVar.TestMode && eachReader.getOn_Line()) {
+				if (eachReader.getTest_Mode() == GlobleVar.TestMode && eachReader.getOn_Line()
+						&& eachReader.getReader_Type().equals(GlobleVar.AlienType)) {
 					if (!readerList.containsKey(eachReader.getReader_IP())) {
 						readerList.put(eachReader.getReader_IP(), new ReaderCmd(eachReader));
 					}
@@ -36,22 +36,7 @@ public class ReaderCmdService {
 			logger.error("Exception:" + ToolUtility.StackTrace2String(e));
 		}
 
-		Timer timer = new Timer();
-
-		// 30sec
-		long period = 30 * 1000;
-		TimerTask task = new TimerTask() {
-			@Override
-			public void run() {
-
-				for(ReaderCmd each:readerList.values()) {
-					each.InitialReader();
-				}
-
-			}
-		};
-
-		timer.scheduleAtFixedRate(task, new Date(), period);
+		
 
 	}
 

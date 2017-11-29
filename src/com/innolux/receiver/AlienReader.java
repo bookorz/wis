@@ -47,7 +47,7 @@ public class AlienReader implements MessageListener {
 		String MessageRawData;
 		MessageRawData = message.getRawData();
 		logger.debug(setting.getReader_IP() + " " + MessageRawData);
-		List<RF_Tag_History> tagList = new TagParser().Parse(MessageRawData, antSetting, gateSetting);
+		List<RF_Tag_History> tagList = new TagParser().Parse(MessageRawData, antSetting, gateSetting, setting.getReader_IP());
 		ToolUtility.InsertLog(tagList, setting.getReader_IP());
 		
 		if (tagList.size() != 0) {

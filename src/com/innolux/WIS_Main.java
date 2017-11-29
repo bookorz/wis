@@ -24,47 +24,51 @@ import com.innolux.service.SubtitleService;
 import com.innolux.service.WebApiService;
 
 public class WIS_Main {
-	
+
 	private static Logger logger = Logger.getLogger(WIS_Main.class);
 
 	public static void main(String[] args) {
+
 		SubtitleService.Initial();
 		ToolUtility.Initial();
 		InitialGates();
+		new WebApiService().start();
+		new WMS_Message();
 		SetAliveNotify();
 		InitialReaders();
 
-		
-		new WebApiService().start();
-		new WMS_Message();
 		CustSubtileMonitor();
 		CylinderMonitor();
 	}
 
 	private static void InitialGates() {
+		long startTime = System.currentTimeMillis();
+
 		List<RF_Gate_Setting> gateList = ToolUtility.GetAllGateSetting("InitialGates");
 		for (RF_Gate_Setting each : gateList) {
 			RF_ContainerInfo container = ToolUtility.GetContainerInfo(each.getFab(), each.getArea(), each.getGate(),
 					"WIS_Main");
-			if(container!=null) {
+			if (container != null) {
 				ToolUtility.Subtitle(each.getFab(), each.getArea(), each.getGate(),
-						container.getCar_Type().replace("Container", "貨櫃").replace("Truck", "貨車")+"進入:"+container.getContainer_ID(),
+						container.getCar_Type().replace("Container", "貨櫃").replace("Truck", "貨車") + "進入:"
+								+ container.getContainer_ID(),
 						"WIS_Main");
-			}else {
-				ToolUtility.Subtitle(each.getFab(), each.getArea(), each.getGate(),
-						"無車輛進入",
-						"WIS_Main");
+			} else {
+				ToolUtility.Subtitle(each.getFab(), each.getArea(), each.getGate(), "無車輛進入", "WIS_Main");
 			}
 			each.setDirection_StartTime(0);
 			each.setDirection_EndTime(0);
 			each.setLast_MarkTag_Time(System.currentTimeMillis());
 			ToolUtility.UpdateGateSetting(each, "InitialGates");
 		}
+		logger.debug("InitalGates process time:" + (System.currentTimeMillis() - startTime));
 	}
 
 	private static void InitialReaders() {
+		long startTime = System.currentTimeMillis();
+
 		List<RF_Reader_Setting> readerList = ToolUtility.GetAllReader();
-		
+
 		for (RF_Reader_Setting eachReader : readerList) {
 			if (eachReader.getTest_Mode() == GlobleVar.TestMode && eachReader.getOn_Line()) {
 				switch (eachReader.getReader_Type()) {
@@ -78,9 +82,10 @@ public class WIS_Main {
 				}
 			}
 		}
-
+		logger.debug("InitialReaders process time:" + (System.currentTimeMillis() - startTime));
+		startTime = System.currentTimeMillis();
 		ReaderCmdService.Initial();
-
+		logger.debug("ReaderCmdServiceInitial process time:" + (System.currentTimeMillis() - startTime));
 	}
 
 	private static void SetAliveNotify() {
@@ -88,8 +93,9 @@ public class WIS_Main {
 			@Override
 			public void run() {
 
-				ToolUtility.MesDaemon.sendMessage(MessageFormat.SendAms("SetAliveNotify", "T2", "庫存訊息", "WISErrorPallet",
-						"庫存訊息", ToolUtility.GetCylinderSummary("T2", "SetAliveNotify")), GlobleVar.SendToWMS);
+				ToolUtility.MesDaemon.sendMessage(MessageFormat.SendAms("SetAliveNotify", "T2", "庫存訊息",
+						"WISErrorPallet", "庫存訊息", ToolUtility.GetCylinderSummary("T2", "SetAliveNotify")),
+						GlobleVar.SendToWMS);
 			}
 		};
 
@@ -102,7 +108,6 @@ public class WIS_Main {
 		calendar.add(Calendar.DAY_OF_MONTH, 1);
 		Date date = calendar.getTime();
 		Timer timer = new Timer();
-		
 
 		long period = 86400 * 1000;
 
@@ -118,6 +123,7 @@ public class WIS_Main {
 		TimerTask task = new TimerTask() {
 			@Override
 			public void run() {
+				long startTime = System.currentTimeMillis();
 
 				List<RF_Subtitle_Setting> subtitleList = ToolUtility.GetAllSubtitle();
 
@@ -125,14 +131,19 @@ public class WIS_Main {
 					if (eachSubtitle.getCust_Active()) {
 						if (System.currentTimeMillis() - eachSubtitle.getUpdate_Time() > (5 * 60 * 1000)) {
 							if (!eachSubtitle.getCurrent_Subtitle().equals(eachSubtitle.getCust_Subtitle())) {
-								ToolUtility.Subtitle(eachSubtitle.getFab(), eachSubtitle.getArea(),
-										eachSubtitle.getGate(), eachSubtitle.getCust_Subtitle(), "CustSubtileMonitor");
+								RF_ContainerInfo container = ToolUtility.GetContainerInfo(eachSubtitle.getFab(),
+										eachSubtitle.getArea(), eachSubtitle.getGate(), "CustSubtileMonitor");
+								if (container == null) {//When this port is not binding car
+									ToolUtility.Subtitle(eachSubtitle.getFab(), eachSubtitle.getArea(),
+											eachSubtitle.getGate(), eachSubtitle.getCust_Subtitle(),
+											"CustSubtileMonitor");
+								}
 							}
 						}
 
 					}
 				}
-
+				logger.debug("CustSubtitleMonitor process time:" + (System.currentTimeMillis() - startTime));
 			}
 		};
 
@@ -141,10 +152,10 @@ public class WIS_Main {
 
 	private static void CylinderMonitor() {
 		try {
-			Thread.sleep(5 * 60 * 1000);
+			Thread.sleep(50 * 60 * 1000);
 		} catch (InterruptedException e) {
-			
-			logger.error("CylinderMonitor exception:"+ToolUtility.StackTrace2String(e));
+
+			logger.error("CylinderMonitor exception:" + ToolUtility.StackTrace2String(e));
 		}
 		Timer timer = new Timer();
 
@@ -153,6 +164,7 @@ public class WIS_Main {
 		TimerTask task = new TimerTask() {
 			@Override
 			public void run() {
+				long startTime = System.currentTimeMillis();
 
 				List<RF_Cylinder_Status> cylinderList = ToolUtility.GetAllCylinders("CylinderMonitor");
 
@@ -184,11 +196,9 @@ public class WIS_Main {
 
 									ToolUtility.VoiceSend(gate.getVoice_Path(), Text, "CylinderMonitor");
 								}
-								ToolUtility.MesDaemon
-										.sendMessage(
-												MessageFormat.SendAms(eachCylinder.getFab(), GlobleVar.Cylinder_Disappear,
-														"WISCylinders", "鋼瓶不見", Text, "CylinderMonitor"),
-												GlobleVar.SendToAMS);
+								ToolUtility.MesDaemon.sendMessage(MessageFormat.SendAms(eachCylinder.getFab(),
+										GlobleVar.Cylinder_Disappear, "WISCylinders", "鋼瓶不見", Text, "CylinderMonitor"),
+										GlobleVar.SendToAMS);
 
 							}
 							break;
@@ -219,7 +229,7 @@ public class WIS_Main {
 
 					}
 				}
-
+				logger.debug("CylinderMonitor process time:" + (System.currentTimeMillis() - startTime));
 			}
 		};
 

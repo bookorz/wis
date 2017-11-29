@@ -1,9 +1,12 @@
 package com.innolux.common.base;
 
 import java.net.InetAddress;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import org.apache.log4j.Logger;
 
@@ -19,6 +22,7 @@ public class ReaderCmd {
 	private RF_Reader_Setting ReaderSet;
 	private AlienClass1Reader reader = new AlienClass1Reader();
 	private Logger logger = Logger.getLogger(this.getClass());
+	private boolean isInitial = false;
 
 	public ReaderCmd(RF_Reader_Setting _ReaderSet) {
 		try {
@@ -38,6 +42,25 @@ public class ReaderCmd {
 		if (!SetAttenuation()) {
 			logger.error(ReaderSet.getReader_IP() + " " + "SetAttenuation fail");
 		}
+
+		Timer timer = new Timer();
+
+		// 30sec
+		long period = 30 * 1000;
+		TimerTask task = new TimerTask() {
+			@Override
+			public void run() {
+				long startTime = System.currentTimeMillis();
+
+				InitialReader();
+
+				logger.debug(ReaderSet.getReader_IP() + " Reconnect Reader & Initial process time:"
+						+ (System.currentTimeMillis() - startTime));
+			}
+		};
+
+		timer.scheduleAtFixedRate(task, new Date(), period);
+
 	}
 
 	public synchronized boolean TimeSync() {
@@ -55,7 +78,7 @@ public class ReaderCmd {
 		}
 		return result;
 	}
-	
+
 	public synchronized boolean NotifyNow() {
 		boolean result = false;
 		try {
@@ -110,7 +133,7 @@ public class ReaderCmd {
 				for (RF_Antenna_Setting eachSet : antSets) {
 					reader.setRFAttenuation(eachSet.getAntenna_No(), eachSet.getRFAttenuation());
 				}
-				reader.saveSettings();
+				//reader.saveSettings();
 				reader.close();
 			}
 			result = true;
@@ -153,7 +176,7 @@ public class ReaderCmd {
 				reader.setNotifyMode(AlienClass1Reader.OFF);
 				reader.setNotifyAddress(InetAddress.getLocalHost().getHostAddress(), ReaderSet.getListen_Port());
 
-				if (ReaderSet.getLocation().toUpperCase().equals("CYLINDER")) {
+				if (ReaderSet.getLocation().equals("Cylinder")) {
 
 					reader.setAntennaSequence("0 1 2 3");
 					reader.setTagListAntennaCombine(AlienClass1Reader.ON);
@@ -189,6 +212,7 @@ public class ReaderCmd {
 					reader.setNotifyMode(AlienClass1Reader.ON);
 					reader.setTagListAntennaCombine(AlienClass1Reader.OFF);
 					reader.setTime();
+
 					reader.setTagListFormat(AlienClass1Reader.CUSTOM_FORMAT);
 					reader.setNotifyFormat(AlienClass1Reader.CUSTOM_FORMAT);
 					String CustomFormatStr;
@@ -196,10 +220,13 @@ public class ReaderCmd {
 					CustomFormatStr = "${TAGIDW},${MSEC1},${MSEC2},${TX},${COUNT},${RSSI_MAX}";
 
 					reader.setTagListCustomFormat(CustomFormatStr);
-					logger.debug("notify address" + reader.getNotifyAddress());
+					logger.debug(ReaderSet.getReader_IP() + " notify address" + reader.getNotifyAddress());
 					reader.notifyNow();
 				}
-				reader.saveSettings();
+				if (!isInitial) {
+					reader.saveSettings();
+					isInitial = true;
+				}
 				reader.close();
 			} else {
 				logger.error(ReaderSet.getReader_IP() + " " + "reader is null");
