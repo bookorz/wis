@@ -1,7 +1,5 @@
 package com.innolux.model;
 
-import java.util.Date;
-
 import com.innolux.annotation.Column;
 import com.innolux.annotation.Entity;
 import com.innolux.annotation.Id;

@@ -200,7 +200,20 @@ public class TagHandle {
 				cylinder.setTag_ID(tag.getTag_ID());
 				cylinder.setPosition(tag.getAntenna_Type());
 				cylinder.setNew_Position("");
-				cylinder.setStatus(GlobleVar.Cylinder_Create);
+				switch (tag.getAntenna_Type()) {
+				case GlobleVar.ANT_Big_Stock:
+					cylinder.setStatus(GlobleVar.Cylinder_Create);
+					break;
+				case GlobleVar.ANT_Big_Use:
+					cylinder.setStatus(GlobleVar.Cylinder_Used);
+					break;
+				case GlobleVar.ANT_Small_Stock:
+					cylinder.setStatus(GlobleVar.Cylinder_Create);
+					break;
+				case GlobleVar.ANT_Small_Use:
+					cylinder.setStatus(GlobleVar.Cylinder_Used);
+					break;
+				}	
 				ToolUtility.MesDaemon.sendMessage(MessageFormat.SendCylinderStatus(cylinder, tag.getReader_IP()),
 						GlobleVar.SendToWMS);
 				ToolUtility.SetCylinderHistory(cylinder, tag.getReader_IP());
@@ -533,18 +546,20 @@ public class TagHandle {
 							GlobleVar.SendToWMS);
 				} else {
 					ToolUtility.MarkPallet(tag, container.getContainer_ID(), GlobleVar.ASNUnload, false);
-					if (!ANS_Pallet.getRFID_Chk().equals("TRUE")) {
+					if (!ANS_Pallet.getRFID_Chk().equals("Y")) {
 
 						logger.info(tag.getReader_IP() + " Pallet " + tag.getTag_ID() + " " + GlobleVar.ASNUnload);
 
 						ToolUtility.Subtitle(gate.getFab(), gate.getArea(), gate.getGate(),
-								"棧板" + ANS_Pallet.getPallet_ID() + "ASN:"+ANS_Pallet.getASN_NO(), tag.getReader_IP());
+								"棧板" + ANS_Pallet.getPallet_ID() + " ASN:"+ANS_Pallet.getASN_NO(), tag.getReader_IP());
 						ToolUtility.SignalTowerAutoOff(gate.getFab(), gate.getArea(), gate.getGate(), GlobleVar.GreenOn,
 								5000, tag.getReader_IP());
 						ToolUtility.MesDaemon.sendMessage(
 								MessageFormat.SendASNUnload(ANS_Pallet, container, "Confirm", tag.getReader_IP()),
 								GlobleVar.SendToWMS);
 						
+					}else {
+						logger.debug(tag.getReader_IP() + " the tag is already send to wms, RFID_Chk is "+ANS_Pallet.getRFID_Chk()+".");
 					}
 				}
 			}

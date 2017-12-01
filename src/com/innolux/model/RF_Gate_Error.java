@@ -1,7 +1,5 @@
 package com.innolux.model;
 
-import java.util.Date;
-
 import com.innolux.annotation.Column;
 import com.innolux.annotation.Entity;
 import com.innolux.annotation.Id;
@@ -94,29 +92,20 @@ public class RF_Gate_Error {
 	 * TimeStamp
 	 */
 	@Column("timestamp")
-	private Date TimeStamp;
+	private long TimeStamp;
 
-	public Date getTimeStamp() {
+	public long getTimeStamp() {
 		return TimeStamp;
 	}
 
-	public void setTimeStamp(Date TimeStamp) {
+	public void setTimeStamp(long TimeStamp) {
 		this.TimeStamp = TimeStamp;
-	}
-
-	public String getTimeStampString() {
-		String result = "";
-    	if(TimeStamp!=null) {
-    		result = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(TimeStamp);
-    	}
-    	return result;
-	
 	}
 
 	@Override
 	public String toString() {
 		return "ID: " + ID + "Fab: " + Fab + " Area: " + Area + " Gate: " + Gate + " Error_Type: "
-				+ Error_Type + " Error_Message: " + Error_Message + " TimeStamp: " + getTimeStampString();
+				+ Error_Type + " Error_Message: " + Error_Message + " TimeStamp: " + TimeStamp;
 
 	}
 }

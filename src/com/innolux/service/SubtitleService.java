@@ -40,14 +40,27 @@ public class SubtitleService {
 
 	public static boolean Show(String subtitleIP, String showStr) {
 		boolean result = false;
-		if (subtitleList.containsKey(subtitleIP)) {
-			Subtitle t = subtitleList.get(subtitleIP);
+		Thread t = new Thread(new Runnable() {
 
-			result = t.ShowData(showStr);
+			@Override
+			public void run() {
+				if (subtitleList.containsKey(subtitleIP)) {
+					Subtitle t = subtitleList.get(subtitleIP);
 
-		} else {
-			logger.error(subtitleIP + " is not exist.");
-		}
+					if(!t.ShowData(showStr))
+					{
+						logger.error(subtitleIP + " Subtitle showData fail.");
+					}
+				} else {
+					logger.error(subtitleIP + " is not exist.");
+				}
+
+			}
+		});
+		t.setDaemon(false);
+		t.start();
+		
+		result = true;
 		return result;
 	}
 }

@@ -98,6 +98,7 @@ public class TagParser {
 		String[] hexTagAry = hexString.split(" ");
 		String TagStr = "";
 		for (int k = 0; k < hexTagAry.length; k++) { // 16進制Ascii轉字母
+			//logger.debug("Ascii2Alphabet "+hexTagAry[k].substring(0, 2)+" "+hexTagAry[k].substring(2, 4));
 			int decStr1 = Integer.parseInt(hexTagAry[k].substring(0, 2), 16);
 			int decStr2 = Integer.parseInt(hexTagAry[k].substring(2, 4), 16);
 
@@ -109,5 +110,10 @@ public class TagParser {
 		}
 		return TagStr.trim();
 	}
+	
+//	public static void main(String[] args) {
+//		new TagParser().Ascii2Alphabet("4349 4E58 4341 5230 3032 3137");
+//		
+//	}
 
 }

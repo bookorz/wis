@@ -5,7 +5,6 @@ import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
-
 import com.innolux.receiver.WebApiController;
 
 import java.util.EnumSet;
@@ -21,7 +20,12 @@ public class WebApiService extends Thread {
 		ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
 		context.setContextPath("/");
 
-		Server jettyServer = new Server(8080);
+		 Server jettyServer = new Server(8080);
+		//Server jettyServer = new Server(new QueuedThreadPool(128, 15));
+//		ServerConnector connector = new ServerConnector(jettyServer, new HttpConnectionFactory());
+//
+//		connector.setPort(8080);
+//		jettyServer.addConnector(connector);
 
 		jettyServer.setHandler(context);
 
@@ -32,8 +36,6 @@ public class WebApiService extends Thread {
 		jerseyServlet.setInitParameter("jersey.config.server.provider.classnames",
 				WebApiController.class.getCanonicalName());
 
-		
-		
 		// Add the filter, and then use the provided FilterHolder to configure
 		// it
 		FilterHolder cors = context.addFilter(CrossOriginFilter.class, "/*", EnumSet.of(DispatcherType.REQUEST));
@@ -41,7 +43,6 @@ public class WebApiService extends Thread {
 		cors.setInitParameter(CrossOriginFilter.ACCESS_CONTROL_ALLOW_ORIGIN_HEADER, "*");
 		cors.setInitParameter(CrossOriginFilter.ALLOWED_METHODS_PARAM, "GET, POST, PUT, DELETE, OPTIONS ,HEAD");
 		cors.setInitParameter(CrossOriginFilter.ALLOWED_HEADERS_PARAM, "X-Requested-With,Content-Type,Accept,Origin");
-
 
 		try {
 			jettyServer.start();

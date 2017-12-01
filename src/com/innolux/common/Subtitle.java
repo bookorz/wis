@@ -59,7 +59,7 @@ public class Subtitle {
 	}
 
 	public synchronized boolean ShowData(String message) {
-		
+		MsgByteArray = new byte[Row][20];
 		boolean ShowDataResult = false;
 		MsgBuf = new byte[31];
 		byte[] ResultBuff = new byte[100];

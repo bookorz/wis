@@ -77,7 +77,7 @@ public class ToolUtility {
 			GlobleVar.T2WMS_DB);
 
 	private static GenericDao<WMS_T1_ASN_Pallet> WMS_T1_ASN_Pallet_Dao = new JdbcGenericDaoImpl<WMS_T1_ASN_Pallet>(
-			GlobleVar.T2WMS_DB);
+			GlobleVar.T1WMS_DB);
 
 	private static GenericDao<WMS_T2_ASN_Pallet> WMS_T2_ASN_Pallet_Dao = new JdbcGenericDaoImpl<WMS_T2_ASN_Pallet>(
 			GlobleVar.T2WMS_DB);
@@ -579,7 +579,7 @@ public class ToolUtility {
 			history.setStatus(cylinder.getStatus());
 			history.setCheck_Times(cylinder.getCheck_Times());
 			history.setCylinder_Type(cylinder.getCylinder_Type());
-			history.setUpdateTime(Calendar.getInstance().getTime());
+			history.setUpdateTime(System.currentTimeMillis());
 
 			RF_Cylinder_History_Dao.save(history);
 
@@ -736,6 +736,7 @@ public class ToolUtility {
 
 	public static void SignalTowerAutoOff(String fab, String area, String gate, String cmd, long delay,
 			String readerIP) {
+		
 		try {
 			String cmdStr = "";
 
@@ -1157,6 +1158,19 @@ public class ToolUtility {
 		}
 
 	}
+	
+	public static List<RF_Gate_Error> GetAllGateError(String readerIP) {
+		List<RF_Gate_Error> result = null;
+		try {
+
+			result = RF_Gate_Error_Dao.findAllByConditions(null, RF_Gate_Error.class);
+			
+		} catch (Exception e) {
+
+			logger.error(readerIP + " " + "Exception:" + StackTrace2String(e));
+		}
+		return result;
+	}
 
 	public static RF_Gate_Error GetGateError(String fab, String area, String gate, String errorType, String readerIP) {
 		RF_Gate_Error result = null;
@@ -1229,7 +1243,7 @@ public class ToolUtility {
 				t.setGate(tag.getGate());
 				t.setError_Type(errType);
 				t.setError_Message(errStr);
-				t.setTimeStamp(Calendar.getInstance().getTime());
+				t.setTimeStamp(System.currentTimeMillis());
 
 				RF_Gate_Error_Dao.save(t);
 			}

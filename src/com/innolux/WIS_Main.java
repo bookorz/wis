@@ -13,6 +13,7 @@ import com.innolux.common.ToolUtility;
 import com.innolux.common.MessageFormat;
 import com.innolux.model.RF_ContainerInfo;
 import com.innolux.model.RF_Cylinder_Status;
+import com.innolux.model.RF_Gate_Error;
 import com.innolux.model.RF_Gate_Setting;
 import com.innolux.model.RF_Reader_Setting;
 import com.innolux.model.RF_Subtitle_Setting;
@@ -35,6 +36,7 @@ public class WIS_Main {
 		new WebApiService().start();
 		new WMS_Message();
 		SetAliveNotify();
+		GateErrorMonitor();
 		InitialReaders();
 
 		CustSubtileMonitor();
@@ -93,9 +95,10 @@ public class WIS_Main {
 			@Override
 			public void run() {
 
-				ToolUtility.MesDaemon.sendMessage(MessageFormat.SendAms("SetAliveNotify", "T2", "庫存訊息",
-						"WISErrorPallet", "庫存訊息", ToolUtility.GetCylinderSummary("T2", "SetAliveNotify")),
-						GlobleVar.SendToWMS);
+				ToolUtility.MesDaemon.sendMessage(
+						MessageFormat.SendAms("T2", "庫存訊息", "WISErrorPallet", "庫存訊息",
+								ToolUtility.GetCylinderSummary("T2", "SetAliveNotify"), "SetAliveNotify"),
+						GlobleVar.SendToAMS);
 			}
 		};
 
@@ -112,6 +115,34 @@ public class WIS_Main {
 		long period = 86400 * 1000;
 
 		timer.scheduleAtFixedRate(task, date, period);
+	}
+
+	private static void GateErrorMonitor() {
+
+		Timer timer = new Timer();
+
+		// 5min
+		long period = 5 * 60 * 1000;
+		TimerTask task = new TimerTask() {
+			@Override
+			public void run() {
+				long startTime = System.currentTimeMillis();
+
+				for (RF_Gate_Error each : ToolUtility.GetAllGateError("GateErrorMonitor")) {
+					if (System.currentTimeMillis() - each.getTimeStamp() > 1800000) {
+						ToolUtility.MesDaemon
+								.sendMessage(
+										MessageFormat.SendAms(each.getFab(), "WIS", each.getError_Type(),
+												"WISErrorPallet", each.getError_Type(), each.getError_Message()),
+										GlobleVar.SendToAMS);
+					}
+				}
+
+				logger.debug("GateErrorMonitor process time:" + (System.currentTimeMillis() - startTime));
+			}
+		};
+
+		timer.scheduleAtFixedRate(task, new Date(), period);
 	}
 
 	private static void CustSubtileMonitor() {
@@ -133,7 +164,7 @@ public class WIS_Main {
 							if (!eachSubtitle.getCurrent_Subtitle().equals(eachSubtitle.getCust_Subtitle())) {
 								RF_ContainerInfo container = ToolUtility.GetContainerInfo(eachSubtitle.getFab(),
 										eachSubtitle.getArea(), eachSubtitle.getGate(), "CustSubtileMonitor");
-								if (container == null) {//When this port is not binding car
+								if (container == null) {// When this port is not binding car
 									ToolUtility.Subtitle(eachSubtitle.getFab(), eachSubtitle.getArea(),
 											eachSubtitle.getGate(), eachSubtitle.getCust_Subtitle(),
 											"CustSubtileMonitor");

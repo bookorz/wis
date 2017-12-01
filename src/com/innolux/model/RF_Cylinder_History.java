@@ -1,7 +1,5 @@
 package com.innolux.model;
 
-import java.util.Date;
-
 import com.innolux.annotation.Column;
 import com.innolux.annotation.Entity;
 
@@ -67,24 +65,17 @@ public class RF_Cylinder_History {
 	 * Update Time
 	 */
 	@Column("updatetime")
-	private Date UpdateTime;
+	private long UpdateTime;
 
-	public Date getUpdateTime() {
+	public long getUpdateTime() {
 		return UpdateTime;
 	}
 
-	public void setUpdateTime(Date UpdateTime) {
+	public void setUpdateTime(long UpdateTime) {
 		this.UpdateTime = UpdateTime;
 	}
 	
-	public String getUpdateTimeString(){
-		String result = "";
-    	if(UpdateTime!=null) {
-    		result = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(UpdateTime);
-    	}
-    	return result;
-    	
-    }
+	
 	
 	/**
 	 * Check Times
@@ -148,7 +139,7 @@ public class RF_Cylinder_History {
         		" Area: " + Area+
         		" Tag_ID: " + Tag_ID+
         		" Position: " + Position+
-        		" UpdateTime: " + getUpdateTimeString()+
+        		" UpdateTime: " + UpdateTime+
         		" Check_Times: " + Check_Times+
         		" Cylinder_Type: " + Cylinder_Type+
         		" New_Position: " + New_Position+

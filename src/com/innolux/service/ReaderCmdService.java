@@ -1,11 +1,7 @@
 package com.innolux.service;
 
-import java.util.Date;
 import java.util.Hashtable;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
-
 import org.apache.log4j.Logger;
 
 import com.innolux.common.GlobleVar;
@@ -36,20 +32,30 @@ public class ReaderCmdService {
 			logger.error("Exception:" + ToolUtility.StackTrace2String(e));
 		}
 
-		
-
 	}
 
 	public static boolean SendCmd(String readerIP, String cmdStr) {
 		boolean result = false;
-		if (readerList.containsKey(readerIP)) {
-			ReaderCmd t = readerList.get(readerIP);
+		Thread t = new Thread(new Runnable() {
 
-			result = t.Send(cmdStr);
-			logger.info(readerIP + " SendCmd:" + cmdStr + " result:" + result);
-		} else {
-			logger.error(readerIP + " is not exist.");
-		}
+			@Override
+			public void run() {
+				if (readerList.containsKey(readerIP)) {
+					ReaderCmd t = readerList.get(readerIP);
+
+					if(!t.Send(cmdStr)) {
+						logger.info(readerIP + " SendCmd:" + cmdStr + " fail");
+					}
+					
+				} else {
+					logger.error(readerIP + " is not exist.");
+				}
+
+			}
+		});
+		t.setDaemon(false);
+		t.start();
+		result = true;
 		return result;
 	}
 

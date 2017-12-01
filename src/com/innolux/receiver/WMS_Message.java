@@ -136,8 +136,11 @@ public class WMS_Message implements ITibcoRvListenService {
 				case "PALLET":
 					container.setCurrent_Operation(GlobleVar.EmptyWrapUnload);
 					break;
-				case "PLANTMOVE":
+				case "PLANTMOVEIN":
 					container.setCurrent_Operation(GlobleVar.TransferIn);
+					break;
+				case "PLANTMOVEOUT":
+					container.setCurrent_Operation(GlobleVar.TransferOut);
 					break;
 				case "ASN":
 					container.setCurrent_Operation(GlobleVar.ASNUnload);

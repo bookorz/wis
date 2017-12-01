@@ -25,7 +25,6 @@ import com.innolux.annotation.Column;
 import com.innolux.annotation.Entity;
 import com.innolux.annotation.Id;
 import com.innolux.common.ToolUtility;
-import com.innolux.receiver.WebApiController;
 
 /**
  * 泛型DAO的JDBC實現
@@ -271,7 +270,7 @@ public class JdbcGenericDaoImpl<T> implements GenericDao<T> {
 		}
 
 		// System.out.println(sql);
-		logger.debug(sql + " sqlTime:"+(System.currentTimeMillis()-StartTime));
+		logger.debug(sql + " " + sqlWhereMap + " sqlTime:"+(System.currentTimeMillis()-StartTime));
 		logger.debug(list.toString());
 		return list;
 	}
@@ -314,7 +313,7 @@ public class JdbcGenericDaoImpl<T> implements GenericDao<T> {
 		DBConn.release(conn, ps, null);
 
 		// System.out.println(sql);
-		logger.debug(sql+" sqlTime:"+(System.currentTimeMillis()-StartTime));
+		logger.debug(sql+ " " + sqlWhereMap+" sqlTime:"+(System.currentTimeMillis()-StartTime));
 		return list;
 	}
 
@@ -371,7 +370,7 @@ public class JdbcGenericDaoImpl<T> implements GenericDao<T> {
 			return null;
 		List<Object> list = new ArrayList<Object>();
 		List<Object> fieldValues = new ArrayList<Object>();
-		logger.debug(sqlWhereMap.toString());
+		
 		StringBuffer sqlWhere = new StringBuffer(" where ");
 		Set<Entry<String, Object>> entrySets = sqlWhereMap.entrySet();
 		for (Iterator<Entry<String, Object>> iteraotr = entrySets.iterator(); iteraotr.hasNext();) {
