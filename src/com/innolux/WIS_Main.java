@@ -116,6 +116,8 @@ public class WIS_Main {
 
 		timer.scheduleAtFixedRate(task, date, period);
 	}
+	
+	
 
 	private static void GateErrorMonitor() {
 
@@ -132,8 +134,8 @@ public class WIS_Main {
 					if (System.currentTimeMillis() - each.getTimeStamp() > 1800000) {
 						ToolUtility.MesDaemon
 								.sendMessage(
-										MessageFormat.SendAms(each.getFab(), "WIS", each.getError_Type(),
-												"WISErrorPallet", each.getError_Type(), each.getError_Message()),
+										MessageFormat.SendAms(each.getFab(), each.getError_Type(), "WISErrorPallet",
+												each.getError_Type(), each.getError_Message(), "GateErrorMonitor"),
 										GlobleVar.SendToAMS);
 					}
 				}

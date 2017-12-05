@@ -594,7 +594,7 @@ public class TagHandle {
 						tag.getReader_IP());
 				ToolUtility.SignalTowerAutoOff(gate.getFab(), gate.getArea(), gate.getGate(), GlobleVar.GreenOn, 5000,
 						tag.getReader_IP());
-				ToolUtility.MesDaemon.sendMessage(MessageFormat.SendTransfer(tag, container, "In", tag.getReader_IP()),
+				ToolUtility.MesDaemon.sendMessage(MessageFormat.SendEmptyWrapUnload(tag, container, tag.getReader_IP()),
 						GlobleVar.SendToWMS);
 			}
 		} else {

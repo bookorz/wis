@@ -25,41 +25,50 @@ public class ReaderCmd {
 	private boolean isInitial = false;
 
 	public ReaderCmd(RF_Reader_Setting _ReaderSet) {
-		try {
-			Thread.sleep(_ReaderSet.getStart_Delay());
-		} catch (InterruptedException e) {
+		Thread t = new Thread(new Runnable() {
 
-			logger.error(ReaderSet.getReader_IP() + " " + "Exception:" + ToolUtility.StackTrace2String(e));
-		}
-
-		ReaderSet = _ReaderSet;
-		reader.setConnection(ReaderSet.getReader_IP(), 23);
-		reader.setUsername("alien");
-		reader.setPassword("password");
-		if (!InitialReader()) {
-			logger.error(ReaderSet.getReader_IP() + " " + "InitialReader fail");
-		}
-		if (!SetAttenuation()) {
-			logger.error(ReaderSet.getReader_IP() + " " + "SetAttenuation fail");
-		}
-
-		Timer timer = new Timer();
-
-		// 30sec
-		long period = 30 * 1000;
-		TimerTask task = new TimerTask() {
 			@Override
 			public void run() {
-				long startTime = System.currentTimeMillis();
+				try {
+					Thread.sleep(_ReaderSet.getStart_Delay());
+				} catch (InterruptedException e) {
 
-				InitialReader();
+					logger.error(ReaderSet.getReader_IP() + " " + "Exception:" + ToolUtility.StackTrace2String(e));
+				}
 
-				logger.debug(ReaderSet.getReader_IP() + " Reconnect Reader & Initial process time:"
-						+ (System.currentTimeMillis() - startTime));
+				ReaderSet = _ReaderSet;
+				reader.setConnection(ReaderSet.getReader_IP(), 23);
+				reader.setUsername("alien");
+				reader.setPassword("password");
+				if (!InitialReader()) {
+					logger.error(ReaderSet.getReader_IP() + " " + "InitialReader fail");
+				}
+				if (!SetAttenuation()) {
+					logger.error(ReaderSet.getReader_IP() + " " + "SetAttenuation fail");
+				}
+
+				Timer timer = new Timer();
+
+				// 30sec
+				long period = 30 * 1000;
+				TimerTask task = new TimerTask() {
+					@Override
+					public void run() {
+						long startTime = System.currentTimeMillis();
+
+						Reconnet();
+
+						logger.debug(ReaderSet.getReader_IP() + " Reconnect Reader process time:"
+								+ (System.currentTimeMillis() - startTime));
+					}
+				};
+
+				timer.scheduleAtFixedRate(task, new Date(), period);
+
 			}
-		};
-
-		timer.scheduleAtFixedRate(task, new Date(), period);
+		});
+		t.setDaemon(false);
+		t.start();
 
 	}
 
@@ -133,7 +142,7 @@ public class ReaderCmd {
 				for (RF_Antenna_Setting eachSet : antSets) {
 					reader.setRFAttenuation(eachSet.getAntenna_No(), eachSet.getRFAttenuation());
 				}
-				//reader.saveSettings();
+				// reader.saveSettings();
 				reader.close();
 			}
 			result = true;
@@ -162,6 +171,26 @@ public class ReaderCmd {
 		}
 		return result;
 	}
+	
+	public synchronized boolean Reconnet() {
+		boolean result = false;
+		try {
+			if (reader != null) {
+
+				reader.open();
+
+				reader.setNotifyAddress(InetAddress.getLocalHost().getHostAddress(), ReaderSet.getListen_Port());
+				reader.setNotifyMode(AlienClass1Reader.ON);
+				reader.close();
+				result = true;
+			} else {
+				logger.error(ReaderSet.getReader_IP() + " " + "reader is null");
+			}
+		} catch (Exception e) {
+			logger.error(ReaderSet.getReader_IP() + " " + "Exception:" + ToolUtility.StackTrace2String(e));
+		}
+		return result;
+	}
 
 	public synchronized boolean InitialReader() {
 		boolean result = false;
@@ -171,22 +200,23 @@ public class ReaderCmd {
 			if (reader != null) {
 
 				reader.open();
-
-				reader.setAutoMode(AlienClass1Reader.OFF);
-				reader.setNotifyMode(AlienClass1Reader.OFF);
+				if (!isInitial) {
+					reader.setAutoMode(AlienClass1Reader.OFF);
+					reader.setNotifyMode(AlienClass1Reader.OFF);
+				}
 				reader.setNotifyAddress(InetAddress.getLocalHost().getHostAddress(), ReaderSet.getListen_Port());
 
 				if (ReaderSet.getLocation().equals("Cylinder")) {
 
 					reader.setAntennaSequence("0 1 2 3");
 					reader.setTagListAntennaCombine(AlienClass1Reader.ON);
-					reader.setAutoStartPause(40000); // 停止40秒
-					reader.setAutoStopTimer(20000); // 讀取20秒
+					reader.setAutoStartPause(45000); // 停止40秒
+					reader.setAutoStopTimer(15000); // 讀取20秒
 					reader.setNotifyTime(600);
 					reader.setNotifyHeader(AlienClass1Reader.OFF);
 					reader.setPersistTime(-1);
 					reader.setAutoMode(AlienClass1Reader.ON);
-					reader.setNotifyMode(AlienClass1Reader.ON);
+					
 					reader.setMask(8, 0, "50");
 					reader.setTime();
 					reader.setTagListFormat(AlienClass1Reader.CUSTOM_FORMAT);
@@ -196,7 +226,8 @@ public class ReaderCmd {
 					CustomFormatStr = "${TAGIDW},${MSEC1},${MSEC2},${TX},${COUNT},${RSSI_MAX}";
 
 					reader.setTagListCustomFormat(CustomFormatStr);
-
+					reader.setNotifyMode(AlienClass1Reader.OFF);
+					reader.setNotifyMode(AlienClass1Reader.ON);
 				} else {
 					// reader.notifyNow();
 					// reader.setAntennaSequence("1 3 1 0 3 1 3 2");

@@ -36,26 +36,16 @@ public class ReaderCmdService {
 
 	public static boolean SendCmd(String readerIP, String cmdStr) {
 		boolean result = false;
-		Thread t = new Thread(new Runnable() {
 
-			@Override
-			public void run() {
-				if (readerList.containsKey(readerIP)) {
-					ReaderCmd t = readerList.get(readerIP);
+		if (readerList.containsKey(readerIP)) {
+			ReaderCmd t = readerList.get(readerIP);
 
-					if(!t.Send(cmdStr)) {
-						logger.info(readerIP + " SendCmd:" + cmdStr + " fail");
-					}
-					
-				} else {
-					logger.error(readerIP + " is not exist.");
-				}
+			result = t.Send(cmdStr);
 
-			}
-		});
-		t.setDaemon(false);
-		t.start();
-		result = true;
+		} else {
+			logger.error(readerIP + " is not exist.");
+		}
+
 		return result;
 	}
 

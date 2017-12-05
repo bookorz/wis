@@ -1,5 +1,6 @@
 package com.innolux.receiver;
 
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Hashtable;
 import java.util.List;
@@ -36,18 +37,49 @@ public class AlienReaderBySocket implements ISocketService {
 		sc.setSocketListener(this);
 		sc.run();
 		lastReceiveTime = System.currentTimeMillis();
-		AliveMonitor();
+		AliveMonitor8();
+		AliveMonitor13();
 	}
 	
-	private void AliveMonitor() {
+	private void AliveMonitor8() {
+		
+		
+			TimerTask task = new TimerTask() {
+				@Override
+				public void run() {
 
-		Timer timer = new Timer();
+					if(System.currentTimeMillis()-lastReceiveTime >1800000) {
+						
+						ToolUtility.MesDaemon.sendMessage(MessageFormat.SendAms( "T2", "WIS","WISErrorPallet",
+								"Reader斷線", "中櫃場Reader連接異常", setting.getReader_IP()),
+								GlobleVar.SendToAMS);
+					}
+				}
+			};
 
-		// 30min
-		long period = 30 * 60 * 1000;
+			Calendar calendar = Calendar.getInstance();
+			int year = calendar.get(Calendar.YEAR);
+			int month = calendar.get(Calendar.MONTH);
+			int day = calendar.get(Calendar.DAY_OF_MONTH);
+
+			calendar.set(year, month, day, 8, 00, 00);
+			calendar.add(Calendar.DAY_OF_MONTH, 1);
+			Date date = calendar.getTime();
+			Timer timer = new Timer();
+
+			long period = 86400 * 1000;
+
+			timer.scheduleAtFixedRate(task, date, period);
+		
+	}
+	
+	private void AliveMonitor13() {
+		
+		
 		TimerTask task = new TimerTask() {
 			@Override
 			public void run() {
+
 				if(System.currentTimeMillis()-lastReceiveTime >1800000) {
 					
 					ToolUtility.MesDaemon.sendMessage(MessageFormat.SendAms( "T2", "WIS","WISErrorPallet",
@@ -57,8 +89,22 @@ public class AlienReaderBySocket implements ISocketService {
 			}
 		};
 
-		timer.scheduleAtFixedRate(task, new Date(), period);
-	}
+		Calendar calendar = Calendar.getInstance();
+		int year = calendar.get(Calendar.YEAR);
+		int month = calendar.get(Calendar.MONTH);
+		int day = calendar.get(Calendar.DAY_OF_MONTH);
+
+		calendar.set(year, month, day, 13, 00, 00);
+		calendar.add(Calendar.DAY_OF_MONTH, 1);
+		Date date = calendar.getTime();
+		Timer timer = new Timer();
+
+		long period = 86400 * 1000;
+
+		timer.scheduleAtFixedRate(task, date, period);
+	
+}
+	
 
 	@Override
 	public void onSocketMsg(String msg) {
@@ -68,9 +114,12 @@ public class AlienReaderBySocket implements ISocketService {
 		if (msg.indexOf("(No Tags)") != -1) {
 			logger.debug(setting.getReader_IP() + " notag skip.");
 			lastReceiveTime = System.currentTimeMillis();
-		} else {
+		} else if(msg.indexOf("SysRq") != -1) {
+			logger.debug(setting.getReader_IP() + " err msg skip.");
+		}
+		else {
 			lastReceiveTime = System.currentTimeMillis();
-			List<RF_Tag_History> tagList = new TagParser().Parse(msg.trim(), antSetting, gateSetting, setting.getReader_IP());
+			List<RF_Tag_History> tagList = TagParser.Parse(msg.trim(), antSetting, gateSetting, setting.getReader_IP());
 			ToolUtility.InsertLog(tagList, setting.getReader_IP());
 			if (tagList.size() != 0) {
 				TagHandle.Data(tagList);

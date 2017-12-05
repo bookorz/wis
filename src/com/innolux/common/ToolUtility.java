@@ -457,6 +457,8 @@ public class ToolUtility {
 				}
 
 				ReaderCmdService.SetAntennaSequence(antList.get(0).getReader_IP());
+			}else {
+				logger.error(readerIP + " Antenna is not in config.");
 			}
 		} catch (Exception e) {
 			logger.error(readerIP + " " + "Exception:" + StackTrace2String(e));
@@ -571,14 +573,14 @@ public class ToolUtility {
 	public static void SetCylinderHistory(RF_Cylinder_Status cylinder, String readerIP) {
 		RF_Cylinder_History history = new RF_Cylinder_History();
 		try {
-			history.setFab(cylinder.getFab());
-			history.setArea(cylinder.getArea());
-			history.setTag_ID(cylinder.getTag_ID());
-			history.setPosition(cylinder.getPosition());
-			history.setNew_Position(cylinder.getNew_Position());
-			history.setStatus(cylinder.getStatus());
+			history.setFab(cylinder.getFab()==null?"":cylinder.getFab());
+			history.setArea(cylinder.getArea()==null?"":cylinder.getArea());
+			history.setTag_ID(cylinder.getTag_ID()==null?"":cylinder.getTag_ID());
+			history.setPosition(cylinder.getPosition()==null?"":cylinder.getPosition());
+			history.setNew_Position(cylinder.getNew_Position()==null?"":cylinder.getNew_Position());
+			history.setStatus(cylinder.getStatus()==null?"":cylinder.getStatus());
 			history.setCheck_Times(cylinder.getCheck_Times());
-			history.setCylinder_Type(cylinder.getCylinder_Type());
+			history.setCylinder_Type(cylinder.getCylinder_Type()==null?"":cylinder.getCylinder_Type());
 			history.setUpdateTime(System.currentTimeMillis());
 
 			RF_Cylinder_History_Dao.save(history);

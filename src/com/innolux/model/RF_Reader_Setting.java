@@ -95,13 +95,13 @@ public class RF_Reader_Setting {
      * Start Delay
      */  
     @Column("start_delay")  
-    private int Start_Delay;  
+    private long Start_Delay;  
     
-    public int getStart_Delay() {  
+    public long getStart_Delay() {  
         return Start_Delay;  
     }  
   
-    public void setStart_Delay(int Start_Delay) {  
+    public void setStart_Delay(long Start_Delay) {  
         this.Start_Delay = Start_Delay;  
     }  
 	

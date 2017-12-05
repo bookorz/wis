@@ -85,7 +85,7 @@ public class JdbcGenericDaoImpl<T> implements GenericDao<T> {
 		DBConn.release(conn, ps, null);
 
 		// System.out.println( clazz.getSimpleName() + "添加成功!");
-		logger.debug(sql + "\n" + clazz.getSimpleName() + "添加成功!sqlTime:"+(System.currentTimeMillis()-StartTime));
+		logger.debug(sql + " " + fieldValues + "\n" + clazz.getSimpleName() + "添加成功!sqlTime:"+(System.currentTimeMillis()-StartTime));
 	}
 
 	@Override
@@ -118,7 +118,7 @@ public class JdbcGenericDaoImpl<T> implements GenericDao<T> {
 		DBConn.release(conn, ps, null);
 
 		// System.out.println(sql + "\n" + clazz.getSimpleName() + "刪除成功!");
-		logger.debug(sql + "\n" + clazz.getSimpleName() + "刪除成功!sqlTime:"+(System.currentTimeMillis()-StartTime));
+		logger.debug(sql + " " + id + "\n" + clazz.getSimpleName() + "刪除成功!sqlTime:"+(System.currentTimeMillis()-StartTime));
 	}
 
 	@Override
@@ -172,7 +172,7 @@ public class JdbcGenericDaoImpl<T> implements GenericDao<T> {
 		DBConn.release(conn, ps, null);
 
 		// System.out.println(sql + "\n" + clazz.getSimpleName() + "修改成功.");
-		logger.debug(sql + "\n" + clazz.getSimpleName() + "修改成功.sqlTime:"+(System.currentTimeMillis()-StartTime));
+		logger.debug(sql + " "+ fieldValues + "\n" + clazz.getSimpleName() + "修改成功.sqlTime:"+(System.currentTimeMillis()-StartTime));
 	}
 
 	@Override
@@ -421,7 +421,7 @@ public class JdbcGenericDaoImpl<T> implements GenericDao<T> {
 	 * 設置SQL參數佔位符的值
 	 */
 	private void setParameter(List<Object> values, PreparedStatement ps, boolean isSearch) throws SQLException {
-		logger.debug(values.toString());
+
 		for (int i = 1; i <= values.size(); i++) {
 			Object fieldValue = values.get(i - 1);
 			Class<?> clazzValue = fieldValue.getClass();

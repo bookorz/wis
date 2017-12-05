@@ -13,9 +13,9 @@ import com.innolux.model.RF_Tag_Mapping;
 
 public class TagParser {
 
-	public Logger logger = Logger.getLogger(TagParser.class);
+	public static Logger logger = Logger.getLogger(TagParser.class);
 
-	public List<RF_Tag_History> Parse(String Raw_Str, Hashtable<Integer, RF_Antenna_Setting> antSetting,
+	public static List<RF_Tag_History> Parse(String Raw_Str, Hashtable<Integer, RF_Antenna_Setting> antSetting,
 			Hashtable<String, RF_Gate_Setting> gateSetting, String readerIP) {
 		long startTime = System.currentTimeMillis();
 		List<RF_Tag_History> result = new ArrayList<RF_Tag_History>();
@@ -94,7 +94,7 @@ public class TagParser {
 		return result;
 	}
 
-	private String Ascii2Alphabet(String hexString) {
+	private static String Ascii2Alphabet(String hexString) {
 		String[] hexTagAry = hexString.split(" ");
 		String TagStr = "";
 		for (int k = 0; k < hexTagAry.length; k++) { // 16進制Ascii轉字母
