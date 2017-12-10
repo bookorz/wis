@@ -219,7 +219,7 @@ public class ToolUtility {
 
 			ToolUtility.DeleteGateError(fab, area, gate, "", "RV");
 			List<RF_Error_Pallet> errPallets = ToolUtility.GetErrorPalletList(fab, area, gate, "RV");
-			for(RF_Error_Pallet each:errPallets) {
+			for (RF_Error_Pallet each : errPallets) {
 				ToolUtility.DeletePallet(each.getPallet_ID(), "RV");
 			}
 			ToolUtility.ClearErrorPallet(fab, area, gate, "RV");
@@ -239,7 +239,7 @@ public class ToolUtility {
 		}
 		return result;
 	}
-	
+
 	public static ResponseBase<String> SetAttenuation(String msg) {
 		ResponseBase<String> result = new ResponseBase<String>();
 		try {
@@ -247,11 +247,10 @@ public class ToolUtility {
 			JSONObject orgJson = new JSONObject(msg);
 
 			String ReaderIP = orgJson.getString("ReaderIP");
-			//String AntNumber = orgJson.getString("AntNumber");
-			//String Value = orgJson.getString("Value");
-			
+			// String AntNumber = orgJson.getString("AntNumber");
+			// String Value = orgJson.getString("Value");
+
 			ReaderCmdService.SetAttenuation(ReaderIP);
-			
 
 			result.setStatus("200");
 			result.setMessage("Success");
@@ -262,7 +261,7 @@ public class ToolUtility {
 		}
 		return result;
 	}
-	
+
 	public static ResponseBase<String> SetSignalTower(String msg) {
 		ResponseBase<String> result = new ResponseBase<String>();
 		try {
@@ -457,7 +456,7 @@ public class ToolUtility {
 				}
 
 				ReaderCmdService.SetAntennaSequence(antList.get(0).getReader_IP());
-			}else {
+			} else {
 				logger.error(readerIP + " Antenna is not in config.");
 			}
 		} catch (Exception e) {
@@ -573,14 +572,14 @@ public class ToolUtility {
 	public static void SetCylinderHistory(RF_Cylinder_Status cylinder, String readerIP) {
 		RF_Cylinder_History history = new RF_Cylinder_History();
 		try {
-			history.setFab(cylinder.getFab()==null?"":cylinder.getFab());
-			history.setArea(cylinder.getArea()==null?"":cylinder.getArea());
-			history.setTag_ID(cylinder.getTag_ID()==null?"":cylinder.getTag_ID());
-			history.setPosition(cylinder.getPosition()==null?"":cylinder.getPosition());
-			history.setNew_Position(cylinder.getNew_Position()==null?"":cylinder.getNew_Position());
-			history.setStatus(cylinder.getStatus()==null?"":cylinder.getStatus());
+			history.setFab(cylinder.getFab() == null ? "" : cylinder.getFab());
+			history.setArea(cylinder.getArea() == null ? "" : cylinder.getArea());
+			history.setTag_ID(cylinder.getTag_ID() == null ? "" : cylinder.getTag_ID());
+			history.setPosition(cylinder.getPosition() == null ? "" : cylinder.getPosition());
+			history.setNew_Position(cylinder.getNew_Position() == null ? "" : cylinder.getNew_Position());
+			history.setStatus(cylinder.getStatus() == null ? "" : cylinder.getStatus());
 			history.setCheck_Times(cylinder.getCheck_Times());
-			history.setCylinder_Type(cylinder.getCylinder_Type()==null?"":cylinder.getCylinder_Type());
+			history.setCylinder_Type(cylinder.getCylinder_Type() == null ? "" : cylinder.getCylinder_Type());
 			history.setUpdateTime(System.currentTimeMillis());
 
 			RF_Cylinder_History_Dao.save(history);
@@ -682,25 +681,18 @@ public class ToolUtility {
 			sqlWhereMap.put("area", area);
 			sqlWhereMap.put("gate_id", gate);
 
-			switch (fab) {
-			case "T1":
-				List<WMS_T1_Opreation_Mode> resultList = WMS_T1_Opreation_Mode_Dao.findAllByConditions(sqlWhereMap,
-						WMS_T1_Opreation_Mode.class);
-				if (resultList.size() != 0) {
-					result = resultList.get(0).getOperation_Type();
-				}
-
-				break;
-			case "T2":
-
+			List<WMS_T1_Opreation_Mode> resultList = WMS_T1_Opreation_Mode_Dao.findAllByConditions(sqlWhereMap,
+					WMS_T1_Opreation_Mode.class);
+			if (resultList.size() != 0) {
+				result = resultList.get(0).getOperation_Type();
+			} else {
 				List<WMS_T2_Opreation_Mode> resultList2 = WMS_T2_Opreation_Mode_Dao.findAllByConditions(sqlWhereMap,
 						WMS_T2_Opreation_Mode.class);
 				if (resultList2.size() != 0) {
 					result = resultList2.get(0).getOperation_Type();
 				}
-
-				break;
 			}
+
 		} catch (Exception e) {
 			logger.error(readerIP + " " + "Exception:" + StackTrace2String(e));
 		}
@@ -738,7 +730,7 @@ public class ToolUtility {
 
 	public static void SignalTowerAutoOff(String fab, String area, String gate, String cmd, long delay,
 			String readerIP) {
-		
+
 		try {
 			String cmdStr = "";
 
@@ -1037,7 +1029,7 @@ public class ToolUtility {
 		}
 
 	}
-	
+
 	public static List<RF_Error_Pallet> GetErrorPalletList(String fab, String area, String gate, String readerIP) {
 		List<RF_Error_Pallet> result = null;
 		try {
@@ -1160,13 +1152,13 @@ public class ToolUtility {
 		}
 
 	}
-	
+
 	public static List<RF_Gate_Error> GetAllGateError(String readerIP) {
 		List<RF_Gate_Error> result = null;
 		try {
 
 			result = RF_Gate_Error_Dao.findAllByConditions(null, RF_Gate_Error.class);
-			
+
 		} catch (Exception e) {
 
 			logger.error(readerIP + " " + "Exception:" + StackTrace2String(e));
@@ -1350,31 +1342,31 @@ public class ToolUtility {
 			RF_Move_History his = new RF_Move_History();
 
 			his.setArea(t.getArea() == null ? "" : t.getArea());
-			his.setCar_ID(t.getCar_ID()== null ? "" : t.getCar_ID());
-			his.setCar_Type(t.getCar_Type()== null ? "" : t.getCar_Type());
-			his.setContainer_ID(t.getContainer_ID()== null ? "" : t.getContainer_ID());
-			his.setContainer_Status(t.getContainer_Status()== null ? "" : t.getContainer_Status());
-			his.setContainer_Type(t.getContainer_Type()== null ? "" : t.getContainer_Type());
-			his.setDriverName(t.getDriverName()== null ? "" : t.getDriverName());
-			his.setDriverPhone(t.getDriverPhone()== null ? "" : t.getDriverPhone());
-			his.setFab(t.getFab()== null ? "" : t.getFab());
-			his.setArea(t.getArea()== null ? "" : t.getArea());
-			his.setGate(t.getGate()== null ? "" : t.getGate());
-			his.setReason(t.getReason()== null ? "" : t.getReason());
-			his.setSource(t.getSource()== null ? "" : t.getSource());
-			his.setVendor_Name(t.getVendor_Name()== null ? "" : t.getVendor_Name());
-			his.setTimeStamp(GetNowTimeStr()== null ? "" : GetNowTimeStr());
-			his.setStartTime(t.getStartTime()== null ? "" : t.getStartTime());
-			his.setEndTime(t.getEndTime()== null ? "" : t.getEndTime());
-			his.setImpNo(t.getImpNo()== null ? "" : t.getImpNo());
-			his.setVendorID(t.getVendorID()== null ? "" : t.getVendorID());
-			his.setVendorCount(t.getVendorCount()== null ? "" : t.getVendorCount());
-			his.setCurrentStatus(t.getCurrentStatus()== null ? "" : t.getCurrentStatus());
-			his.setCurrentAction(t.getCurrentAction()== null ? "" : t.getCurrentAction());
-			his.setProcess_Start(t.getProcess_Start()== null ? "" : t.getProcess_Start());
-			his.setProcess_End(t.getProcess_End()== null ? "" : t.getProcess_End());
-			his.setProcess_Count(t.getProcess_Count()== null ? "" : t.getProcess_Count());
-			his.setCurrent_Operation(t.getCurrent_Operation()== null ? "" : t.getCurrent_Operation());
+			his.setCar_ID(t.getCar_ID() == null ? "" : t.getCar_ID());
+			his.setCar_Type(t.getCar_Type() == null ? "" : t.getCar_Type());
+			his.setContainer_ID(t.getContainer_ID() == null ? "" : t.getContainer_ID());
+			his.setContainer_Status(t.getContainer_Status() == null ? "" : t.getContainer_Status());
+			his.setContainer_Type(t.getContainer_Type() == null ? "" : t.getContainer_Type());
+			his.setDriverName(t.getDriverName() == null ? "" : t.getDriverName());
+			his.setDriverPhone(t.getDriverPhone() == null ? "" : t.getDriverPhone());
+			his.setFab(t.getFab() == null ? "" : t.getFab());
+			his.setArea(t.getArea() == null ? "" : t.getArea());
+			his.setGate(t.getGate() == null ? "" : t.getGate());
+			his.setReason(t.getReason() == null ? "" : t.getReason());
+			his.setSource(t.getSource() == null ? "" : t.getSource());
+			his.setVendor_Name(t.getVendor_Name() == null ? "" : t.getVendor_Name());
+			his.setTimeStamp(GetNowTimeStr() == null ? "" : GetNowTimeStr());
+			his.setStartTime(t.getStartTime() == null ? "" : t.getStartTime());
+			his.setEndTime(t.getEndTime() == null ? "" : t.getEndTime());
+			his.setImpNo(t.getImpNo() == null ? "" : t.getImpNo());
+			his.setVendorID(t.getVendorID() == null ? "" : t.getVendorID());
+			his.setVendorCount(t.getVendorCount() == null ? "" : t.getVendorCount());
+			his.setCurrentStatus(t.getCurrentStatus() == null ? "" : t.getCurrentStatus());
+			his.setCurrentAction(t.getCurrentAction() == null ? "" : t.getCurrentAction());
+			his.setProcess_Start(t.getProcess_Start() == null ? "" : t.getProcess_Start());
+			his.setProcess_End(t.getProcess_End() == null ? "" : t.getProcess_End());
+			his.setProcess_Count(t.getProcess_Count() == null ? "" : t.getProcess_Count());
+			his.setCurrent_Operation(t.getCurrent_Operation() == null ? "" : t.getCurrent_Operation());
 
 			RF_Move_History_Dao.save(his);
 
@@ -1495,7 +1487,7 @@ public class ToolUtility {
 		}
 
 	}
-	
+
 	public static void DeletePallet(String palletID, String readerIP) {
 		try {
 
