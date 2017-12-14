@@ -67,7 +67,7 @@ public class IRHandle {
 									Thread.sleep(3000);
 									RF_Gate_Setting newgate = ToolUtility.GetGateSetting(oldGate.getFab(),
 											oldGate.getArea(), oldGate.getGate(), "IR");
-
+									
 									if (oldGate.getDirection_EndTime() == newgate.getDirection_EndTime()) {
 										// antenna.setActive(false);
 										// ToolUtility.UpdateAntSetting(antenna, targetReaderIP);
@@ -166,11 +166,11 @@ public class IRHandle {
 					case GlobleVar.Off:
 						// IR break
 						// Active pallet antenna
-						if (gate.getDirection_StartTime() != 0) {
-							if (ir.getTimeStamp() - gate.getDirection_StartTime() > 10000) {
-								gate.setDirection_StartTime(0);
-							}
-						}
+//						if (gate.getDirection_StartTime() != 0) {
+//							if (ir.getTimeStamp() - gate.getDirection_StartTime() > 15000) {
+//								gate.setDirection_StartTime(0);
+//							}
+//						}
 
 						if (gate.getDirection_StartTime() == 0) {
 							gate.setDirection_StartTime(ir.getTimeStamp());

@@ -51,7 +51,24 @@ public class AlienReader implements MessageListener {
 		ToolUtility.InsertLog(tagList, setting.getReader_IP());
 		
 		if (tagList.size() != 0) {
-			TagHandle.Data(PreFilter(tagList));
+			Thread t = new Thread(new Runnable() {
+
+				@Override
+				public void run() {
+
+					try {
+						TagHandle.Data(PreFilter(tagList));
+					} catch (Exception e) {
+
+						logger.error("messageReceived Exception:" + ToolUtility.StackTrace2String(e));
+
+					}
+
+				}
+			});
+			t.setDaemon(false);
+			t.start();
+			
 		}
 
 	}

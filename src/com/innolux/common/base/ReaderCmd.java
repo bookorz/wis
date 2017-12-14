@@ -23,6 +23,7 @@ public class ReaderCmd {
 	private AlienClass1Reader reader = new AlienClass1Reader();
 	private Logger logger = Logger.getLogger(this.getClass());
 	private boolean isInitial = false;
+	
 
 	public ReaderCmd(RF_Reader_Setting _ReaderSet) {
 		Thread t = new Thread(new Runnable() {
@@ -49,8 +50,8 @@ public class ReaderCmd {
 
 				Timer timer = new Timer();
 
-				// 30sec
-				long period = 30 * 1000;
+				// 60sec
+				long period = 60 * 1000;
 				TimerTask task = new TimerTask() {
 					@Override
 					public void run() {
@@ -108,6 +109,7 @@ public class ReaderCmd {
 
 	public synchronized boolean Send(String cmdStr) {
 		boolean result = false;
+		long startTime = System.currentTimeMillis();
 		try {
 			logger.debug(ReaderSet.getReader_IP() + " Send cmd:" + cmdStr);
 
@@ -120,6 +122,7 @@ public class ReaderCmd {
 
 			logger.error(ReaderSet.getReader_IP() + " " + "Exception:" + ToolUtility.StackTrace2String(e));
 		}
+		logger.debug("macroRun process time:"+(System.currentTimeMillis()-startTime));
 		return result;
 	}
 
@@ -154,6 +157,7 @@ public class ReaderCmd {
 	}
 
 	public synchronized boolean SetAntennaSequence() {
+		long startTime = System.currentTimeMillis();
 		boolean result = false;
 		try {
 			if (reader != null) {
@@ -169,10 +173,12 @@ public class ReaderCmd {
 		} catch (Exception e) {
 			logger.error(ReaderSet.getReader_IP() + " " + "Exception:" + ToolUtility.StackTrace2String(e));
 		}
+		logger.debug("SetAntennaSequence process time:"+(System.currentTimeMillis()-startTime));
 		return result;
 	}
 	
 	public synchronized boolean Reconnet() {
+		long startTime = System.currentTimeMillis();
 		boolean result = false;
 		try {
 			if (reader != null) {
@@ -188,7 +194,9 @@ public class ReaderCmd {
 			}
 		} catch (Exception e) {
 			logger.error(ReaderSet.getReader_IP() + " " + "Exception:" + ToolUtility.StackTrace2String(e));
+			ToolUtility.ShowReaderInfoToSubtile("Reader連線異常，請檢查Reader主機狀態", ReaderSet.getReader_IP());
 		}
+		logger.debug("Reconnet process time:"+(System.currentTimeMillis()-startTime));
 		return result;
 	}
 

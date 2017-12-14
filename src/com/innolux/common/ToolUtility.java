@@ -451,6 +451,7 @@ public class ToolUtility {
 			antList = RF_Antenna_Setting_Dao.findAllByConditions(sqlWhereMap, RF_Antenna_Setting.class);
 			if (antList.size() != 0) {
 				for (RF_Antenna_Setting eachAnt : antList) {
+					
 					eachAnt.setActive(active);
 					ToolUtility.UpdateAntSetting(eachAnt, readerIP);
 				}
@@ -550,6 +551,20 @@ public class ToolUtility {
 		try {
 			Map<String, Object> sqlWhereMap = new HashMap<String, Object>();
 			sqlWhereMap.put("reader_ip", readerIP);
+
+			result = RF_Antenna_Setting_Dao.findAllByConditions(sqlWhereMap, RF_Antenna_Setting.class);
+		} catch (Exception e) {
+			logger.error(readerIP + " " + "Exception:" + StackTrace2String(e));
+		}
+		return result;
+	}
+
+	public static List<RF_Antenna_Setting> GetAntSettingList(String readerIP, String AntType) {
+		List<RF_Antenna_Setting> result = null;
+		try {
+			Map<String, Object> sqlWhereMap = new HashMap<String, Object>();
+			sqlWhereMap.put("reader_ip", readerIP);
+			sqlWhereMap.put("ANTENNA_TYPE", AntType);
 
 			result = RF_Antenna_Setting_Dao.findAllByConditions(sqlWhereMap, RF_Antenna_Setting.class);
 		} catch (Exception e) {
@@ -963,10 +978,56 @@ public class ToolUtility {
 							SubtitleSetting.setUpdate_Time(System.currentTimeMillis());
 							RF_Subtitle_Setting_Dao.update(SubtitleSetting);
 						} else {
-							logger.error(readerIP + " SignalTower send fail.");
+							logger.error(readerIP + " Subtitle send fail.");
 						}
 					} else {
 						logger.error(readerIP + " SubtitleSetting is not exist");
+					}
+				} catch (Exception e) {
+
+					logger.error(readerIP + " " + "Exception:" + StackTrace2String(e));
+				}
+			}
+		});
+		t.setDaemon(false);
+		t.start();
+
+	}
+
+	public static void ShowReaderInfoToSubtile(String showStr, String readerIP) {
+
+		Thread t = new Thread(new Runnable() {
+
+			@Override
+			public void run() {
+				try {
+					List<RF_Antenna_Setting> antList = GetAntSettingList("CT", readerIP);
+
+					if (antList.size() != 0) {
+						for (RF_Antenna_Setting eachAnt : antList) {
+							Map<String, Object> sqlWhereMap = new HashMap<String, Object>();
+							sqlWhereMap.put("fab", eachAnt.getFab());
+							sqlWhereMap.put("area", eachAnt.getArea());
+							sqlWhereMap.put("gate", eachAnt.getGate());
+							List<RF_Subtitle_Setting> SubtitleSettings = RF_Subtitle_Setting_Dao
+									.findAllByConditions(sqlWhereMap, RF_Subtitle_Setting.class);
+
+							if (SubtitleSettings.size() != 0) {
+								RF_Subtitle_Setting SubtitleSetting = SubtitleSettings.get(0);
+								if (SubtitleService.Show(SubtitleSetting.getSubtitle_IP(), showStr)) {
+									logger.info(readerIP + " " + showStr);
+									SubtitleSetting.setCurrent_Subtitle(showStr);
+									SubtitleSetting.setUpdate_Time(System.currentTimeMillis());
+									RF_Subtitle_Setting_Dao.update(SubtitleSetting);
+								} else {
+									logger.error(readerIP + " Subtitle send fail.");
+								}
+							} else {
+								logger.error(readerIP + " SubtitleSetting is not exist");
+							}
+						}
+					} else {
+						logger.debug(readerIP + " antList is empty.");
 					}
 				} catch (Exception e) {
 

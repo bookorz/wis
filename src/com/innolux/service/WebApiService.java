@@ -1,10 +1,14 @@
 package com.innolux.service;
 
+import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
+import org.eclipse.jetty.util.thread.QueuedThreadPool;
+
 import com.innolux.receiver.WebApiController;
 
 import java.util.EnumSet;
@@ -20,12 +24,12 @@ public class WebApiService extends Thread {
 		ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
 		context.setContextPath("/");
 
-		 Server jettyServer = new Server(8080);
-		//Server jettyServer = new Server(new QueuedThreadPool(128, 15));
-//		ServerConnector connector = new ServerConnector(jettyServer, new HttpConnectionFactory());
-//
-//		connector.setPort(8080);
-//		jettyServer.addConnector(connector);
+		 //Server jettyServer = new Server(8080);
+		Server jettyServer = new Server(new QueuedThreadPool(128, 15));
+		ServerConnector connector = new ServerConnector(jettyServer, new HttpConnectionFactory());
+
+		connector.setPort(8080);
+		jettyServer.addConnector(connector);
 
 		jettyServer.setHandler(context);
 

@@ -68,14 +68,14 @@ public class JdbcDaoHelper {
 		} else {
 			int lastIndex = connections.size() - 1;
 			con = connections.remove(lastIndex);
-			if(!con.conn.isValid(5)){
-				try{
-					con.conn.close();
-				}catch(Exception e){
-					logger.debug("getConnection() con.conn.close() has error, exception:" + ToolUtility.StackTrace2String(e));
-				}
-				con.conn = DriverManager.getConnection(URL, USER, PASSWORD);
-			}
+//			if(!con.conn.isValid(5)){
+//				try{
+//					con.conn.close();
+//				}catch(Exception e){
+//					logger.debug("getConnection() con.conn.close() has error, exception:" + ToolUtility.StackTrace2String(e));
+//				}
+//				con.conn = DriverManager.getConnection(URL, USER, PASSWORD);
+//			}
 			if(System.currentTimeMillis() - con.LastUseTime > 3600000){
 				try{
 					con.conn.close();
