@@ -38,18 +38,24 @@ public class SubtitleService {
 		logger.debug("SubtitleService Initial process time:" + (System.currentTimeMillis() - startTime));
 	}
 
-	public static boolean Show(String subtitleIP, String showStr) {
-		boolean result = false;
+	public static void Show(String subtitleIP, String showStr) {
 
-		if (subtitleList.containsKey(subtitleIP)) {
-			Subtitle t = subtitleList.get(subtitleIP);
+		Thread t = new Thread(new Runnable() {
 
-			result = t.ShowData(showStr);
+			@Override
+			public void run() {
+				if (subtitleList.containsKey(subtitleIP)) {
+					Subtitle t = subtitleList.get(subtitleIP);
 
-		} else {
-			logger.error(subtitleIP + " is not exist.");
-		}
+					t.ShowData(showStr);
 
-		return result;
+				} else {
+					logger.error(subtitleIP + " is not exist.");
+				}
+			}
+		});
+		t.setDaemon(false);
+		t.start();
+
 	}
 }

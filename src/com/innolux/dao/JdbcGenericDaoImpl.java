@@ -4,7 +4,6 @@ import java.beans.IntrospectionException;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -44,6 +43,7 @@ public class JdbcGenericDaoImpl<T> implements GenericDao<T> {
 
 	@Override
 	public void save(T t) throws Exception {
+		long StartFuncTime = System.currentTimeMillis();
 		Class<?> clazz = t.getClass();
 		// 獲得表名
 		String tableName = getTableName(clazz);
@@ -75,21 +75,23 @@ public class JdbcGenericDaoImpl<T> implements GenericDao<T> {
 		StringBuilder sql = new StringBuilder("");
 		sql.append("insert into ").append(tableName).append(" (").append(fieldNames.toString()).append(") values (")
 				.append(placeholders).append(")");
-		Connection conn = DBConn.getConnection();
-		PreparedStatement ps = conn.prepareStatement(sql.toString());
+		ConnectionInfo conn = DBConn.getConnection();
+		PreparedStatement ps = conn.conn.prepareStatement(sql.toString());
 		// 設置SQL參數佔位符的值
 		setParameter(fieldValues, ps, false);
 		// 執行SQL
 		long StartTime = System.currentTimeMillis();
 		ps.execute();
+		logger.debug(sql + " " + fieldValues + "\n" + clazz.getSimpleName() + "添加成功!sqlTime:"+(System.currentTimeMillis()-StartTime));
 		DBConn.release(conn, ps, null);
 
 		// System.out.println( clazz.getSimpleName() + "添加成功!");
-		logger.debug(sql + " " + fieldValues + "\n" + clazz.getSimpleName() + "添加成功!sqlTime:"+(System.currentTimeMillis()-StartTime));
+		logger.debug("save procss time:"+(System.currentTimeMillis()-StartFuncTime));
 	}
 
 	@Override
 	public void delete(Object id, Class<T> clazz) throws Exception {
+		long StartFuncTime = System.currentTimeMillis();
 		// 獲得表名
 		String tableName = getTableName(clazz);
 		// 獲得ID字段名和值
@@ -109,20 +111,23 @@ public class JdbcGenericDaoImpl<T> implements GenericDao<T> {
 
 		// 拼裝sql
 		String sql = "delete from " + tableName + " where " + idFieldName + "=?";
-		Connection conn = DBConn.getConnection();
-		PreparedStatement ps = conn.prepareStatement(sql);
+		ConnectionInfo conn = DBConn.getConnection();
+		PreparedStatement ps = conn.conn.prepareStatement(sql);
 		ps.setObject(1, id);
 		// 執行SQL
 		long StartTime = System.currentTimeMillis();
 		ps.execute();
+		logger.debug(sql + " " + id + "\n" + clazz.getSimpleName() + "刪除成功!sqlTime:"+(System.currentTimeMillis()-StartTime));
 		DBConn.release(conn, ps, null);
 
 		// System.out.println(sql + "\n" + clazz.getSimpleName() + "刪除成功!");
-		logger.debug(sql + " " + id + "\n" + clazz.getSimpleName() + "刪除成功!sqlTime:"+(System.currentTimeMillis()-StartTime));
+		
+		logger.debug("delete procss time:"+(System.currentTimeMillis()-StartFuncTime));
 	}
 
 	@Override
 	public void update(T t) throws Exception {
+		long StartFuncTime = System.currentTimeMillis();
 		Class<?> clazz = t.getClass();
 		// 獲得表名
 		String tableName = getTableName(clazz);
@@ -161,18 +166,19 @@ public class JdbcGenericDaoImpl<T> implements GenericDao<T> {
 		sql.deleteCharAt(sql.length() - 1).append(" where ").append(fieldNames.get(index)).append("=").append("?");
 
 		// 設置SQL參數佔位符的值
-		Connection conn = DBConn.getConnection();
-		PreparedStatement ps = conn.prepareStatement(sql.toString());
+		ConnectionInfo conn = DBConn.getConnection();
+		PreparedStatement ps = conn.conn.prepareStatement(sql.toString());
 		setParameter(fieldValues, ps, false);
 
 		// 執行SQL
 		long StartTime = System.currentTimeMillis();
 		ps.execute();
-		
+		logger.debug(sql + " "+ fieldValues + "\n" + clazz.getSimpleName() + "修改成功.sqlTime:"+(System.currentTimeMillis()-StartTime));
 		DBConn.release(conn, ps, null);
 
 		// System.out.println(sql + "\n" + clazz.getSimpleName() + "修改成功.");
-		logger.debug(sql + " "+ fieldValues + "\n" + clazz.getSimpleName() + "修改成功.sqlTime:"+(System.currentTimeMillis()-StartTime));
+		
+		logger.debug("update procss time:"+(System.currentTimeMillis()-StartFuncTime));
 	}
 
 	@Override
@@ -198,11 +204,13 @@ public class JdbcGenericDaoImpl<T> implements GenericDao<T> {
 
 		List<T> list = findAllByConditions(sqlWhereMap, clazz);
 		return list.size() > 0 ? list.get(0) : null;
+		
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
 	public List<T> findAllByConditions(Map<String, Object> sqlWhereMap, Class<T> clazz) throws Exception {
+		long StartFuncTime = System.currentTimeMillis();
 		List<T> list = new ArrayList<T>();
 		String tableName = getTableName(clazz);
 		String idFieldName = "";
@@ -238,20 +246,21 @@ public class JdbcGenericDaoImpl<T> implements GenericDao<T> {
 		}
 
 		// 設置參數佔位符的值
-		Connection conn = DBConn.getConnection();
+		ConnectionInfo conn = DBConn.getConnection();
 		if (values != null) {
-			ps = conn.prepareStatement(sql);
+			ps = conn.conn.prepareStatement(sql);
 			setParameter(values, ps, true);
 		} else {
-			ps = conn.prepareStatement(sql);
+			ps = conn.conn.prepareStatement(sql);
 		}
 
 		// 執行SQL
-		long StartTime = System.currentTimeMillis();
+		
 		ResultSet rs = null;
 		try {
-			
+			long StartTime = System.currentTimeMillis();
 			rs = ps.executeQuery();
+			logger.debug(sql + " " + sqlWhereMap + " sqlTime:"+(System.currentTimeMillis()-StartTime));
 			while (rs.next()) {
 				T t = clazz.newInstance();
 				initObject(t, fields, rs);
@@ -270,8 +279,9 @@ public class JdbcGenericDaoImpl<T> implements GenericDao<T> {
 		}
 
 		// System.out.println(sql);
-		logger.debug(sql + " " + sqlWhereMap + " sqlTime:"+(System.currentTimeMillis()-StartTime));
+		
 		logger.debug(list.toString());
+		logger.debug("findAllByConditions procss time:"+(System.currentTimeMillis()-StartFuncTime));
 		return list;
 	}
 
@@ -280,7 +290,7 @@ public class JdbcGenericDaoImpl<T> implements GenericDao<T> {
 	public List<T> deleteAllByConditions(Map<String, Object> sqlWhereMap, Class<T> clazz) throws Exception {
 		List<T> list = new ArrayList<T>();
 		String tableName = getTableName(clazz);
-
+		long StartFuncTime = System.currentTimeMillis();
 		// 拼裝SQL
 		String sql = "delete " + tableName + " " + TABLE_ALIAS;
 		PreparedStatement ps = null;
@@ -297,23 +307,24 @@ public class JdbcGenericDaoImpl<T> implements GenericDao<T> {
 		}
 
 		// 設置參數佔位符的值
-		Connection conn = DBConn.getConnection();
+		ConnectionInfo conn = DBConn.getConnection();
 		if (values != null) {
-			ps = conn.prepareStatement(sql);
+			ps = conn.conn.prepareStatement(sql);
 			setParameter(values, ps, true);
 		} else {
-			ps = conn.prepareStatement(sql);
+			ps = conn.conn.prepareStatement(sql);
 		}
 
 		// 執行SQL
 		long StartTime = System.currentTimeMillis();
 		ps.executeUpdate();
-
+		logger.debug(sql+ " " + sqlWhereMap+" sqlTime:"+(System.currentTimeMillis()-StartTime));
 		// 釋放資源
 		DBConn.release(conn, ps, null);
 
 		// System.out.println(sql);
-		logger.debug(sql+ " " + sqlWhereMap+" sqlTime:"+(System.currentTimeMillis()-StartTime));
+		
+		logger.debug("deleteAllByConditions procss time:"+(System.currentTimeMillis()-StartFuncTime));
 		return list;
 	}
 

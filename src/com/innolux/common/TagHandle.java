@@ -21,6 +21,7 @@ public class TagHandle {
 		try {
 
 			for (RF_Tag_History tag : tagList) {
+				logger.info(tag.getReader_IP() + " Tag:"+tag);
 				long startTime = System.currentTimeMillis();
 				switch (tag.getAntenna_Type()) {
 				case GlobleVar.ANT_Pallet:
@@ -391,6 +392,14 @@ public class TagHandle {
 							ToolUtility.ConvertGateStr(tag) + "系統無作業，偵測到棧板" + tag.getTag_ID());
 				} else if (gate.getForkLift_Direction().equals(GlobleVar.ForkLiftIN)) {
 					logger.info(tag.getReader_IP() + " NoOperation:" + GlobleVar.ForkLiftIN);
+					ToolUtility.Subtitle(gate.getFab(), gate.getArea(), gate.getGate(),
+							"碼頭系統無作業，偵測到棧板" + tag.getTag_ID(), tag.getReader_IP());
+					ToolUtility.SignalTower(gate.getFab(), gate.getArea(), gate.getGate(), GlobleVar.RedOn,
+							tag.getReader_IP());
+					ToolUtility.SetGateError(tag, GlobleVar.NonOpreation,
+							ToolUtility.ConvertGateStr(tag) + "系統無作業，偵測到棧板" + tag.getTag_ID());
+				}else if (gate.getForkLift_Direction().equals(GlobleVar.ForkLiftAll)) {
+					logger.info(tag.getReader_IP() + " NoOperation:" + GlobleVar.ForkLiftAll);
 					ToolUtility.Subtitle(gate.getFab(), gate.getArea(), gate.getGate(),
 							"碼頭系統無作業，偵測到棧板" + tag.getTag_ID(), tag.getReader_IP());
 					ToolUtility.SignalTower(gate.getFab(), gate.getArea(), gate.getGate(), GlobleVar.RedOn,
@@ -962,8 +971,10 @@ public class TagHandle {
 						logger.debug(tag.getReader_IP() + " PortHandler : Fetch gate setting fail.");
 					}
 				} else {
-					logger.debug(tag.getReader_IP() + " PortHandler : This port was already binded car.");
+					logger.debug(tag.getReader_IP() + " PortHandler : This port is already binded car.");
 				}
+			}else {
+				logger.debug(tag.getReader_IP() + " PortHandler : This port status is manual binded.");
 			}
 			break;
 		case GlobleVar.MarkTag: // MarkTAG

@@ -22,13 +22,13 @@ public class GlobleVar {
 	public static final String SendToAMS = "INNOLUX.T2.PROD.ALM.WIS";
 
 	public static JdbcDaoHelper WIS_DB = new JdbcDaoHelper(GlobleVar.WISConnectionStr, GlobleVar.WISUser,
-			GlobleVar.WISPwd, 16);
+			GlobleVar.WISPwd, 30);
 
 	public static JdbcDaoHelper T1WMS_DB = new JdbcDaoHelper(GlobleVar.T1WMSConnectionStr, GlobleVar.T1WMSUser,
-			GlobleVar.T1WMSPwd, 6);
+			GlobleVar.T1WMSPwd, 10);
 
 	public static JdbcDaoHelper T2WMS_DB = new JdbcDaoHelper(GlobleVar.T2WMSConnectionStr, GlobleVar.T2WMSUser,
-			GlobleVar.T2WMSPwd, 6);
+			GlobleVar.T2WMSPwd, 10);
 	
 	public static final boolean TestMode = false;
 

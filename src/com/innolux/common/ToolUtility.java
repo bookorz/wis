@@ -451,7 +451,7 @@ public class ToolUtility {
 			antList = RF_Antenna_Setting_Dao.findAllByConditions(sqlWhereMap, RF_Antenna_Setting.class);
 			if (antList.size() != 0) {
 				for (RF_Antenna_Setting eachAnt : antList) {
-					
+
 					eachAnt.setActive(active);
 					ToolUtility.UpdateAntSetting(eachAnt, readerIP);
 				}
@@ -972,14 +972,12 @@ public class ToolUtility {
 
 					if (SubtitleSettings.size() != 0) {
 						RF_Subtitle_Setting SubtitleSetting = SubtitleSettings.get(0);
-						if (SubtitleService.Show(SubtitleSetting.getSubtitle_IP(), showStr)) {
-							logger.info(readerIP + " " + showStr);
-							SubtitleSetting.setCurrent_Subtitle(showStr);
-							SubtitleSetting.setUpdate_Time(System.currentTimeMillis());
-							RF_Subtitle_Setting_Dao.update(SubtitleSetting);
-						} else {
-							logger.error(readerIP + " Subtitle send fail.");
-						}
+						SubtitleService.Show(SubtitleSetting.getSubtitle_IP(), showStr);
+						logger.info(readerIP + " " + showStr);
+						SubtitleSetting.setCurrent_Subtitle(showStr);
+						SubtitleSetting.setUpdate_Time(System.currentTimeMillis());
+						RF_Subtitle_Setting_Dao.update(SubtitleSetting);
+
 					} else {
 						logger.error(readerIP + " SubtitleSetting is not exist");
 					}
@@ -1014,14 +1012,12 @@ public class ToolUtility {
 
 							if (SubtitleSettings.size() != 0) {
 								RF_Subtitle_Setting SubtitleSetting = SubtitleSettings.get(0);
-								if (SubtitleService.Show(SubtitleSetting.getSubtitle_IP(), showStr)) {
-									logger.info(readerIP + " " + showStr);
-									SubtitleSetting.setCurrent_Subtitle(showStr);
-									SubtitleSetting.setUpdate_Time(System.currentTimeMillis());
-									RF_Subtitle_Setting_Dao.update(SubtitleSetting);
-								} else {
-									logger.error(readerIP + " Subtitle send fail.");
-								}
+								SubtitleService.Show(SubtitleSetting.getSubtitle_IP(), showStr);
+								logger.info(readerIP + " " + showStr);
+								SubtitleSetting.setCurrent_Subtitle(showStr);
+								SubtitleSetting.setUpdate_Time(System.currentTimeMillis());
+								RF_Subtitle_Setting_Dao.update(SubtitleSetting);
+
 							} else {
 								logger.error(readerIP + " SubtitleSetting is not exist");
 							}

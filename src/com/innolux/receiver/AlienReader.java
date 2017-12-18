@@ -44,17 +44,20 @@ public class AlienReader implements MessageListener {
 
 	@Override
 	public void messageReceived(Message message) {
+		
 		String MessageRawData;
 		MessageRawData = message.getRawData();
 		logger.debug(setting.getReader_IP() + " " + MessageRawData);
-		List<RF_Tag_History> tagList = TagParser.Parse(MessageRawData, antSetting, gateSetting, setting.getReader_IP());
+		List<RF_Tag_History> tagList = TagParser.Parse(MessageRawData, antSetting, gateSetting,
+				setting.getReader_IP());
 		ToolUtility.InsertLog(tagList, setting.getReader_IP());
-		
-		if (tagList.size() != 0) {
-			Thread t = new Thread(new Runnable() {
+		Thread t = new Thread(new Runnable() {
 
-				@Override
-				public void run() {
+			@Override
+			public void run() {
+
+				
+				if (tagList.size() != 0) {
 
 					try {
 						TagHandle.Data(PreFilter(tagList));
@@ -65,11 +68,11 @@ public class AlienReader implements MessageListener {
 					}
 
 				}
-			});
-			t.setDaemon(false);
-			t.start();
-			
-		}
+
+			}
+		});
+		t.setDaemon(false);
+		t.start();
 
 	}
 
@@ -82,8 +85,10 @@ public class AlienReader implements MessageListener {
 			case GlobleVar.ANT_Big_Use:
 			case GlobleVar.ANT_Small_Stock:
 			case GlobleVar.ANT_Small_Use:
-				if(CheckSetting(GlobleVar.CountLess,tag)) {
+				if (CheckSetting(GlobleVar.CountLess, tag)) {
 					result.add(tag);
+				} else {
+					logger.info("The tag is not pass by prefilter:" + tag);
 				}
 
 				break;
@@ -106,19 +111,19 @@ public class AlienReader implements MessageListener {
 			String key = antSet.getSetting_ID() + tag.getTag_Type() + name;
 			if (tagSetting.containsKey(key)) {
 				RF_Tag_Setting tagSet = tagSetting.get(key);
-				switch(tagSet.getName()) {
+				switch (tagSet.getName()) {
 				case GlobleVar.CountLess:
 					int countLessSetting = Integer.parseInt(tagSet.getValue());
-					if(tag.getCount() > countLessSetting) {
+					if (tag.getCount() > countLessSetting) {
 						result = true;
 					}
-				break;
+					break;
 				default:
 					result = true;
 					break;
 				}
-				
-			}else {
+
+			} else {
 				result = true;
 			}
 		} else {
@@ -132,16 +137,16 @@ public class AlienReader implements MessageListener {
 
 		try {
 
-			for(RF_Gate_Setting eachGate:ToolUtility.GetAllGateSetting(setting.getReader_IP())) {
-				String key = eachGate.getFab()+eachGate.getArea()+eachGate.getGate();
-				if(!gateSetting.containsKey(key)) {
+			for (RF_Gate_Setting eachGate : ToolUtility.GetAllGateSetting(setting.getReader_IP())) {
+				String key = eachGate.getFab() + eachGate.getArea() + eachGate.getGate();
+				if (!gateSetting.containsKey(key)) {
 					gateSetting.put(key, eachGate);
 				}
 			}
-			
+
 			for (RF_Antenna_Setting eachAnt : ToolUtility.GetAntSettingList(setting.getReader_IP())) {
 				if (!antSetting.containsKey(eachAnt.getAntenna_No())) {
-					if(eachAnt.getAntenna_Type().equals(GlobleVar.ANT_Pallet)) {
+					if (eachAnt.getAntenna_Type().equals(GlobleVar.ANT_Pallet)) {
 						eachAnt.setActive(false);
 						ToolUtility.UpdateAntSetting(eachAnt, setting.getReader_IP());
 					}
