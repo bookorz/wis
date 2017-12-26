@@ -364,7 +364,7 @@ public class JdbcGenericDaoImpl<T> implements GenericDao<T> {
 				PropertyDescriptor pd = new PropertyDescriptor(propertyName, t.getClass());
 				pd.getWriteMethod().invoke(t, paramVal);
 			} catch (Exception e) {
-				//logger.debug(ToolUtility.StackTrace2String(e));
+				logger.debug(ToolUtility.StackTrace2String(e));
 			}
 		}
 	}

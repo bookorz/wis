@@ -21,24 +21,23 @@ public class TagHandle {
 		try {
 
 			for (RF_Tag_History tag : tagList) {
-				logger.info(tag.getReader_IP() + " Tag:"+tag);
+				logger.info(tag.getReader_IP() + " Tag:" + tag);
 				long startTime = System.currentTimeMillis();
 				switch (tag.getAntenna_Type()) {
 				case GlobleVar.ANT_Pallet:
-					if (ToolUtility.GetGateError(tag.getFab(), tag.getArea(), tag.getGate(), GlobleVar.BindingError,
+
+					if (ToolUtility.GetGateError(tag.getFab(), tag.getArea(), tag.getGate(), GlobleVar.ReaderError,
 							tag.getReader_IP()) != null) {
+						logger.info(tag.getReader_IP() + " Error exist, skip handle:" + GlobleVar.ReaderError);
+						continue;
+					} else if (ToolUtility.GetGateError(tag.getFab(), tag.getArea(), tag.getGate(),
+							GlobleVar.BindingError, tag.getReader_IP()) != null) {
 						logger.info(tag.getReader_IP() + " Error exist, skip handle:" + GlobleVar.BindingError);
 						continue;
 					} else if (ToolUtility.GetGateError(tag.getFab(), tag.getArea(), tag.getGate(),
 							GlobleVar.NonEntryRecord, tag.getReader_IP()) != null) {
 						logger.info(tag.getReader_IP() + " Error exist, skip handle:" + GlobleVar.NonEntryRecord);
 						continue;
-						// } else if (ToolUtility.GetGateError(tag.getFab(), tag.getArea(),
-						// tag.getGate(),
-						// GlobleVar.NonStatusError, tag.getReader_IP()) != null) {
-						// logger.info(tag.getReader_IP() + " Error exist, skip handle:" +
-						// GlobleVar.NonStatusError);
-						// continue;
 					} else {
 						if (tag.getTag_Type().equals(GlobleVar.PalletTag)) {
 							GateHandler(tag);
@@ -256,8 +255,8 @@ public class TagHandle {
 	private static void DispatchHandler(RF_Tag_History tag) {
 
 		RF_ContainerInfo container = ToolUtility.GetContainerInfo(tag);
-		if (container.getGate().equals("0")) {
-			if (container != null) {
+		if (container != null) {
+			if (container.getGate().equals("0")) {
 
 				switch (tag.getAntenna_Type()) {
 				case GlobleVar.ANT_T1_Dispatch:
@@ -274,10 +273,13 @@ public class TagHandle {
 					break;
 
 				}
+
+			} else {
+				logger.info(tag.getReader_IP() + " Change location fail: This container is binding for "
+						+ ToolUtility.ConvertGateStr(tag));
 			}
 		} else {
-			logger.info(tag.getReader_IP() + " Change location fail: This container is binding for "
-					+ ToolUtility.ConvertGateStr(tag));
+			logger.info(tag.getReader_IP() + " Container not found by" + ToolUtility.ConvertGateStr(tag));
 		}
 	}
 
@@ -398,7 +400,7 @@ public class TagHandle {
 							tag.getReader_IP());
 					ToolUtility.SetGateError(tag, GlobleVar.NonOpreation,
 							ToolUtility.ConvertGateStr(tag) + "系統無作業，偵測到棧板" + tag.getTag_ID());
-				}else if (gate.getForkLift_Direction().equals(GlobleVar.ForkLiftAll)) {
+				} else if (gate.getForkLift_Direction().equals(GlobleVar.ForkLiftAll)) {
 					logger.info(tag.getReader_IP() + " NoOperation:" + GlobleVar.ForkLiftAll);
 					ToolUtility.Subtitle(gate.getFab(), gate.getArea(), gate.getGate(),
 							"碼頭系統無作業，偵測到棧板" + tag.getTag_ID(), tag.getReader_IP());
@@ -973,7 +975,7 @@ public class TagHandle {
 				} else {
 					logger.debug(tag.getReader_IP() + " PortHandler : This port is already binded car.");
 				}
-			}else {
+			} else {
 				logger.debug(tag.getReader_IP() + " PortHandler : This port status is manual binded.");
 			}
 			break;
@@ -1012,14 +1014,12 @@ public class TagHandle {
 
 		if (container == null) {
 
-			// ToolUtility.Subtitle(gate.getFab(), gate.getArea(), gate.getGate(),
-			// "該車輛沒有進廠紀錄", tag.getReader_IP());
-			// ToolUtility.SignalTower(gate.getFab(), gate.getArea(), gate.getGate(),
-			// GlobleVar.RedOn, tag.getReader_IP());
-			// ToolUtility.SetGateError(tag, GlobleVar.NonEntryRecord,
-			// ToolUtility.ConvertGateStr(tag) + "，"
-			// + ToolUtility.ConvertCarStr(tag) + tag.getTag_ID() + "沒有進廠紀錄");
+			ToolUtility.Subtitle(gate.getFab(), gate.getArea(), gate.getGate(), "該車輛沒有進廠紀錄", tag.getReader_IP());
+			ToolUtility.SignalTower(gate.getFab(), gate.getArea(), gate.getGate(), GlobleVar.RedOn, tag.getReader_IP());
+			ToolUtility.SetGateError(tag, GlobleVar.NonEntryRecord, ToolUtility.ConvertGateStr(tag) + "，"
+					+ ToolUtility.ConvertCarStr(tag) + tag.getTag_ID() + "沒有進廠紀錄");
 			logger.info(tag.getReader_IP() + " " + ToolUtility.ConvertGateStr(tag) + " " + tag.getTag_ID() + "沒有進場紀錄");
+
 		} else if (!container.getGate().equals("0")) {
 
 			logger.info(tag.getReader_IP() + " " + tag.getTag_ID() + "無法綁定於" + ToolUtility.ConvertGateStr(tag)

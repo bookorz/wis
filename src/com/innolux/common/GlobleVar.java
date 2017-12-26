@@ -148,6 +148,7 @@ public class GlobleVar {
 	public static final String NonStatusError = "NonStatusError";
 	public static final String NonEntryRecord = "NonEntryRecord";
 	public static final String BindingError = "BindingError";
+	public static final String ReaderError = "ReaderError";
 
 	// Error reason
 	public static final String WMSNotFound = "WMSNotFound";

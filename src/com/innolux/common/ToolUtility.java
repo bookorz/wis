@@ -182,11 +182,7 @@ public class ToolUtility {
 						InsertLog(tmp, "WebService");
 
 						TagHandle.PortUnBind(gateSetting, tag);
-						gateSetting.setManual_Bind(false);
-						UpdateGateSetting(gateSetting, "WebService");
 
-						// update gateSetting object
-						UpdateGateSetting(gateSetting, "WebService");
 					} else {
 						logger.debug("WebService" + " PortHandler : Fetch gate setting fail.");
 						result.setStatus("500");
@@ -1003,23 +999,31 @@ public class ToolUtility {
 
 					if (antList.size() != 0) {
 						for (RF_Antenna_Setting eachAnt : antList) {
-							Map<String, Object> sqlWhereMap = new HashMap<String, Object>();
-							sqlWhereMap.put("fab", eachAnt.getFab());
-							sqlWhereMap.put("area", eachAnt.getArea());
-							sqlWhereMap.put("gate", eachAnt.getGate());
-							List<RF_Subtitle_Setting> SubtitleSettings = RF_Subtitle_Setting_Dao
-									.findAllByConditions(sqlWhereMap, RF_Subtitle_Setting.class);
+							if (ToolUtility.GetGateError(eachAnt.getFab(), eachAnt.getArea(), eachAnt.getGate(),
+									GlobleVar.ReaderError, eachAnt.getReader_IP()) == null) {
+								Map<String, Object> sqlWhereMap = new HashMap<String, Object>();
+								sqlWhereMap.put("fab", eachAnt.getFab());
+								sqlWhereMap.put("area", eachAnt.getArea());
+								sqlWhereMap.put("gate", eachAnt.getGate());
 
-							if (SubtitleSettings.size() != 0) {
-								RF_Subtitle_Setting SubtitleSetting = SubtitleSettings.get(0);
-								SubtitleService.Show(SubtitleSetting.getSubtitle_IP(), showStr);
-								logger.info(readerIP + " " + showStr);
-								SubtitleSetting.setCurrent_Subtitle(showStr);
-								SubtitleSetting.setUpdate_Time(System.currentTimeMillis());
-								RF_Subtitle_Setting_Dao.update(SubtitleSetting);
+								List<RF_Subtitle_Setting> SubtitleSettings = RF_Subtitle_Setting_Dao
+										.findAllByConditions(sqlWhereMap, RF_Subtitle_Setting.class);
 
-							} else {
-								logger.error(readerIP + " SubtitleSetting is not exist");
+								if (SubtitleSettings.size() != 0) {
+									RF_Subtitle_Setting SubtitleSetting = SubtitleSettings.get(0);
+									SubtitleService.Show(SubtitleSetting.getSubtitle_IP(), showStr);
+									logger.info(readerIP + " " + showStr);
+									SubtitleSetting.setCurrent_Subtitle(showStr);
+									SubtitleSetting.setUpdate_Time(System.currentTimeMillis());
+									RF_Subtitle_Setting_Dao.update(SubtitleSetting);
+
+									ToolUtility.SignalTower(eachAnt.getFab(), eachAnt.getArea(), eachAnt.getGate(),
+											GlobleVar.RedOn, eachAnt.getReader_IP());
+									ToolUtility.SetGateError(eachAnt, GlobleVar.ReaderError, showStr);
+
+								} else {
+									logger.error(readerIP + " SubtitleSetting is not exist");
+								}
 							}
 						}
 					} else {
@@ -1267,6 +1271,44 @@ public class ToolUtility {
 
 	}
 
+	public static void SetGateError(RF_Antenna_Setting ant, String errType, String errStr) {
+
+		try {
+			Map<String, Object> sqlWhereMap = new HashMap<String, Object>();
+
+			sqlWhereMap.put("fab", ant.getFab());
+			sqlWhereMap.put("area", ant.getArea());
+			sqlWhereMap.put("gate", ant.getGate());
+			sqlWhereMap.put("error_type", errType);
+
+			List<RF_Gate_Error> existErrors = RF_Gate_Error_Dao.findAllByConditions(sqlWhereMap, RF_Gate_Error.class);
+
+			if (existErrors.size() != 0) {
+
+				RF_Gate_Error error = existErrors.get(0);
+				error.setError_Message(errStr);
+
+				RF_Gate_Error_Dao.update(error);
+			} else {
+
+				RF_Gate_Error t = new RF_Gate_Error();
+
+				t.setFab(ant.getFab());
+				t.setArea(ant.getArea());
+				t.setGate(ant.getGate());
+				t.setError_Type(errType);
+				t.setError_Message(errStr);
+				t.setTimeStamp(System.currentTimeMillis());
+
+				RF_Gate_Error_Dao.save(t);
+			}
+		} catch (Exception e) {
+
+			logger.error(ant.getReader_IP() + " " + "Exception:" + StackTrace2String(e));
+		}
+
+	}
+
 	public static void SetGateError(RF_Tag_History tag, String errType, String errStr) {
 
 		try {
@@ -1370,8 +1412,10 @@ public class ToolUtility {
 		try {
 
 			result = RF_ContainerInfo_Dao.get(tag.getTag_ID(), RF_ContainerInfo.class);
-			if (result.getCar_ID() == null) {
-				result.setCar_ID("");
+			if (result != null) {
+				if (result.getCar_ID() == null) {
+					result.setCar_ID("");
+				}
 			}
 		} catch (Exception e) {
 
@@ -1451,7 +1495,14 @@ public class ToolUtility {
 			RF_Gate_Setting gate = GetGateSetting(tag.getFab(), tag.getArea(), tag.getGate(), tag.getReader_IP());
 
 			if (gate.getManual_Bind()) {
-				result = true;
+				if (!ToolUtility.CheckPortBinding(tag.getFab(), tag.getArea(), tag.getGate(), tag.getReader_IP())) {
+					gate.setManual_Bind(false);
+					ToolUtility.UpdateGateSetting(gate, tag.getReader_IP());
+					result = false;
+				} else {
+					result = true;
+				}
+
 			}
 
 		} catch (Exception e) {

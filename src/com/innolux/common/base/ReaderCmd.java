@@ -1,6 +1,7 @@
 package com.innolux.common.base;
 
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -11,6 +12,11 @@ import java.util.TimerTask;
 import org.apache.log4j.Logger;
 
 import com.alien.enterpriseRFID.reader.AlienClass1Reader;
+import com.alien.enterpriseRFID.reader.AlienReaderConnectionException;
+import com.alien.enterpriseRFID.reader.AlienReaderConnectionRefusedException;
+import com.alien.enterpriseRFID.reader.AlienReaderException;
+import com.alien.enterpriseRFID.reader.AlienReaderNotValidException;
+import com.alien.enterpriseRFID.reader.AlienReaderTimeoutException;
 import com.innolux.common.GlobleVar;
 import com.innolux.common.ToolUtility;
 import com.innolux.dao.GenericDao;
@@ -50,8 +56,8 @@ public class ReaderCmd {
 
 				Timer timer = new Timer();
 
-				// 60sec
-				long period = 60 * 1000;
+				// 60 min
+				long period = 60 * 60 * 1000;
 				TimerTask task = new TimerTask() {
 					@Override
 					public void run() {
@@ -59,7 +65,7 @@ public class ReaderCmd {
 
 						Reconnet();
 
-						logger.debug(ReaderSet.getReader_IP() + " Reconnect Reader process time:"
+						logger.info(ReaderSet.getReader_IP() + " Reconnect Reader process time:"
 								+ (System.currentTimeMillis() - startTime));
 					}
 				};
@@ -76,11 +82,11 @@ public class ReaderCmd {
 	public synchronized boolean TimeSync() {
 		boolean result = false;
 		try {
-
+			
 			reader.open();
 
 			reader.setTime();
-			reader.close();
+			//reader.close();
 			result = true;
 		} catch (Exception e) {
 
@@ -97,7 +103,7 @@ public class ReaderCmd {
 			reader.setAutoMode(AlienClass1Reader.ON);
 			reader.setNotifyMode(AlienClass1Reader.ON);
 			reader.notifyNow();
-			reader.close();
+			//reader.close();
 			result = true;
 			logger.debug(ReaderSet.getReader_IP() + " NotifyNow success.");
 		} catch (Exception e) {
@@ -116,7 +122,7 @@ public class ReaderCmd {
 			reader.open();
 
 			reader.macroRun(cmdStr);
-			reader.close();
+			//reader.close();
 			result = true;
 		} catch (Exception e) {
 
@@ -146,7 +152,7 @@ public class ReaderCmd {
 					reader.setRFAttenuation(eachSet.getAntenna_No(), eachSet.getRFAttenuation());
 				}
 				// reader.saveSettings();
-				reader.close();
+				//reader.close();
 			}
 			result = true;
 		} catch (Exception e) {
@@ -165,7 +171,7 @@ public class ReaderCmd {
 				reader.open();
 
 				reader.setAntennaSequence(ToolUtility.GetAntennaSequence(ReaderSet.getReader_IP()));
-				reader.close();
+				//reader.close();
 				result = true;
 			} else {
 				logger.error(ReaderSet.getReader_IP() + " " + "reader is null");
@@ -187,12 +193,27 @@ public class ReaderCmd {
 
 				reader.setNotifyAddress(InetAddress.getLocalHost().getHostAddress(), ReaderSet.getListen_Port());
 				reader.setNotifyMode(AlienClass1Reader.ON);
-				reader.close();
+				//reader.close();
 				result = true;
 			} else {
 				logger.error(ReaderSet.getReader_IP() + " " + "reader is null");
 			}
-		} catch (Exception e) {
+		} catch (AlienReaderTimeoutException e) {
+			logger.error(ReaderSet.getReader_IP() + " " + "Exception:" + ToolUtility.StackTrace2String(e));
+			ToolUtility.ShowReaderInfoToSubtile("Reader連線異常，請檢查Reader主機狀態", ReaderSet.getReader_IP());
+		} catch (AlienReaderConnectionRefusedException e) {
+			logger.error(ReaderSet.getReader_IP() + " " + "Exception:" + ToolUtility.StackTrace2String(e));
+			ToolUtility.ShowReaderInfoToSubtile("Reader連線異常，請檢查Reader主機狀態", ReaderSet.getReader_IP());
+		} catch (AlienReaderNotValidException e) {
+			logger.error(ReaderSet.getReader_IP() + " " + "Exception:" + ToolUtility.StackTrace2String(e));
+			ToolUtility.ShowReaderInfoToSubtile("Reader連線異常，請檢查Reader主機狀態", ReaderSet.getReader_IP());
+		} catch (AlienReaderConnectionException e) {
+			logger.error(ReaderSet.getReader_IP() + " " + "Exception:" + ToolUtility.StackTrace2String(e));
+			ToolUtility.ShowReaderInfoToSubtile("Reader連線異常，請檢查Reader主機狀態", ReaderSet.getReader_IP());
+		} catch (UnknownHostException e) {
+			logger.error(ReaderSet.getReader_IP() + " " + "Exception:" + ToolUtility.StackTrace2String(e));
+			ToolUtility.ShowReaderInfoToSubtile("Reader連線異常，請檢查Reader主機狀態", ReaderSet.getReader_IP());
+		} catch (AlienReaderException e) {
 			logger.error(ReaderSet.getReader_IP() + " " + "Exception:" + ToolUtility.StackTrace2String(e));
 			ToolUtility.ShowReaderInfoToSubtile("Reader連線異常，請檢查Reader主機狀態", ReaderSet.getReader_IP());
 		}
@@ -215,7 +236,7 @@ public class ReaderCmd {
 				reader.setNotifyAddress(InetAddress.getLocalHost().getHostAddress(), ReaderSet.getListen_Port());
 
 				if (ReaderSet.getLocation().equals("Cylinder")) {
-
+					reader.setNetworkTimeout(65535);
 					reader.setAntennaSequence("0 1 2 3");
 					reader.setTagListAntennaCombine(AlienClass1Reader.ON);
 					reader.setAutoStartPause(45000); // 停止40秒
@@ -224,7 +245,7 @@ public class ReaderCmd {
 					reader.setNotifyHeader(AlienClass1Reader.OFF);
 					reader.setPersistTime(-1);
 					reader.setAutoMode(AlienClass1Reader.ON);
-					
+					reader.setNotifyKeepAliveTime(32767);
 					reader.setMask(8, 0, "50");
 					reader.setTime();
 					reader.setTagListFormat(AlienClass1Reader.CUSTOM_FORMAT);
@@ -239,6 +260,7 @@ public class ReaderCmd {
 				} else {
 					// reader.notifyNow();
 					// reader.setAntennaSequence("1 3 1 0 3 1 3 2");
+					reader.setNetworkTimeout(65535);
 					reader.setAntennaSequence(ToolUtility.GetAntennaSequence(ReaderSet.getReader_IP()));
 					reader.setNotifyTrigger("OFF");
 					reader.setTagListAntennaCombine(AlienClass1Reader.OFF);
@@ -246,6 +268,7 @@ public class ReaderCmd {
 					reader.setAutoStopPause(0);
 					reader.setNotifyTime(1);
 					reader.setNotifyHeader(AlienClass1Reader.OFF);
+					reader.setNotifyKeepAliveTime(32767);
 					reader.setPersistTime(1);
 					reader.setAutoMode(AlienClass1Reader.ON);
 					reader.setNotifyMode(AlienClass1Reader.ON);
@@ -266,7 +289,7 @@ public class ReaderCmd {
 					reader.saveSettings();
 					isInitial = true;
 				}
-				reader.close();
+				//reader.close();
 			} else {
 				logger.error(ReaderSet.getReader_IP() + " " + "reader is null");
 			}

@@ -29,7 +29,7 @@ public class RF_Tag_Setting {
 		return Tag_Type;
 	}
 
-	public void setTag_Type_Type(String Tag_Type) {
+	public void setTag_Type(String Tag_Type) {
 		this.Tag_Type = Tag_Type;
 		
 	}

@@ -44,35 +44,24 @@ public class AlienReader implements MessageListener {
 
 	@Override
 	public void messageReceived(Message message) {
-		
+
 		String MessageRawData;
 		MessageRawData = message.getRawData();
 		logger.debug(setting.getReader_IP() + " " + MessageRawData);
-		List<RF_Tag_History> tagList = TagParser.Parse(MessageRawData, antSetting, gateSetting,
-				setting.getReader_IP());
+		List<RF_Tag_History> tagList = TagParser.Parse(MessageRawData, antSetting, gateSetting, setting.getReader_IP());
 		ToolUtility.InsertLog(tagList, setting.getReader_IP());
-		Thread t = new Thread(new Runnable() {
 
-			@Override
-			public void run() {
+		if (tagList.size() != 0) {
 
-				
-				if (tagList.size() != 0) {
+			try {
+				TagHandle.Data(PreFilter(tagList));
+			} catch (Exception e) {
 
-					try {
-						TagHandle.Data(PreFilter(tagList));
-					} catch (Exception e) {
-
-						logger.error("messageReceived Exception:" + ToolUtility.StackTrace2String(e));
-
-					}
-
-				}
+				logger.error("messageReceived Exception:" + ToolUtility.StackTrace2String(e));
 
 			}
-		});
-		t.setDaemon(false);
-		t.start();
+
+		}
 
 	}
 
@@ -166,5 +155,21 @@ public class AlienReader implements MessageListener {
 			logger.error(setting.getReader_IP() + " " + "Exception:" + ToolUtility.StackTrace2String(e));
 		}
 	}
+
+	// public static void main(String[] args) {
+	// RF_Reader_Setting tes = new RF_Reader_Setting();
+	// tes.setListen_Port(0);
+	// tes.setLocation("Cylinder");
+	// tes.setOn_Line(true);
+	// tes.setReader_IP("10.56.229.212");
+	// tes.setReader_Type("AlienType");
+	// tes.setTest_Mode(false);
+	// AlienReader tt = new AlienReader(tes);
+	//
+	// Message message = new Message();
+	// message.setRawData("5047 4220 3036 E4D6 8F45 60FD
+	// FBE7,1513997425519,1513997425519,0,1,69.0");
+	// tt.messageReceived(message);
+	// }
 
 }

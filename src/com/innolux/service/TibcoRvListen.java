@@ -13,7 +13,7 @@ import com.tibco.tibrv.TibrvMsgField;
 import com.tibco.tibrv.TibrvRvdTransport;
 import com.tibco.tibrv.TibrvTransport;
 
-public class TibcoRvListen extends Thread implements TibrvMsgCallback{
+public class TibcoRvListen extends Thread implements TibrvMsgCallback {
 
 	private ITibcoRvListenService targetObject;
 	private Logger logger = Logger.getLogger(this.getClass());
@@ -21,19 +21,19 @@ public class TibcoRvListen extends Thread implements TibrvMsgCallback{
 	private String subject;
 	private String service;
 	private String network;
-	
+
 	public TibcoRvListen(String _daemon, String _subject, String _service, String _network) {
 		daemon = _daemon;
 		subject = _subject;
 		service = _service;
-		network = _network;	
+		network = _network;
 	}
-	
-	public void setRvListener(ITibcoRvListenService RvListener){
+
+	public void setRvListener(ITibcoRvListenService RvListener) {
 		targetObject = RvListener;
 	}
-	
-	public void run(){
+
+	public void run() {
 		try {
 			Tibrv.open(Tibrv.IMPL_NATIVE);
 		} catch (TibrvException e) {
@@ -70,41 +70,38 @@ public class TibcoRvListen extends Thread implements TibrvMsgCallback{
 		// dispatch Tibrv events
 		while (true) {
 			try {
-				if(Tibrv.defaultQueue().getCount()==0){
-					
-					//Thread.sleep(10000);
-					
+				if (Tibrv.defaultQueue().getCount() == 0) {
+
+					// Thread.sleep(10000);
+
 				}
 				Tibrv.defaultQueue().dispatch();
 				logger.info("RV queue count: " + Tibrv.defaultQueue().getCount() + " subject:" + subject);
-				
-				
-			} catch (TibrvException e) {
-				logger.error("Exception dispatching default queue: " + e);
-				// System.exit(0);
-			} catch (InterruptedException ie) {
-				// System.exit(0);
+
+			} catch (Exception e) {
+				logger.error("Exception dispatching default queue: " + ToolUtility.StackTrace2String(e));
 			}
 		}
 	}
-	
+
 	public void onMsg(TibrvListener listener, TibrvMsg message) {
-		String data="";
+		String data = "";
 		try {
+			long StartTime = System.currentTimeMillis();
 			// logger.debug("Message="+message.getField("DATA").data);
 			TibrvMsgField field = message.getField("DATA");
 			if (field.type == TibrvMsg.STRING) {
-			    data = (String) field.data;
+				data = (String) field.data;
 				logger.debug("RVListener onMsg:" + data);
 
-				//sourceObj.onRvMsg(data);
-				
+				// sourceObj.onRvMsg(data);
+
 				targetObject.onRvMsg(data);
-				
-					
+
 			}
+			logger.debug("Tibrv OnMsg process time:" + (System.currentTimeMillis() - StartTime));
 		} catch (Exception e) {
-			logger.error("subject:"+subject+" msg:"+data);
+			logger.error("subject:" + subject + " msg:" + data);
 			logger.error(ToolUtility.StackTrace2String(e));
 		}
 	}

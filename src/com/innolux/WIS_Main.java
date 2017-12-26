@@ -140,7 +140,7 @@ public class WIS_Main {
 					}
 				}
 
-				logger.debug("GateErrorMonitor process time:" + (System.currentTimeMillis() - startTime));
+				logger.info("GateErrorMonitor process time:" + (System.currentTimeMillis() - startTime));
 			}
 		};
 
@@ -176,7 +176,7 @@ public class WIS_Main {
 
 					}
 				}
-				logger.debug("CustSubtitleMonitor process time:" + (System.currentTimeMillis() - startTime));
+				logger.info("CustSubtitleMonitor process time:" + (System.currentTimeMillis() - startTime));
 			}
 		};
 
@@ -262,7 +262,7 @@ public class WIS_Main {
 
 					}
 				}
-				logger.debug("CylinderMonitor process time:" + (System.currentTimeMillis() - startTime));
+				logger.info("CylinderMonitor process time:" + (System.currentTimeMillis() - startTime));
 			}
 		};
 
