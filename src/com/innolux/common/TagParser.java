@@ -70,6 +70,7 @@ public class TagParser {
 
 							} else {
 								logger.debug(tag.getReader_IP() + " TagParser : This tag is not in TagMapping table.");
+								continue;
 							}
 						}
 

@@ -66,7 +66,7 @@ public class JdbcDaoHelper {
 			int lastIndex = connections.size() - 1;
 			con = connections.remove(lastIndex);
 
-			if (System.currentTimeMillis() - con.CreateTime > 3600000) {
+			if (System.currentTimeMillis() - con.CreateTime > 60000) {
 				try {
 
 					con.conn.close();

@@ -104,6 +104,20 @@ public class RF_Reader_Setting {
     public void setStart_Delay(long Start_Delay) {  
         this.Start_Delay = Start_Delay;  
     }  
+    
+    /** 
+     * Has_Error
+     */  
+    @Column("has_error")  
+    private boolean Has_Error;  
+  
+    public boolean getHas_Error() {  
+        return Has_Error;  
+    }  
+  
+    public void setHas_Error(boolean Has_Error) {  
+        this.Has_Error = Has_Error;  
+    }  
 	
 	@Override  
     public String toString() {  

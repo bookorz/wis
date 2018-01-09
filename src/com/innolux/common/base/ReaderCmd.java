@@ -56,8 +56,8 @@ public class ReaderCmd {
 
 				Timer timer = new Timer();
 
-				// 60 min
-				long period = 60 * 60 * 1000;
+				// 60 sec
+				long period = 60 * 1000;
 				TimerTask task = new TimerTask() {
 					@Override
 					public void run() {
@@ -86,7 +86,7 @@ public class ReaderCmd {
 			reader.open();
 
 			reader.setTime();
-			//reader.close();
+			reader.close();
 			result = true;
 		} catch (Exception e) {
 
@@ -103,7 +103,7 @@ public class ReaderCmd {
 			reader.setAutoMode(AlienClass1Reader.ON);
 			reader.setNotifyMode(AlienClass1Reader.ON);
 			reader.notifyNow();
-			//reader.close();
+			reader.close();
 			result = true;
 			logger.debug(ReaderSet.getReader_IP() + " NotifyNow success.");
 		} catch (Exception e) {
@@ -122,7 +122,7 @@ public class ReaderCmd {
 			reader.open();
 
 			reader.macroRun(cmdStr);
-			//reader.close();
+			reader.close();
 			result = true;
 		} catch (Exception e) {
 
@@ -152,7 +152,7 @@ public class ReaderCmd {
 					reader.setRFAttenuation(eachSet.getAntenna_No(), eachSet.getRFAttenuation());
 				}
 				// reader.saveSettings();
-				//reader.close();
+				reader.close();
 			}
 			result = true;
 		} catch (Exception e) {
@@ -171,7 +171,7 @@ public class ReaderCmd {
 				reader.open();
 
 				reader.setAntennaSequence(ToolUtility.GetAntennaSequence(ReaderSet.getReader_IP()));
-				//reader.close();
+				reader.close();
 				result = true;
 			} else {
 				logger.error(ReaderSet.getReader_IP() + " " + "reader is null");
@@ -193,13 +193,14 @@ public class ReaderCmd {
 
 				reader.setNotifyAddress(InetAddress.getLocalHost().getHostAddress(), ReaderSet.getListen_Port());
 				reader.setNotifyMode(AlienClass1Reader.ON);
-				//reader.close();
+				reader.close();
 				result = true;
 			} else {
 				logger.error(ReaderSet.getReader_IP() + " " + "reader is null");
 			}
 		} catch (AlienReaderTimeoutException e) {
 			logger.error(ReaderSet.getReader_IP() + " " + "Exception:" + ToolUtility.StackTrace2String(e));
+			
 			ToolUtility.ShowReaderInfoToSubtile("Reader連線異常，請檢查Reader主機狀態", ReaderSet.getReader_IP());
 		} catch (AlienReaderConnectionRefusedException e) {
 			logger.error(ReaderSet.getReader_IP() + " " + "Exception:" + ToolUtility.StackTrace2String(e));
@@ -289,7 +290,7 @@ public class ReaderCmd {
 					reader.saveSettings();
 					isInitial = true;
 				}
-				//reader.close();
+				reader.close();
 			} else {
 				logger.error(ReaderSet.getReader_IP() + " " + "reader is null");
 			}

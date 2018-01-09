@@ -542,7 +542,10 @@ public class TagHandle {
 
 					ToolUtility.SetErrorPallet(tag, GlobleVar.ASNUnload, GlobleVar.WMSNotFound);
 					ToolUtility.Subtitle(gate.getFab(), gate.getArea(), gate.getGate(),
-							"廠商" + container.getSource() + " 收貨棧板:" + tag.getTag_ID() + " 未存在ASN資料庫",
+							"廠商" + container.getSource() + " 收貨棧板:"
+									+ ToolUtility.GetErrorPalletSummary(gate.getFab(), gate.getArea(), gate.getGate(),
+											GlobleVar.ASNUnload, tag.getReader_IP())
+									+ " 未存在ASN資料庫",
 							tag.getReader_IP());
 					ToolUtility.SignalTower(gate.getFab(), gate.getArea(), gate.getGate(), GlobleVar.RedOn,
 							tag.getReader_IP());
@@ -564,15 +567,27 @@ public class TagHandle {
 
 						logger.info(tag.getReader_IP() + " Pallet " + tag.getTag_ID() + " " + GlobleVar.ASNUnload);
 
-						ToolUtility.Subtitle(gate.getFab(), gate.getArea(), gate.getGate(),
-								"棧板" + ANS_Pallet.getPallet_ID() + " ASN:" + ANS_Pallet.getASN_NO(),
-								tag.getReader_IP());
-						ToolUtility.SignalTowerAutoOff(gate.getFab(), gate.getArea(), gate.getGate(), GlobleVar.GreenOn,
-								5000, tag.getReader_IP());
-						ToolUtility.MesDaemon.sendMessage(
-								MessageFormat.SendASNUnload(ANS_Pallet, container, "Confirm", tag.getReader_IP()),
-								GlobleVar.SendToWMS);
+						if (!ToolUtility.GetErrorPalletSummary(gate.getFab(), gate.getArea(), gate.getGate(),
+								GlobleVar.ASNUnload, tag.getReader_IP()).equals("")) {
+							// If error is exist, show up.
+							ToolUtility.Subtitle(gate.getFab(), gate.getArea(), gate.getGate(),
+									"棧板" + ANS_Pallet.getPallet_ID() + " ASN:" + ANS_Pallet.getASN_NO() + " 未存在ASN資料庫:"
+											+ ToolUtility.GetErrorPalletSummary(gate.getFab(), gate.getArea(),
+													gate.getGate(), GlobleVar.ASNUnload, tag.getReader_IP()),
+									tag.getReader_IP());
+							ToolUtility.SignalTower(gate.getFab(), gate.getArea(), gate.getGate(), GlobleVar.RedOn,
+									tag.getReader_IP());
+						} else {
+							ToolUtility.Subtitle(gate.getFab(), gate.getArea(), gate.getGate(),
+									"棧板" + ANS_Pallet.getPallet_ID() + " ASN:" + ANS_Pallet.getASN_NO(),
+									tag.getReader_IP());
+							ToolUtility.SignalTowerAutoOff(gate.getFab(), gate.getArea(), gate.getGate(),
+									GlobleVar.GreenOn, 5000, tag.getReader_IP());
+							ToolUtility.MesDaemon.sendMessage(
+									MessageFormat.SendASNUnload(ANS_Pallet, container, "Confirm", tag.getReader_IP()),
+									GlobleVar.SendToWMS);
 
+						}
 					} else {
 						logger.debug(tag.getReader_IP() + " the tag is already send to wms, RFID_Chk is "
 								+ ANS_Pallet.getRFID_Chk() + ".");
@@ -723,31 +738,53 @@ public class TagHandle {
 						} else {
 
 							logger.info(tag.getReader_IP() + " Pallet " + tag.getTag_ID() + " is not in container.");
-							int completeCount = ToolUtility.GetCompletePallet(container, tag.getReader_IP()).size() + 1;
-							int allCount = ToolUtility.GetAllPallet(container, tag.getReader_IP()).size();
-							if (completeCount == allCount) {
-								// Delivery load complete.
 
-								ToolUtility.Subtitle(gate.getFab(), gate.getArea(), gate.getGate(),
-										ToolUtility.ConvertCarStr(container, tag.getReader_IP())
-												+ container.getContainer_ID() + "已裝載完成",
-										tag.getReader_IP());
-								ToolUtility.SignalTowerAutoOff(gate.getFab(), gate.getArea(), gate.getGate(),
-										GlobleVar.OrangeOn, 5000, tag.getReader_IP());
+							String summary = ToolUtility.GetErrorPalletSummary(gate.getFab(), gate.getArea(),
+									gate.getGate(), GlobleVar.DeliveryLoad, tag.getReader_IP());
+
+							
+							int currentCunt = (ToolUtility.GetCompletePallet(container, tag.getReader_IP()).size() + 1);
+							int tatalCount = ToolUtility.GetAllPallet(container, tag.getReader_IP()).size();
+
+							if (currentCunt >= tatalCount) {
+								// Delivery load complete.
+								if (summary.equals("")) {
+									ToolUtility
+											.Subtitle(gate.getFab(), gate.getArea(), gate.getGate(),
+													ToolUtility.ConvertCarStr(container, tag.getReader_IP())
+															+ container.getContainer_ID() + "已裝載完成",
+													tag.getReader_IP());
+									ToolUtility.SignalTowerAutoOff(gate.getFab(), gate.getArea(), gate.getGate(),
+											GlobleVar.OrangeOn, 5000, tag.getReader_IP());
+								} else {
+									ToolUtility.Subtitle(gate.getFab(), gate.getArea(), gate.getGate(),
+											ToolUtility.ConvertCarStr(container, tag.getReader_IP())
+													+ container.getContainer_ID() + "已裝載完成，" + summary,
+											tag.getReader_IP());
+									ToolUtility.SignalTower(gate.getFab(), gate.getArea(), gate.getGate(),
+											GlobleVar.RedOn, tag.getReader_IP());
+								}
 								voiceText = "出貨" + ToolUtility.GetShipTo(container, tag.getReader_IP()) + " 由"
 										+ container.getVendor_Name() + "運輸 "
 										+ ToolUtility.ConvertGateStr(container, tag.getReader_IP()) + "已裝櫃完成";
 								ToolUtility.VoiceSend(gate.getVoice_Path(), voiceText, tag.getReader_IP());
+
 							} else {
 								// Not complete yet.
+								if (summary.equals("")) {
 
-								ToolUtility.Subtitle(gate.getFab(), gate.getArea(), gate.getGate(), "目前進度"
-										+ (ToolUtility.GetCompletePallet(container, tag.getReader_IP()).size() + 1)
-										+ "/" + ToolUtility.GetAllPallet(container, tag.getReader_IP()).size(),
-										tag.getReader_IP());
-								ToolUtility.SignalTowerAutoOff(gate.getFab(), gate.getArea(), gate.getGate(),
-										GlobleVar.GreenOn, 5000, tag.getReader_IP());
+									ToolUtility.Subtitle(gate.getFab(), gate.getArea(), gate.getGate(),
+											"目前進度" + currentCunt + "/" + tatalCount, tag.getReader_IP());
+									ToolUtility.SignalTowerAutoOff(gate.getFab(), gate.getArea(), gate.getGate(),
+											GlobleVar.GreenOn, 5000, tag.getReader_IP());
+								} else {
+									ToolUtility.Subtitle(gate.getFab(), gate.getArea(), gate.getGate(),
+											"目前進度" + currentCunt + "/" + tatalCount + summary, tag.getReader_IP());
+									ToolUtility.SignalTower(gate.getFab(), gate.getArea(), gate.getGate(),
+											GlobleVar.RedOn, tag.getReader_IP());
+								}
 							}
+
 							ToolUtility.MesDaemon.sendMessage(
 									MessageFormat.SendDeliveryLoad(tag, pallet, "Confirm", tag.getReader_IP()),
 									GlobleVar.SendToWMS);

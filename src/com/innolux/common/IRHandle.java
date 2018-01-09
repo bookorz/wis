@@ -21,6 +21,7 @@ public class IRHandle {
 
 	public static ResponseBase<String> Data(IR_MessageBase ir) {
 		ResponseBase<String> result = new ResponseBase<String>();
+		
 		List<RF_Tag_History> tmp = new ArrayList<RF_Tag_History>();
 		RF_Tag_History IRhis = new RF_Tag_History();
 		IRhis.setFab(ir.getFab());
@@ -29,6 +30,8 @@ public class IRHandle {
 		IRhis.setTimeStamp(Calendar.getInstance().getTime());
 
 		logger.info("IR " + ir.toString());
+		
+		
 		// String lastStatus = "";
 		try {
 			switch (ir.getFab()) {

@@ -128,6 +128,8 @@ public class ToolUtility {
 					// get gateSetting object
 					RF_Gate_Setting gateSetting = ToolUtility.GetGateSetting(fab, area, gate, "WebService");
 					if (gateSetting != null) {
+						ResetAllError(msg);
+
 						gateSetting.setLast_ContainerTag_Time(System.currentTimeMillis());
 
 						RF_Tag_History tag = new RF_Tag_History();
@@ -904,6 +906,42 @@ public class ToolUtility {
 		return result;
 	}
 
+	public static void SetReaderError(String readerIP, boolean hasError) {
+
+		try {
+
+			RF_Reader_Setting reader = RF_Reader_Setting_Dao.get(readerIP, RF_Reader_Setting.class);
+			reader.setHas_Error(hasError);
+			RF_Reader_Setting_Dao.update(reader);
+
+		} catch (Exception e) {
+
+			logger.error("Exception:" + StackTrace2String(e));
+		}
+
+	}
+
+	public static boolean CheckReaderError(String readerIP) {
+
+		try {
+
+			RF_Reader_Setting reader = RF_Reader_Setting_Dao.get(readerIP, RF_Reader_Setting.class);
+
+			if (reader != null) {
+				return reader.getHas_Error();
+			} else {
+				return true;
+			}
+
+		} catch (Exception e) {
+
+			logger.error("Exception:" + StackTrace2String(e));
+
+		}
+		return true;
+
+	}
+
 	public static List<RF_Subtitle_Setting> GetAllSubtitle() {
 		List<RF_Subtitle_Setting> result = null;
 		try {
@@ -990,53 +1028,45 @@ public class ToolUtility {
 
 	public static void ShowReaderInfoToSubtile(String showStr, String readerIP) {
 
-		Thread t = new Thread(new Runnable() {
+		try {
+			List<RF_Antenna_Setting> antList = GetAntSettingList("CT", readerIP);
 
-			@Override
-			public void run() {
-				try {
-					List<RF_Antenna_Setting> antList = GetAntSettingList("CT", readerIP);
+			if (antList.size() != 0) {
+				for (RF_Antenna_Setting eachAnt : antList) {
+					if (ToolUtility.GetGateError(eachAnt.getFab(), eachAnt.getArea(), eachAnt.getGate(),
+							GlobleVar.ReaderError, eachAnt.getReader_IP()) == null) {
+						Map<String, Object> sqlWhereMap = new HashMap<String, Object>();
+						sqlWhereMap.put("fab", eachAnt.getFab());
+						sqlWhereMap.put("area", eachAnt.getArea());
+						sqlWhereMap.put("gate", eachAnt.getGate());
 
-					if (antList.size() != 0) {
-						for (RF_Antenna_Setting eachAnt : antList) {
-							if (ToolUtility.GetGateError(eachAnt.getFab(), eachAnt.getArea(), eachAnt.getGate(),
-									GlobleVar.ReaderError, eachAnt.getReader_IP()) == null) {
-								Map<String, Object> sqlWhereMap = new HashMap<String, Object>();
-								sqlWhereMap.put("fab", eachAnt.getFab());
-								sqlWhereMap.put("area", eachAnt.getArea());
-								sqlWhereMap.put("gate", eachAnt.getGate());
+						List<RF_Subtitle_Setting> SubtitleSettings = RF_Subtitle_Setting_Dao
+								.findAllByConditions(sqlWhereMap, RF_Subtitle_Setting.class);
 
-								List<RF_Subtitle_Setting> SubtitleSettings = RF_Subtitle_Setting_Dao
-										.findAllByConditions(sqlWhereMap, RF_Subtitle_Setting.class);
+						if (SubtitleSettings.size() != 0) {
+							RF_Subtitle_Setting SubtitleSetting = SubtitleSettings.get(0);
+							SubtitleService.Show(SubtitleSetting.getSubtitle_IP(), showStr);
+							logger.info(readerIP + " " + showStr);
+							SubtitleSetting.setCurrent_Subtitle(showStr);
+							SubtitleSetting.setUpdate_Time(System.currentTimeMillis());
+							RF_Subtitle_Setting_Dao.update(SubtitleSetting);
 
-								if (SubtitleSettings.size() != 0) {
-									RF_Subtitle_Setting SubtitleSetting = SubtitleSettings.get(0);
-									SubtitleService.Show(SubtitleSetting.getSubtitle_IP(), showStr);
-									logger.info(readerIP + " " + showStr);
-									SubtitleSetting.setCurrent_Subtitle(showStr);
-									SubtitleSetting.setUpdate_Time(System.currentTimeMillis());
-									RF_Subtitle_Setting_Dao.update(SubtitleSetting);
+							ToolUtility.SignalTower(eachAnt.getFab(), eachAnt.getArea(), eachAnt.getGate(),
+									GlobleVar.RedOn, eachAnt.getReader_IP());
+							ToolUtility.SetGateError(eachAnt, GlobleVar.ReaderError, showStr);
 
-									ToolUtility.SignalTower(eachAnt.getFab(), eachAnt.getArea(), eachAnt.getGate(),
-											GlobleVar.RedOn, eachAnt.getReader_IP());
-									ToolUtility.SetGateError(eachAnt, GlobleVar.ReaderError, showStr);
-
-								} else {
-									logger.error(readerIP + " SubtitleSetting is not exist");
-								}
-							}
+						} else {
+							logger.error(readerIP + " SubtitleSetting is not exist");
 						}
-					} else {
-						logger.debug(readerIP + " antList is empty.");
 					}
-				} catch (Exception e) {
-
-					logger.error(readerIP + " " + "Exception:" + StackTrace2String(e));
 				}
+			} else {
+				logger.debug(readerIP + " antList is empty.");
 			}
-		});
-		t.setDaemon(false);
-		t.start();
+		} catch (Exception e) {
+
+			logger.error(readerIP + " " + "Exception:" + StackTrace2String(e));
+		}
 
 	}
 
@@ -1073,16 +1103,27 @@ public class ToolUtility {
 	public static void SetErrorPallet(RF_Tag_History tag, String opreation, String reason) {
 
 		try {
-			RF_Error_Pallet errorPallet = new RF_Error_Pallet();
-			errorPallet.setFab(tag.getFab());
-			errorPallet.setArea(tag.getArea());
-			errorPallet.setGate(tag.getGate());
-			errorPallet.setOpreation_Mode(opreation);
-			errorPallet.setPallet_ID(tag.getTag_ID());
-			errorPallet.setReason(reason);
-			errorPallet.setTimeStamp(Calendar.getInstance().getTime());
+			Map<String, Object> sqlWhereMap = new HashMap<String, Object>();
 
-			RF_Error_Pallet_Dao.save(errorPallet);
+			sqlWhereMap.put("fab", tag.getFab());
+			sqlWhereMap.put("area", tag.getArea());
+			sqlWhereMap.put("gate", tag.getGate());
+			sqlWhereMap.put("Opreation_Mode", opreation);
+			sqlWhereMap.put("Pallet_ID", tag.getTag_ID());
+
+			if (RF_Error_Pallet_Dao.findAllByConditions(sqlWhereMap, RF_Error_Pallet.class).size() == 0) {
+
+				RF_Error_Pallet errorPallet = new RF_Error_Pallet();
+				errorPallet.setFab(tag.getFab());
+				errorPallet.setArea(tag.getArea());
+				errorPallet.setGate(tag.getGate());
+				errorPallet.setOpreation_Mode(opreation);
+				errorPallet.setPallet_ID(tag.getTag_ID());
+				errorPallet.setReason(reason);
+				errorPallet.setTimeStamp(Calendar.getInstance().getTime());
+
+				RF_Error_Pallet_Dao.save(errorPallet);
+			}
 
 		} catch (Exception e) {
 

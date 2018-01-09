@@ -99,7 +99,7 @@ public class TibcoRvListen extends Thread implements TibrvMsgCallback {
 				targetObject.onRvMsg(data);
 
 			}
-			logger.debug("Tibrv OnMsg process time:" + (System.currentTimeMillis() - StartTime));
+			logger.info("Tibrv OnMsg process time:" + (System.currentTimeMillis() - StartTime)+" RVListener onMsg:" + data);
 		} catch (Exception e) {
 			logger.error("subject:" + subject + " msg:" + data);
 			logger.error(ToolUtility.StackTrace2String(e));

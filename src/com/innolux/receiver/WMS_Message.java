@@ -67,6 +67,12 @@ public class WMS_Message implements ITibcoRvListenService {
 
 				ToolUtility.MesDaemon.sendMessage(MessageFormat.ReplyRfidErrorReset(fab, area, gate, palletStr, empno,
 						container.getContainer_ID(), "RV"), GlobleVar.SendToWMS);
+				
+//				String readerIP = ToolUtility.GetReaderIP(fab, area, gate);
+//				if(!readerIP.equals("")) {
+//					ToolUtility.SetReaderError(readerIP, false);
+//				}
+				
 
 				break;
 			case "WmsRfidStatusChange":
@@ -154,6 +160,7 @@ public class WMS_Message implements ITibcoRvListenService {
 					case "BEGIN":
 
 						container.setProcess_Start(ToolUtility.GetNowTimeStr());
+						container.setProcess_End("");
 						break;
 					case "END":
 						container.setProcess_End(ToolUtility.GetNowTimeStr());
