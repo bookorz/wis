@@ -53,47 +53,53 @@ public class IRHandle {
 					case GlobleVar.On:
 						// IR connect
 						// Disable pallet antenna
-						gate.setDirection_EndTime(ir.getTimeStamp());
-						ToolUtility.UpdateGateSetting(gate, "IR");
-
+						//gate.setDirection_EndTime(ir.getTimeStamp());
+						//ToolUtility.UpdateGateSetting(gate, "IR");
+						
+						RF_Antenna_Setting antenna = ToolUtility.GetAntSetting(ir.getFab(),
+								 ir.getArea(), ir.getGate(),"DN", "IR");
+						if(antenna.getActive()) {
+							antenna.setActive_Expire(System.currentTimeMillis()+3000);
+							ToolUtility.UpdateAntSetting(antenna, "IR");
+						}
 						// Wait for few seconds ,if not receive on signal then disable antenna.
-						Thread t = new Thread(new Runnable() {
-
-							@Override
-							public void run() {
-
-								try {
-									// RF_Gate_Setting oldgate = ToolUtility.GetGateSetting(ir.getFab(),
-									// ir.getArea(),
-									// ir.getGate(), targetReaderIP);
-									RF_Gate_Setting oldGate = gate;
-									Thread.sleep(3000);
-									RF_Gate_Setting newgate = ToolUtility.GetGateSetting(oldGate.getFab(),
-											oldGate.getArea(), oldGate.getGate(), "IR");
-									
-									if (oldGate.getDirection_EndTime() == newgate.getDirection_EndTime()) {
-										// antenna.setActive(false);
-										// ToolUtility.UpdateAntSetting(antenna, targetReaderIP);
-										// ReaderCmdService.SetAntennaSequence(targetReaderIP);
-										ToolUtility.SetAntActive(ir.getFab(), ir.getArea(), ir.getGate(), "DN", false,
-												"IR");
-										// Reset gate direction time
-										newgate.setDirection_StartTime(0);
-										newgate.setDirection_EndTime(0);
-										ToolUtility.UpdateGateSetting(newgate, "IR");
-										logger.info("IR" + " IR timeout, reset antenna.");
-									}
-
-								} catch (Exception e) {
-
-									logger.error("IR" + " Exception:" + ToolUtility.StackTrace2String(e));
-
-								}
-
-							}
-						});
-						t.setDaemon(false);
-						t.start();
+//						Thread t = new Thread(new Runnable() {
+//
+//							@Override
+//							public void run() {
+//
+//								try {
+//									// RF_Gate_Setting oldgate = ToolUtility.GetGateSetting(ir.getFab(),
+//									// ir.getArea(),
+//									// ir.getGate(), targetReaderIP);
+//									RF_Gate_Setting oldGate = gate;
+//									Thread.sleep(3000);
+//									RF_Gate_Setting newgate = ToolUtility.GetGateSetting(oldGate.getFab(),
+//											oldGate.getArea(), oldGate.getGate(), "IR");
+//									
+//									if (oldGate.getDirection_EndTime() == newgate.getDirection_EndTime()) {
+//										// antenna.setActive(false);
+//										// ToolUtility.UpdateAntSetting(antenna, targetReaderIP);
+//										// ReaderCmdService.SetAntennaSequence(targetReaderIP);
+//										ToolUtility.SetAntActive(ir.getFab(), ir.getArea(), ir.getGate(), "DN", false,
+//												"IR");
+//										// Reset gate direction time
+//										newgate.setDirection_StartTime(0);
+//										newgate.setDirection_EndTime(0);
+//										ToolUtility.UpdateGateSetting(newgate, "IR");
+//										logger.info("IR" + " IR timeout, reset antenna.");
+//									}
+//
+//								} catch (Exception e) {
+//
+//									logger.error("IR" + " Exception:" + ToolUtility.StackTrace2String(e));
+//
+//								}
+//
+//							}
+//						});
+//						t.setDaemon(false);
+//						t.start();
 
 						break;
 					case GlobleVar.Off:
@@ -135,6 +141,7 @@ public class IRHandle {
 								gate.getDirection_StartTime(), "IR"));
 						if (antenna != null) {
 							antenna.setActive(false);
+							antenna.setActive_Expire(0);
 							ToolUtility.UpdateAntSetting(antenna, "IR");
 
 							ReaderCmdService.SetAntennaSequence(targetReaderIP);
@@ -179,53 +186,54 @@ public class IRHandle {
 						}
 
 						if (gate.getDirection_StartTime() == 0) {
-							gate.setDirection_StartTime(ir.getTimeStamp());
-							gate.setDirection_EndTime(0);
-							ToolUtility.UpdateGateSetting(gate, targetReaderIP);
+//							gate.setDirection_StartTime(ir.getTimeStamp());
+//							gate.setDirection_EndTime(0);
+//							ToolUtility.UpdateGateSetting(gate, targetReaderIP);
 							// antenna.setActive(true);
 							// ToolUtility.UpdateAntSetting(antenna, targetReaderIP);
 							// ReaderCmdService.SetAntennaSequence(targetReaderIP);
 							ToolUtility.SetAntActive(ir.getFab(), ir.getArea(), ir.getGate(), "DN", true, "IR");
 
 							// Wait for few seconds ,if not receive on signal then disable antenna.
-							Thread t = new Thread(new Runnable() {
-
-								@Override
-								public void run() {
-
-									try {
-										// RF_Gate_Setting oldgate = ToolUtility.GetGateSetting(ir.getFab(),
-										// ir.getArea(),
-										// ir.getGate(), targetReaderIP);
-
-										Thread.sleep(10000);
-										RF_Gate_Setting newgate = ToolUtility.GetGateSetting(gate.getFab(),
-												gate.getArea(), gate.getGate(), targetReaderIP);
-
-										if (gate.getDirection_StartTime() == newgate.getDirection_StartTime()
-												&& newgate.getDirection_EndTime() == 0) {
-											// antenna.setActive(false);
-											// ToolUtility.UpdateAntSetting(antenna, targetReaderIP);
-											// ReaderCmdService.SetAntennaSequence(targetReaderIP);
-											ToolUtility.SetAntActive(ir.getFab(), ir.getArea(), ir.getGate(), "DN",
-													false, "IR");
-											// Reset gate direction time
-											newgate.setDirection_StartTime(0);
-											newgate.setDirection_EndTime(0);
-											ToolUtility.UpdateGateSetting(newgate, targetReaderIP);
-											logger.info(" IR timeout, reset antenna.");
-										}
-
-									} catch (Exception e) {
-
-										logger.error("IR Exception:" + ToolUtility.StackTrace2String(e));
-
-									}
-
-								}
-							});
-							t.setDaemon(false);
-							t.start();
+							
+//							Thread t = new Thread(new Runnable() {
+//
+//								@Override
+//								public void run() {
+//
+//									try {
+//										// RF_Gate_Setting oldgate = ToolUtility.GetGateSetting(ir.getFab(),
+//										// ir.getArea(),
+//										// ir.getGate(), targetReaderIP);
+//
+//										Thread.sleep(10000);
+//										RF_Gate_Setting newgate = ToolUtility.GetGateSetting(gate.getFab(),
+//												gate.getArea(), gate.getGate(), targetReaderIP);
+//
+//										if (gate.getDirection_StartTime() == newgate.getDirection_StartTime()
+//												&& newgate.getDirection_EndTime() == 0) {
+//											// antenna.setActive(false);
+//											// ToolUtility.UpdateAntSetting(antenna, targetReaderIP);
+//											// ReaderCmdService.SetAntennaSequence(targetReaderIP);
+//											ToolUtility.SetAntActive(ir.getFab(), ir.getArea(), ir.getGate(), "DN",
+//													false, "IR");
+//											// Reset gate direction time
+//											newgate.setDirection_StartTime(0);
+//											newgate.setDirection_EndTime(0);
+//											ToolUtility.UpdateGateSetting(newgate, targetReaderIP);
+//											logger.info(" IR timeout, reset antenna.");
+//										}
+//
+//									} catch (Exception e) {
+//
+//										logger.error("IR Exception:" + ToolUtility.StackTrace2String(e));
+//
+//									}
+//
+//								}
+//							});
+//							t.setDaemon(false);
+//							t.start();
 						}
 						break;
 					}

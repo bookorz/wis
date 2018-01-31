@@ -439,6 +439,15 @@ public class ToolUtility {
 			String readerIP) {
 		boolean result = false;
 		try {
+			RF_Gate_Setting gateObj = GetGateSetting(fab, area, gate, readerIP);
+			if (active) {
+				gateObj.setDirection_StartTime(System.currentTimeMillis());
+				gateObj.setDirection_EndTime(0);
+			} else {
+				gateObj.setDirection_StartTime(0);
+				gateObj.setDirection_EndTime(0);
+			}
+			UpdateGateSetting(gateObj, readerIP);
 			List<RF_Antenna_Setting> antList = null;
 			Map<String, Object> sqlWhereMap = new HashMap<String, Object>();
 			sqlWhereMap.put("fab", fab);
@@ -449,9 +458,11 @@ public class ToolUtility {
 			antList = RF_Antenna_Setting_Dao.findAllByConditions(sqlWhereMap, RF_Antenna_Setting.class);
 			if (antList.size() != 0) {
 				for (RF_Antenna_Setting eachAnt : antList) {
-
+					if(active) {
+						eachAnt.setActive_Expire(System.currentTimeMillis()+10000);
+					}
 					eachAnt.setActive(active);
-					ToolUtility.UpdateAntSetting(eachAnt, readerIP);
+					UpdateAntSetting(eachAnt, readerIP);
 				}
 
 				ReaderCmdService.SetAntennaSequence(antList.get(0).getReader_IP());
@@ -992,31 +1003,29 @@ public class ToolUtility {
 
 	public static void Subtitle(String fab, String area, String gate, String showStr, String readerIP) {
 
-		
-				try {
-					Map<String, Object> sqlWhereMap = new HashMap<String, Object>();
-					sqlWhereMap.put("fab", fab);
-					sqlWhereMap.put("area", area);
-					sqlWhereMap.put("gate", gate);
-					List<RF_Subtitle_Setting> SubtitleSettings = RF_Subtitle_Setting_Dao
-							.findAllByConditions(sqlWhereMap, RF_Subtitle_Setting.class);
+		try {
+			Map<String, Object> sqlWhereMap = new HashMap<String, Object>();
+			sqlWhereMap.put("fab", fab);
+			sqlWhereMap.put("area", area);
+			sqlWhereMap.put("gate", gate);
+			List<RF_Subtitle_Setting> SubtitleSettings = RF_Subtitle_Setting_Dao.findAllByConditions(sqlWhereMap,
+					RF_Subtitle_Setting.class);
 
-					if (SubtitleSettings.size() != 0) {
-						RF_Subtitle_Setting SubtitleSetting = SubtitleSettings.get(0);
-						SubtitleService.Show(SubtitleSetting.getSubtitle_IP(), showStr);
-						logger.info(readerIP + " " + showStr);
-						SubtitleSetting.setCurrent_Subtitle(showStr);
-						SubtitleSetting.setUpdate_Time(System.currentTimeMillis());
-						RF_Subtitle_Setting_Dao.update(SubtitleSetting);
+			if (SubtitleSettings.size() != 0) {
+				RF_Subtitle_Setting SubtitleSetting = SubtitleSettings.get(0);
+				SubtitleService.Show(SubtitleSetting.getSubtitle_IP(), showStr);
+				logger.info(readerIP + " " + showStr);
+				SubtitleSetting.setCurrent_Subtitle(showStr);
+				SubtitleSetting.setUpdate_Time(System.currentTimeMillis());
+				RF_Subtitle_Setting_Dao.update(SubtitleSetting);
 
-					} else {
-						logger.error(readerIP + " SubtitleSetting is not exist");
-					}
-				} catch (Exception e) {
+			} else {
+				logger.error(readerIP + " SubtitleSetting is not exist");
+			}
+		} catch (Exception e) {
 
-					logger.error(readerIP + " " + "Exception:" + StackTrace2String(e));
-				}
-			
+			logger.error(readerIP + " " + "Exception:" + StackTrace2String(e));
+		}
 
 	}
 

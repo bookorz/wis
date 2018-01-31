@@ -73,12 +73,64 @@ public class ReaderCmd {
 				};
 
 				timer.scheduleAtFixedRate(task, new Date(), period);
+				
+				Timer timer1 = new Timer();
+
+				// 1 sec
+				long period1 = 1000;
+				TimerTask task1 = new TimerTask() {
+					@Override
+					public void run() {
+						if(InactiveAntenna()) {
+							SetAntennaSequence();
+						}
+					}
+				};
+
+				timer1.scheduleAtFixedRate(task1, new Date(), period1);
 
 			}
 		});
 		t.setDaemon(false);
 		t.start();
 
+	}
+	
+	private boolean InactiveAntenna() {
+		boolean isChanged = false;
+		try {
+			GenericDao<RF_Antenna_Setting> RF_Antenna_Setting_Dao = new JdbcGenericDaoImpl<RF_Antenna_Setting>(
+					GlobleVar.WIS_DB);
+			Map<String, Object> sqlWhereMap = new HashMap<String, Object>();
+
+			sqlWhereMap.put("reader_ip", ReaderSet.getReader_IP());
+
+			List<RF_Antenna_Setting> antSets = RF_Antenna_Setting_Dao.findAllByConditions(sqlWhereMap,
+					RF_Antenna_Setting.class);
+
+			if (antSets.size() != 0) {
+
+				
+
+				for (RF_Antenna_Setting eachSet : antSets) {
+					if(eachSet.getActive() && eachSet.getActive_Expire() != 0 && System.currentTimeMillis() > eachSet.getActive_Expire()) {
+						eachSet.setActive_Expire(0);
+						eachSet.setActive(false);
+						RF_Antenna_Setting_Dao.update(eachSet);
+						isChanged = true;
+					}
+					
+				}
+				
+			}
+			
+			
+			
+		} catch (Exception e) {
+
+			logger.error(ReaderSet.getReader_IP() + " " + "Exception:" + ToolUtility.StackTrace2String(e));
+		}
+		return isChanged;
 	}
 
 	public synchronized boolean TimeSync() {
