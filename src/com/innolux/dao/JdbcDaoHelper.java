@@ -66,17 +66,18 @@ public class JdbcDaoHelper {
 			int lastIndex = connections.size() - 1;
 			con = connections.remove(lastIndex);
 
-			if (System.currentTimeMillis() - con.CreateTime > 60000) {
-				try {
-
-					con.conn.close();
-				} catch (Exception e) {
-					logger.debug("getConnection() con.conn.close() has error, exception:"
-							+ ToolUtility.StackTrace2String(e));
-				}
-				con.conn = DriverManager.getConnection(URL, USER, PASSWORD);
-				con.CreateTime = System.currentTimeMillis();
-			}
+//			if (System.currentTimeMillis() - con.CreateTime > 60000) {
+//				try {
+//
+//					con.conn.close();
+//					
+//				} catch (Exception e) {
+//					logger.debug("getConnection() con.conn.close() has error, exception:"
+//							+ ToolUtility.StackTrace2String(e));
+//				}
+//				con.conn = DriverManager.getConnection(URL, USER, PASSWORD);
+//				con.CreateTime = System.currentTimeMillis();
+//			}
 		}
 
 		return con;

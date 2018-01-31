@@ -202,7 +202,7 @@ public class WIS_Main {
 				List<RF_Cylinder_Status> cylinderList = ToolUtility.GetAllCylinders("CylinderMonitor");
 
 				for (RF_Cylinder_Status eachCylinder : cylinderList) {
-					if (System.currentTimeMillis() - eachCylinder.getUpdateTime() > 1400000) {
+					if (System.currentTimeMillis() - eachCylinder.getUpdateTime() > 2800000) {
 						switch (eachCylinder.getPosition()) {
 						case GlobleVar.ANT_Small_Stock:
 						case GlobleVar.ANT_Big_Stock:

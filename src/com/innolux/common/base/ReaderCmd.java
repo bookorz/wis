@@ -18,6 +18,7 @@ import com.alien.enterpriseRFID.reader.AlienReaderException;
 import com.alien.enterpriseRFID.reader.AlienReaderNotValidException;
 import com.alien.enterpriseRFID.reader.AlienReaderTimeoutException;
 import com.innolux.common.GlobleVar;
+import com.innolux.common.MessageFormat;
 import com.innolux.common.ToolUtility;
 import com.innolux.dao.GenericDao;
 import com.innolux.dao.JdbcGenericDaoImpl;
@@ -29,6 +30,7 @@ public class ReaderCmd {
 	private AlienClass1Reader reader = new AlienClass1Reader();
 	private Logger logger = Logger.getLogger(this.getClass());
 	private boolean isInitial = false;
+	private boolean isError = false;
 	
 
 	public ReaderCmd(RF_Reader_Setting _ReaderSet) {
@@ -190,33 +192,41 @@ public class ReaderCmd {
 			if (reader != null) {
 
 				reader.open();
-
+				
 				reader.setNotifyAddress(InetAddress.getLocalHost().getHostAddress(), ReaderSet.getListen_Port());
 				reader.setNotifyMode(AlienClass1Reader.ON);
 				reader.close();
+				isError = false;
 				result = true;
 			} else {
 				logger.error(ReaderSet.getReader_IP() + " " + "reader is null");
 			}
 		} catch (AlienReaderTimeoutException e) {
 			logger.error(ReaderSet.getReader_IP() + " " + "Exception:" + ToolUtility.StackTrace2String(e));
-			
-			ToolUtility.ShowReaderInfoToSubtile("Reader連線異常，請檢查Reader主機狀態", ReaderSet.getReader_IP());
+			if(!isError) {
+				ToolUtility.MesDaemon
+				.sendMessage(
+						MessageFormat.SendAms(ReaderSet.getFab(), "Reader_Error", "WISErrorPallet",
+								"Reader_Error", "Reader連線異常，請檢查Reader主機狀態，IP:"+ReaderSet.getReader_IP(), "ErrorMonitor"),
+						GlobleVar.SendToAMS);
+			}
+			isError = true;
+			//ToolUtility.ShowReaderInfoToSubtile("Reader連線異常，請檢查Reader主機狀態", ReaderSet.getReader_IP());
 		} catch (AlienReaderConnectionRefusedException e) {
 			logger.error(ReaderSet.getReader_IP() + " " + "Exception:" + ToolUtility.StackTrace2String(e));
-			ToolUtility.ShowReaderInfoToSubtile("Reader連線異常，請檢查Reader主機狀態", ReaderSet.getReader_IP());
+			//ToolUtility.ShowReaderInfoToSubtile("Reader連線異常，請檢查Reader主機狀態", ReaderSet.getReader_IP());
 		} catch (AlienReaderNotValidException e) {
 			logger.error(ReaderSet.getReader_IP() + " " + "Exception:" + ToolUtility.StackTrace2String(e));
-			ToolUtility.ShowReaderInfoToSubtile("Reader連線異常，請檢查Reader主機狀態", ReaderSet.getReader_IP());
+			//ToolUtility.ShowReaderInfoToSubtile("Reader連線異常，請檢查Reader主機狀態", ReaderSet.getReader_IP());
 		} catch (AlienReaderConnectionException e) {
 			logger.error(ReaderSet.getReader_IP() + " " + "Exception:" + ToolUtility.StackTrace2String(e));
-			ToolUtility.ShowReaderInfoToSubtile("Reader連線異常，請檢查Reader主機狀態", ReaderSet.getReader_IP());
+			//ToolUtility.ShowReaderInfoToSubtile("Reader連線異常，請檢查Reader主機狀態", ReaderSet.getReader_IP());
 		} catch (UnknownHostException e) {
 			logger.error(ReaderSet.getReader_IP() + " " + "Exception:" + ToolUtility.StackTrace2String(e));
-			ToolUtility.ShowReaderInfoToSubtile("Reader連線異常，請檢查Reader主機狀態", ReaderSet.getReader_IP());
+			//ToolUtility.ShowReaderInfoToSubtile("Reader連線異常，請檢查Reader主機狀態", ReaderSet.getReader_IP());
 		} catch (AlienReaderException e) {
 			logger.error(ReaderSet.getReader_IP() + " " + "Exception:" + ToolUtility.StackTrace2String(e));
-			ToolUtility.ShowReaderInfoToSubtile("Reader連線異常，請檢查Reader主機狀態", ReaderSet.getReader_IP());
+			//ToolUtility.ShowReaderInfoToSubtile("Reader連線異常，請檢查Reader主機狀態", ReaderSet.getReader_IP());
 		}
 		logger.debug("Reconnet process time:"+(System.currentTimeMillis()-startTime));
 		return result;

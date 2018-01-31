@@ -992,10 +992,7 @@ public class ToolUtility {
 
 	public static void Subtitle(String fab, String area, String gate, String showStr, String readerIP) {
 
-		Thread t = new Thread(new Runnable() {
-
-			@Override
-			public void run() {
+		
 				try {
 					Map<String, Object> sqlWhereMap = new HashMap<String, Object>();
 					sqlWhereMap.put("fab", fab);
@@ -1019,10 +1016,7 @@ public class ToolUtility {
 
 					logger.error(readerIP + " " + "Exception:" + StackTrace2String(e));
 				}
-			}
-		});
-		t.setDaemon(false);
-		t.start();
+			
 
 	}
 

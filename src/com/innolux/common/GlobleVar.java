@@ -11,7 +11,7 @@ public class GlobleVar {
 	public static final String T1WMSConnectionStr = "jdbc:oracle:thin:@(DESCRIPTION =(ADDRESS_LIST =(ADDRESS = (PROTOCOL = TCP)(HOST = 10.56.130.74)(PORT = 1521)))(CONNECT_DATA =(SID = t1wms)(SERVER = DEDICATED)))";
 	public static final String T1WMSUser = "T1_WMS_CIM";
 	public static final String T1WMSPwd = "CIMWMST1MGR";
-	public static final String T2WMSConnectionStr = "jdbc:oracle:thin:@(DESCRIPTION =(ADDRESS_LIST =(ADDRESS = (PROTOCOL = TCP)(HOST = 10.56.196.98)(PORT = 1521)))(CONNECT_DATA =(SERVICE_NAME = t2wms)))";
+	public static final String T2WMSConnectionStr = "jdbc:oracle:thin:@(DESCRIPTION =(ADDRESS_LIST =(ADDRESS = (PROTOCOL = TCP)(HOST = 10.56.130.58)(PORT = 1521)))(CONNECT_DATA =(SERVICE_NAME = t2wms)))";
 	public static final String T2WMSUser = "T2_WMS_CIM";
 	public static final String T2WMSPwd = "CIMWMST2MGR";
 

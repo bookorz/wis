@@ -118,6 +118,20 @@ public class RF_Reader_Setting {
     public void setHas_Error(boolean Has_Error) {  
         this.Has_Error = Has_Error;  
     }  
+    
+    /** 
+     * Fab
+     */  
+    @Column("fab")  
+    private String Fab;  
+  
+    public String getFab() {  
+        return Fab;  
+    }  
+  
+    public void setFab(String Fab) {  
+        this.Fab = Fab;  
+    }  
 	
 	@Override  
     public String toString() {  
@@ -127,7 +141,9 @@ public class RF_Reader_Setting {
         		" Reader_Type: " + Reader_Type+
         		" Test_Mode: " + Test_Mode+
         		" On_Line: " + On_Line+
-        		" Start_Delay: " + Start_Delay;
+        		" Start_Delay: " + Start_Delay+
+        		" Has_Error: " + Has_Error+
+        		" Fab: " + Fab;
         		
     }  
 }

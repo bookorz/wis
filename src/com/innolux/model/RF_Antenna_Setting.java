@@ -145,6 +145,20 @@ public class RF_Antenna_Setting {
 	}
 	
 	/**
+	 * Active Expire
+	 */
+	@Column("active_expire")
+	private long Active_Expire;
+
+	public long getActive_Expire() {
+		return Active_Expire;
+	}
+
+	public void setActive_Expire(long Active_Expire) {
+		this.Active_Expire = Active_Expire;
+	}
+	
+	/**
 	 * ModifyUser
 	 */
 	@Column("modifyuser")
