@@ -190,7 +190,7 @@ public class RF_Antenna_Setting {
 	public String toString() {
 		return "ID: " + ID +" Reader_IP: " + Reader_IP + " Antenna_No: " + Antenna_No + " Antenna_Type: " + Antenna_Type + " Fab: "
 				+ Fab + " Area: " + Area + " Gate: " + Gate + " Setting_ID: " + Setting_ID + " RFAttenuation: "
-				+ RFAttenuation + " Active: " + Active+ " ModifyUser: " + ModifyUser+ " ModifyTime: " + ModifyTime;
+				+ RFAttenuation + " Active: " + Active+ " Active_Expire: " + Active_Expire+" ModifyUser: " + ModifyUser+ " ModifyTime: " + ModifyTime;
 
 	}
 }

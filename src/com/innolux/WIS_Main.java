@@ -38,9 +38,10 @@ public class WIS_Main {
 		SetAliveNotify();
 		GateErrorMonitor();
 		InitialReaders();
-
+		CheckAntActive();
 		CustSubtileMonitor();
 		CylinderMonitor();
+
 	}
 
 	private static void InitialGates() {
@@ -116,8 +117,6 @@ public class WIS_Main {
 
 		timer.scheduleAtFixedRate(task, date, period);
 	}
-	
-	
 
 	private static void GateErrorMonitor() {
 
@@ -132,11 +131,10 @@ public class WIS_Main {
 
 				for (RF_Gate_Error each : ToolUtility.GetAllGateError("GateErrorMonitor")) {
 					if (System.currentTimeMillis() - each.getTimeStamp() > 1800000) {
-						ToolUtility.MesDaemon
-								.sendMessage(
-										MessageFormat.SendAms(each.getFab(), each.getError_Type(), "WISErrorPallet",
-												each.getError_Type(), each.getError_Message(), "GateErrorMonitor"),
-										GlobleVar.SendToAMS);
+						ToolUtility.MesDaemon.sendMessage(
+								MessageFormat.SendAms(each.getFab(), each.getError_Type(), "WISErrorPallet",
+										each.getError_Type(), each.getError_Message(), "GateErrorMonitor"),
+								GlobleVar.SendToAMS);
 					}
 				}
 
@@ -267,5 +265,28 @@ public class WIS_Main {
 		};
 
 		timer.scheduleAtFixedRate(task, new Date(), period);
+	}
+
+	private static void CheckAntActive() {
+
+		Thread t = new Thread(new Runnable() {
+
+			@Override
+			public void run() {
+				while (true) {
+					try {
+						Thread.sleep(10000);
+
+						long startTime = System.currentTimeMillis();
+						ToolUtility.InactiveAntenna();
+						logger.info("CheckAntActive process time:" + (System.currentTimeMillis() - startTime));
+					} catch (Exception e) {
+						logger.error("CheckAntActive " + "Exception:" + ToolUtility.StackTrace2String(e));
+					}
+				}
+			}
+		});
+		t.setDaemon(false);
+		t.start();
 	}
 }

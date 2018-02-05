@@ -11,6 +11,8 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
@@ -105,6 +107,44 @@ public class ToolUtility {
 		}
 		logger.info("ToolUtility initial process time:" + (System.currentTimeMillis() - startTime));
 		ReaderIPsInit = init;
+		
+		
+		
+	}
+	
+	public static boolean InactiveAntenna() {
+		boolean isChanged = false;
+		try {
+			GenericDao<RF_Antenna_Setting> RF_Antenna_Setting_Dao = new JdbcGenericDaoImpl<RF_Antenna_Setting>(
+					GlobleVar.WIS_DB);
+			//Map<String, Object> sqlWhereMap = new HashMap<String, Object>();
+
+			//sqlWhereMap.put("reader_ip", ReaderSet.getReader_IP());
+
+			List<RF_Antenna_Setting> antSets = RF_Antenna_Setting_Dao.findAllByConditions(null,
+					RF_Antenna_Setting.class);
+
+			if (antSets.size() != 0) {
+
+				for (RF_Antenna_Setting eachSet : antSets) {
+					if (eachSet.getActive() && eachSet.getActive_Expire() != 0
+							&& System.currentTimeMillis() > eachSet.getActive_Expire()) {
+						eachSet.setActive_Expire(0);
+						eachSet.setActive(false);
+						RF_Antenna_Setting_Dao.update(eachSet);
+						isChanged = true;
+						ReaderCmdService.SetAntennaSequence(eachSet.getReader_IP());
+					}
+
+				}
+
+			}
+
+		} catch (Exception e) {
+
+			logger.error("InactiveAntenna " + "Exception:" + ToolUtility.StackTrace2String(e));
+		}
+		return isChanged;
 	}
 
 	public static ResponseBase<String> PortBinding(String msg) {
@@ -438,6 +478,7 @@ public class ToolUtility {
 	public static boolean SetAntActive(String fab, String area, String gate, String antType, boolean active,
 			String readerIP) {
 		boolean result = false;
+		boolean isChanged = false;
 		try {
 			RF_Gate_Setting gateObj = GetGateSetting(fab, area, gate, readerIP);
 			if (active) {
@@ -461,11 +502,15 @@ public class ToolUtility {
 					if(active) {
 						eachAnt.setActive_Expire(System.currentTimeMillis()+10000);
 					}
+					if(active!=eachAnt.getActive()) {
+						isChanged = true;
+					}
 					eachAnt.setActive(active);
 					UpdateAntSetting(eachAnt, readerIP);
 				}
-
-				ReaderCmdService.SetAntennaSequence(antList.get(0).getReader_IP());
+				if(isChanged) {
+					ReaderCmdService.SetAntennaSequence(antList.get(0).getReader_IP());
+				}
 			} else {
 				logger.error(readerIP + " Antenna is not in config.");
 			}

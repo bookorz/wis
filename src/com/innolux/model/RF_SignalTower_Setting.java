@@ -202,10 +202,25 @@ public class RF_SignalTower_Setting {
 		this.Gate = Gate;
 	}
 	
+	/**
+	 * Active Expire
+	 */
+	@Column("active_expire")
+	private long Active_Expire;
+
+	public long getActive_Expire() {
+		return Active_Expire;
+	}
+
+	public void setActive_Expire(long Active_Expire) {
+		this.Active_Expire = Active_Expire;
+	}
+	
 	@Override  
     public String toString() {  
         return "ID: " + ID + 
         		" Reader_IP: " + Reader_IP+
+        		" Active_Expire: " + Active_Expire+
         		" Red_State: " + Red_State+
         		" Orange_State: " + Orange_State+
         		" Green_State: " + Green_State+

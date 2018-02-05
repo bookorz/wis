@@ -22,7 +22,9 @@ public class ReaderCmdService {
 				if (eachReader.getTest_Mode() == GlobleVar.TestMode && eachReader.getOn_Line()
 						&& eachReader.getReader_Type().equals(GlobleVar.AlienType)) {
 					if (!readerList.containsKey(eachReader.getReader_IP())) {
-						readerList.put(eachReader.getReader_IP(), new ReaderCmd(eachReader));
+						ReaderCmd cmdObj = new ReaderCmd(eachReader);
+						cmdObj.start();
+						readerList.put(eachReader.getReader_IP(), cmdObj);
 					}
 				}
 			}

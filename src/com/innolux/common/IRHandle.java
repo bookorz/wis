@@ -181,11 +181,11 @@ public class IRHandle {
 //								gate.setDirection_StartTime(0);
 //							}
 //						}
-						if(System.currentTimeMillis()-gate.getDirection_StartTime()>30000) {
-							gate.setDirection_StartTime(0);
-						}
-
-						if (gate.getDirection_StartTime() == 0) {
+//						if(System.currentTimeMillis()-gate.getDirection_StartTime()>30000) {
+//							gate.setDirection_StartTime(0);
+//						}
+//
+//						if (gate.getDirection_StartTime() == 0) {
 //							gate.setDirection_StartTime(ir.getTimeStamp());
 //							gate.setDirection_EndTime(0);
 //							ToolUtility.UpdateGateSetting(gate, targetReaderIP);
@@ -234,7 +234,7 @@ public class IRHandle {
 //							});
 //							t.setDaemon(false);
 //							t.start();
-						}
+//						}
 						break;
 					}
 					// }

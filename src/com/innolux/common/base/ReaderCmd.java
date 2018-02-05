@@ -25,13 +25,12 @@ import com.innolux.dao.JdbcGenericDaoImpl;
 import com.innolux.model.RF_Antenna_Setting;
 import com.innolux.model.RF_Reader_Setting;
 
-public class ReaderCmd {
+public class ReaderCmd extends Thread {
 	private RF_Reader_Setting ReaderSet;
 	private AlienClass1Reader reader = new AlienClass1Reader();
 	private Logger logger = Logger.getLogger(this.getClass());
 	private boolean isInitial = false;
 	private boolean isError = false;
-	
 
 	public ReaderCmd(RF_Reader_Setting _ReaderSet) {
 		Thread t = new Thread(new Runnable() {
@@ -73,21 +72,6 @@ public class ReaderCmd {
 				};
 
 				timer.scheduleAtFixedRate(task, new Date(), period);
-				
-				Timer timer1 = new Timer();
-
-				// 1 sec
-				long period1 = 1000;
-				TimerTask task1 = new TimerTask() {
-					@Override
-					public void run() {
-						if(InactiveAntenna()) {
-							SetAntennaSequence();
-						}
-					}
-				};
-
-				timer1.scheduleAtFixedRate(task1, new Date(), period1);
 
 			}
 		});
@@ -95,48 +79,11 @@ public class ReaderCmd {
 		t.start();
 
 	}
-	
-	private boolean InactiveAntenna() {
-		boolean isChanged = false;
-		try {
-			GenericDao<RF_Antenna_Setting> RF_Antenna_Setting_Dao = new JdbcGenericDaoImpl<RF_Antenna_Setting>(
-					GlobleVar.WIS_DB);
-			Map<String, Object> sqlWhereMap = new HashMap<String, Object>();
-
-			sqlWhereMap.put("reader_ip", ReaderSet.getReader_IP());
-
-			List<RF_Antenna_Setting> antSets = RF_Antenna_Setting_Dao.findAllByConditions(sqlWhereMap,
-					RF_Antenna_Setting.class);
-
-			if (antSets.size() != 0) {
-
-				
-
-				for (RF_Antenna_Setting eachSet : antSets) {
-					if(eachSet.getActive() && eachSet.getActive_Expire() != 0 && System.currentTimeMillis() > eachSet.getActive_Expire()) {
-						eachSet.setActive_Expire(0);
-						eachSet.setActive(false);
-						RF_Antenna_Setting_Dao.update(eachSet);
-						isChanged = true;
-					}
-					
-				}
-				
-			}
-			
-			
-			
-		} catch (Exception e) {
-
-			logger.error(ReaderSet.getReader_IP() + " " + "Exception:" + ToolUtility.StackTrace2String(e));
-		}
-		return isChanged;
-	}
 
 	public synchronized boolean TimeSync() {
 		boolean result = false;
 		try {
-			
+
 			reader.open();
 
 			reader.setTime();
@@ -182,7 +129,7 @@ public class ReaderCmd {
 
 			logger.error(ReaderSet.getReader_IP() + " " + "Exception:" + ToolUtility.StackTrace2String(e));
 		}
-		logger.debug("macroRun process time:"+(System.currentTimeMillis()-startTime));
+		logger.debug("macroRun process time:" + (System.currentTimeMillis() - startTime));
 		return result;
 	}
 
@@ -233,10 +180,10 @@ public class ReaderCmd {
 		} catch (Exception e) {
 			logger.error(ReaderSet.getReader_IP() + " " + "Exception:" + ToolUtility.StackTrace2String(e));
 		}
-		logger.debug("SetAntennaSequence process time:"+(System.currentTimeMillis()-startTime));
+		logger.debug("SetAntennaSequence process time:" + (System.currentTimeMillis() - startTime));
 		return result;
 	}
-	
+
 	public synchronized boolean Reconnet() {
 		long startTime = System.currentTimeMillis();
 		boolean result = false;
@@ -244,7 +191,7 @@ public class ReaderCmd {
 			if (reader != null) {
 
 				reader.open();
-				
+
 				reader.setNotifyAddress(InetAddress.getLocalHost().getHostAddress(), ReaderSet.getListen_Port());
 				reader.setNotifyMode(AlienClass1Reader.ON);
 				reader.close();
@@ -255,32 +202,37 @@ public class ReaderCmd {
 			}
 		} catch (AlienReaderTimeoutException e) {
 			logger.error(ReaderSet.getReader_IP() + " " + "Exception:" + ToolUtility.StackTrace2String(e));
-			if(!isError) {
-				ToolUtility.MesDaemon
-				.sendMessage(
-						MessageFormat.SendAms(ReaderSet.getFab(), "Reader_Error", "WISErrorPallet",
-								"Reader_Error", "Reader連線異常，請檢查Reader主機狀態，IP:"+ReaderSet.getReader_IP(), "ErrorMonitor"),
+			if (!isError) {
+				ToolUtility.MesDaemon.sendMessage(
+						MessageFormat.SendAms(ReaderSet.getFab(), "Reader_Error", "WISErrorPallet", "Reader_Error",
+								"Reader連線異常，請檢查Reader主機狀態，IP:" + ReaderSet.getReader_IP(), "ErrorMonitor"),
 						GlobleVar.SendToAMS);
 			}
 			isError = true;
-			//ToolUtility.ShowReaderInfoToSubtile("Reader連線異常，請檢查Reader主機狀態", ReaderSet.getReader_IP());
+			// ToolUtility.ShowReaderInfoToSubtile("Reader連線異常，請檢查Reader主機狀態",
+			// ReaderSet.getReader_IP());
 		} catch (AlienReaderConnectionRefusedException e) {
 			logger.error(ReaderSet.getReader_IP() + " " + "Exception:" + ToolUtility.StackTrace2String(e));
-			//ToolUtility.ShowReaderInfoToSubtile("Reader連線異常，請檢查Reader主機狀態", ReaderSet.getReader_IP());
+			// ToolUtility.ShowReaderInfoToSubtile("Reader連線異常，請檢查Reader主機狀態",
+			// ReaderSet.getReader_IP());
 		} catch (AlienReaderNotValidException e) {
 			logger.error(ReaderSet.getReader_IP() + " " + "Exception:" + ToolUtility.StackTrace2String(e));
-			//ToolUtility.ShowReaderInfoToSubtile("Reader連線異常，請檢查Reader主機狀態", ReaderSet.getReader_IP());
+			// ToolUtility.ShowReaderInfoToSubtile("Reader連線異常，請檢查Reader主機狀態",
+			// ReaderSet.getReader_IP());
 		} catch (AlienReaderConnectionException e) {
 			logger.error(ReaderSet.getReader_IP() + " " + "Exception:" + ToolUtility.StackTrace2String(e));
-			//ToolUtility.ShowReaderInfoToSubtile("Reader連線異常，請檢查Reader主機狀態", ReaderSet.getReader_IP());
+			// ToolUtility.ShowReaderInfoToSubtile("Reader連線異常，請檢查Reader主機狀態",
+			// ReaderSet.getReader_IP());
 		} catch (UnknownHostException e) {
 			logger.error(ReaderSet.getReader_IP() + " " + "Exception:" + ToolUtility.StackTrace2String(e));
-			//ToolUtility.ShowReaderInfoToSubtile("Reader連線異常，請檢查Reader主機狀態", ReaderSet.getReader_IP());
+			// ToolUtility.ShowReaderInfoToSubtile("Reader連線異常，請檢查Reader主機狀態",
+			// ReaderSet.getReader_IP());
 		} catch (AlienReaderException e) {
 			logger.error(ReaderSet.getReader_IP() + " " + "Exception:" + ToolUtility.StackTrace2String(e));
-			//ToolUtility.ShowReaderInfoToSubtile("Reader連線異常，請檢查Reader主機狀態", ReaderSet.getReader_IP());
+			// ToolUtility.ShowReaderInfoToSubtile("Reader連線異常，請檢查Reader主機狀態",
+			// ReaderSet.getReader_IP());
 		}
-		logger.debug("Reconnet process time:"+(System.currentTimeMillis()-startTime));
+		logger.debug("Reconnet process time:" + (System.currentTimeMillis() - startTime));
 		return result;
 	}
 

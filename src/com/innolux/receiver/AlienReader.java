@@ -137,6 +137,7 @@ public class AlienReader implements MessageListener {
 				if (!antSetting.containsKey(eachAnt.getAntenna_No())) {
 					if (eachAnt.getAntenna_Type().equals(GlobleVar.ANT_Pallet)) {
 						eachAnt.setActive(false);
+						eachAnt.setActive_Expire(0);
 						ToolUtility.UpdateAntSetting(eachAnt, setting.getReader_IP());
 					}
 					antSetting.put(eachAnt.getAntenna_No(), eachAnt);
