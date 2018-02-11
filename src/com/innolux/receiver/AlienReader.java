@@ -17,8 +17,9 @@ import com.innolux.model.RF_Gate_Setting;
 import com.innolux.model.RF_Reader_Setting;
 import com.innolux.model.RF_Tag_History;
 import com.innolux.model.RF_Tag_Setting;
+import com.innolux.service.ReaderCmdService;
 
-public class AlienReader implements MessageListener {
+public class AlienReader extends Thread implements MessageListener {
 
 	private Logger logger = Logger.getLogger(this.getClass());
 	private RF_Reader_Setting setting;
@@ -40,6 +41,37 @@ public class AlienReader implements MessageListener {
 			logger.error(setting.getReader_IP() + " " + "Exception:" + ToolUtility.StackTrace2String(e));
 		}
 
+	}
+
+	public void run() {
+		try {
+			Thread.sleep(setting.getStart_Delay());
+			ReaderCmdService.InitialReader(setting.getReader_IP());
+		} catch (Exception e) {
+			logger.error(ToolUtility.StackTrace2String(e));
+		}
+		long ReconnectLastCheckTime = System.currentTimeMillis();
+		long InactiveLastCheckTime = System.currentTimeMillis();
+		while (true) {
+
+			try {
+				if (System.currentTimeMillis() - ReconnectLastCheckTime > 60000) {//Reconnect reader in each 60 sec.
+					ReaderCmdService.Reconnet(setting.getReader_IP());
+					ReconnectLastCheckTime = System.currentTimeMillis();
+				}
+
+				if (System.currentTimeMillis() - InactiveLastCheckTime > 1000) {
+					if(ToolUtility.InactiveAntenna(setting.getReader_IP())) {
+						ReaderCmdService.SetAntennaSequence(setting.getReader_IP());
+					}
+					InactiveLastCheckTime = System.currentTimeMillis();
+				}
+
+				Thread.sleep(50);
+			} catch (Exception e) {
+				logger.error(ToolUtility.StackTrace2String(e));
+			}
+		}
 	}
 
 	@Override

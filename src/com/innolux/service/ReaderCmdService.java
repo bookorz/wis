@@ -23,7 +23,6 @@ public class ReaderCmdService {
 						&& eachReader.getReader_Type().equals(GlobleVar.AlienType)) {
 					if (!readerList.containsKey(eachReader.getReader_IP())) {
 						ReaderCmd cmdObj = new ReaderCmd(eachReader);
-						cmdObj.start();
 						readerList.put(eachReader.getReader_IP(), cmdObj);
 					}
 				}
@@ -35,15 +34,47 @@ public class ReaderCmdService {
 		}
 
 	}
+	
+	public static boolean InitialReader(String readerIP) {
+		boolean result = false;
+
+		if (readerList.containsKey(readerIP)) {
+			ReaderCmd t = readerList.get(readerIP);
+			synchronized (t) {
+				result = t.InitialReader();
+			}
+		} else {
+			logger.error(readerIP + " is not exist.");
+		}
+
+		return result;
+	
+	}
+	
+	public static boolean Reconnet(String readerIP) {
+		boolean result = false;
+
+		if (readerList.containsKey(readerIP)) {
+			ReaderCmd t = readerList.get(readerIP);
+			synchronized (t) {
+				result = t.Reconnet();
+			}
+		} else {
+			logger.error(readerIP + " is not exist.");
+		}
+
+		return result;
+	
+	}
 
 	public static boolean SendCmd(String readerIP, String cmdStr) {
 		boolean result = false;
 
 		if (readerList.containsKey(readerIP)) {
 			ReaderCmd t = readerList.get(readerIP);
-
-			result = t.Send(cmdStr);
-
+			synchronized (t) {
+				result = t.Send(cmdStr);
+			}
 		} else {
 			logger.error(readerIP + " is not exist.");
 		}
@@ -55,9 +86,9 @@ public class ReaderCmdService {
 		boolean result = false;
 		if (readerList.containsKey(readerIP)) {
 			ReaderCmd t = readerList.get(readerIP);
-
-			result = t.TimeSync();
-
+			synchronized (t) {
+				result = t.TimeSync();
+			}
 		} else {
 			logger.error(readerIP + " is not exist.");
 		}
@@ -68,9 +99,9 @@ public class ReaderCmdService {
 		boolean result = false;
 		if (readerList.containsKey(readerIP)) {
 			ReaderCmd t = readerList.get(readerIP);
-
-			result = t.SetAttenuation();
-
+			synchronized (t) {
+				result = t.SetAttenuation();
+			}
 		} else {
 			logger.error(readerIP + " is not exist.");
 		}
@@ -81,9 +112,9 @@ public class ReaderCmdService {
 		boolean result = false;
 		if (readerList.containsKey(readerIP)) {
 			ReaderCmd t = readerList.get(readerIP);
-
-			result = t.SetAntennaSequence();
-
+			synchronized (t) {
+				result = t.SetAntennaSequence();
+			}
 		} else {
 			logger.error(readerIP + " is not exist.");
 		}

@@ -11,9 +11,6 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
-
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -112,16 +109,15 @@ public class ToolUtility {
 		
 	}
 	
-	public static boolean InactiveAntenna() {
+	public static boolean InactiveAntenna(String ReaderIP) {
 		boolean isChanged = false;
 		try {
-			GenericDao<RF_Antenna_Setting> RF_Antenna_Setting_Dao = new JdbcGenericDaoImpl<RF_Antenna_Setting>(
-					GlobleVar.WIS_DB);
-			//Map<String, Object> sqlWhereMap = new HashMap<String, Object>();
+			
+			Map<String, Object> sqlWhereMap = new HashMap<String, Object>();
 
-			//sqlWhereMap.put("reader_ip", ReaderSet.getReader_IP());
+			sqlWhereMap.put("reader_ip", ReaderIP);
 
-			List<RF_Antenna_Setting> antSets = RF_Antenna_Setting_Dao.findAllByConditions(null,
+			List<RF_Antenna_Setting> antSets = RF_Antenna_Setting_Dao.findAllByConditions(sqlWhereMap,
 					RF_Antenna_Setting.class);
 
 			if (antSets.size() != 0) {
@@ -133,7 +129,7 @@ public class ToolUtility {
 						eachSet.setActive(false);
 						RF_Antenna_Setting_Dao.update(eachSet);
 						isChanged = true;
-						ReaderCmdService.SetAntennaSequence(eachSet.getReader_IP());
+						
 					}
 
 				}
