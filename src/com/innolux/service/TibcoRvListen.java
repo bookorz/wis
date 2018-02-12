@@ -4,6 +4,7 @@ import org.apache.log4j.Logger;
 
 import com.innolux.common.ToolUtility;
 import com.innolux.interfaces.ITibcoRvListenService;
+import com.innolux.service.base.RVMessage;
 import com.tibco.tibrv.Tibrv;
 import com.tibco.tibrv.TibrvException;
 import com.tibco.tibrv.TibrvListener;
@@ -86,17 +87,19 @@ public class TibcoRvListen extends Thread implements TibrvMsgCallback {
 
 	public void onMsg(TibrvListener listener, TibrvMsg message) {
 		String data = "";
+		RVMessage rvData=new RVMessage();
 		try {
 			long StartTime = System.currentTimeMillis();
 			// logger.debug("Message="+message.getField("DATA").data);
+			rvData.ReplySubject = message.getReplySubject();
 			TibrvMsgField field = message.getField("DATA");
 			if (field.type == TibrvMsg.STRING) {
 				data = (String) field.data;
-				logger.debug("RVListener onMsg:" + data);
+				//logger.debug("RVListener onMsg:" + data);
 
 				// sourceObj.onRvMsg(data);
-
-				targetObject.onRvMsg(data);
+				rvData.MessageData=data;
+				targetObject.onRvMsg(rvData);
 
 			}
 			logger.info("Tibrv OnMsg process time:" + (System.currentTimeMillis() - StartTime)+" RVListener onMsg:" + data);

@@ -14,6 +14,7 @@ import com.innolux.model.RF_Error_Pallet;
 import com.innolux.model.RF_Gate_Error;
 import com.innolux.model.RF_Gate_Setting;
 import com.innolux.service.TibcoRvListen;
+import com.innolux.service.base.RVMessage;
 
 public class WMS_Message implements ITibcoRvListenService {
 
@@ -27,12 +28,16 @@ public class WMS_Message implements ITibcoRvListenService {
 	}
 
 	@Override
-	public void onRvMsg(String msg) {
+	public void onRvMsg(RVMessage rvMsg) {
 		try {
+			String msg = rvMsg.MessageData;
 			int beginIdx = 0;
 			int endIdx = 0;
 			String searchText = "";
 			String eventType = "";
+			if(rvMsg.ReplySubject==null) {
+				rvMsg.ReplySubject=GlobleVar.SendToWMS;
+			}
 
 			searchText = ">>L ";
 			beginIdx = msg.indexOf(searchText) + searchText.length();
@@ -66,10 +71,10 @@ public class WMS_Message implements ITibcoRvListenService {
 				ToolUtility.SignalTower(fab, area, gate, GlobleVar.RedOff, "RV");
 				if (container != null) {
 					ToolUtility.MesDaemon.sendMessage(MessageFormat.ReplyRfidErrorReset(fab, area, gate, palletStr,
-							empno, container.getContainer_ID(), "RV"), GlobleVar.SendToWMS);
+							empno, container.getContainer_ID(), "RV"), rvMsg.ReplySubject);
 				} else {
 					ToolUtility.MesDaemon.sendMessage(MessageFormat.ReplyRfidErrorReset(fab, area, gate, palletStr,
-							empno, "Container is not exist", "RV"), GlobleVar.SendToWMS);
+							empno, "Container is not exist", "RV"), rvMsg.ReplySubject);
 				}
 				// String readerIP = ToolUtility.GetReaderIP(fab, area, gate);
 				// if(!readerIP.equals("")) {

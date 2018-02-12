@@ -57,7 +57,9 @@ public class ReaderCmdService {
 		if (readerList.containsKey(readerIP)) {
 			ReaderCmd t = readerList.get(readerIP);
 			synchronized (t) {
+				logger.info("Reconnet start:"+readerIP);
 				result = t.Reconnet();
+				logger.info("Reconnet end:"+readerIP);
 			}
 		} else {
 			logger.error(readerIP + " is not exist.");
@@ -73,7 +75,9 @@ public class ReaderCmdService {
 		if (readerList.containsKey(readerIP)) {
 			ReaderCmd t = readerList.get(readerIP);
 			synchronized (t) {
+				logger.info("SendCmd start:"+readerIP);
 				result = t.Send(cmdStr);
+				logger.info("SendCmd end:"+readerIP);
 			}
 		} else {
 			logger.error(readerIP + " is not exist.");
@@ -87,7 +91,9 @@ public class ReaderCmdService {
 		if (readerList.containsKey(readerIP)) {
 			ReaderCmd t = readerList.get(readerIP);
 			synchronized (t) {
+				logger.info("TimeSync start:"+readerIP);
 				result = t.TimeSync();
+				logger.info("TimeSync end:"+readerIP);
 			}
 		} else {
 			logger.error(readerIP + " is not exist.");
@@ -100,7 +106,9 @@ public class ReaderCmdService {
 		if (readerList.containsKey(readerIP)) {
 			ReaderCmd t = readerList.get(readerIP);
 			synchronized (t) {
+				logger.info("SetAttenuation start:"+readerIP);
 				result = t.SetAttenuation();
+				logger.info("SetAttenuation end:"+readerIP);
 			}
 		} else {
 			logger.error(readerIP + " is not exist.");
@@ -113,7 +121,9 @@ public class ReaderCmdService {
 		if (readerList.containsKey(readerIP)) {
 			ReaderCmd t = readerList.get(readerIP);
 			synchronized (t) {
+				logger.info("SetAntennaSequence start:"+readerIP);
 				result = t.SetAntennaSequence();
+				logger.info("SetAntennaSequence end:"+readerIP);
 			}
 		} else {
 			logger.error(readerIP + " is not exist.");
