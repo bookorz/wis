@@ -2,13 +2,9 @@ package com.innolux.common.base;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
-
 import org.apache.log4j.Logger;
 
 import com.alien.enterpriseRFID.reader.AlienClass1Reader;
@@ -25,7 +21,7 @@ import com.innolux.dao.JdbcGenericDaoImpl;
 import com.innolux.model.RF_Antenna_Setting;
 import com.innolux.model.RF_Reader_Setting;
 
-public class ReaderCmd extends Thread {
+public class ReaderCmd {
 	private RF_Reader_Setting ReaderSet;
 	private AlienClass1Reader reader = new AlienClass1Reader();
 	private Logger logger = Logger.getLogger(this.getClass());
@@ -33,54 +29,17 @@ public class ReaderCmd extends Thread {
 	private boolean isError = false;
 
 	public ReaderCmd(RF_Reader_Setting _ReaderSet) {
-		Thread t = new Thread(new Runnable() {
+		
+		ReaderSet = _ReaderSet;
+		reader.setConnection(ReaderSet.getReader_IP(), 23);
+		reader.setUsername("alien");
+		reader.setPassword("password");
+		
 
-			@Override
-			public void run() {
-				try {
-					Thread.sleep(_ReaderSet.getStart_Delay());
-				} catch (InterruptedException e) {
-
-					logger.error(ReaderSet.getReader_IP() + " " + "Exception:" + ToolUtility.StackTrace2String(e));
-				}
-
-				ReaderSet = _ReaderSet;
-				reader.setConnection(ReaderSet.getReader_IP(), 23);
-				reader.setUsername("alien");
-				reader.setPassword("password");
-				if (!InitialReader()) {
-					logger.error(ReaderSet.getReader_IP() + " " + "InitialReader fail");
-				}
-				if (!SetAttenuation()) {
-					logger.error(ReaderSet.getReader_IP() + " " + "SetAttenuation fail");
-				}
-
-				Timer timer = new Timer();
-
-				// 60 sec
-				long period = 60 * 1000;
-				TimerTask task = new TimerTask() {
-					@Override
-					public void run() {
-						long startTime = System.currentTimeMillis();
-
-						Reconnet();
-
-						logger.info(ReaderSet.getReader_IP() + " Reconnect Reader process time:"
-								+ (System.currentTimeMillis() - startTime));
-					}
-				};
-
-				timer.scheduleAtFixedRate(task, new Date(), period);
-
-			}
-		});
-		t.setDaemon(false);
-		t.start();
 
 	}
 
-	public synchronized boolean TimeSync() {
+	public boolean TimeSync() {
 		boolean result = false;
 		try {
 
@@ -96,7 +55,7 @@ public class ReaderCmd extends Thread {
 		return result;
 	}
 
-	public synchronized boolean NotifyNow() {
+	public boolean NotifyNow() {
 		boolean result = false;
 		try {
 
@@ -114,7 +73,7 @@ public class ReaderCmd extends Thread {
 		return result;
 	}
 
-	public synchronized boolean Send(String cmdStr) {
+	public boolean Send(String cmdStr) {
 		boolean result = false;
 		long startTime = System.currentTimeMillis();
 		try {
@@ -133,7 +92,7 @@ public class ReaderCmd extends Thread {
 		return result;
 	}
 
-	public synchronized boolean SetAttenuation() {
+	public boolean SetAttenuation() {
 		boolean result = false;
 		try {
 			GenericDao<RF_Antenna_Setting> RF_Antenna_Setting_Dao = new JdbcGenericDaoImpl<RF_Antenna_Setting>(
@@ -163,7 +122,7 @@ public class ReaderCmd extends Thread {
 		return result;
 	}
 
-	public synchronized boolean SetAntennaSequence() {
+	public boolean SetAntennaSequence() {
 		long startTime = System.currentTimeMillis();
 		boolean result = false;
 		try {
@@ -184,7 +143,7 @@ public class ReaderCmd extends Thread {
 		return result;
 	}
 
-	public synchronized boolean Reconnet() {
+	public boolean Reconnet() {
 		long startTime = System.currentTimeMillis();
 		boolean result = false;
 		try {
@@ -236,7 +195,7 @@ public class ReaderCmd extends Thread {
 		return result;
 	}
 
-	public synchronized boolean InitialReader() {
+	public boolean InitialReader() {
 		boolean result = false;
 
 		try {

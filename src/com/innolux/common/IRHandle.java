@@ -21,7 +21,7 @@ public class IRHandle {
 
 	public static ResponseBase<String> Data(IR_MessageBase ir) {
 		ResponseBase<String> result = new ResponseBase<String>();
-		
+
 		List<RF_Tag_History> tmp = new ArrayList<RF_Tag_History>();
 		RF_Tag_History IRhis = new RF_Tag_History();
 		IRhis.setFab(ir.getFab());
@@ -30,76 +30,24 @@ public class IRHandle {
 		IRhis.setTimeStamp(Calendar.getInstance().getTime());
 
 		logger.info("IR " + ir.toString());
-		
-		
+
 		// String lastStatus = "";
 		try {
 			switch (ir.getFab()) {
 			case "T1":
 				if (ir.getType().equals(GlobleVar.RawDataReport)) {
-					// lastStatus = T1_IR.GetLastSignal(ir.getFab(), ir.getArea(), ir.getGate(),
-					// ir.getStatus());
-					// if (!ir.getStatus().equals(lastStatus)) {
-					// signal is change
-					// String targetReaderIP = ToolUtility.GetReaderIP(ir.getFab(), ir.getArea(),
-					// ir.getGate());
 
 					RF_Gate_Setting gate = ToolUtility.GetGateSetting(ir.getFab(), ir.getArea(), ir.getGate(), "IR");
 
-					// RF_Antenna_Setting antenna = ToolUtility.GetAntSetting(ir.getFab(),
-					// ir.getArea(), ir.getGate(),
-					// "DN", targetReaderIP);
 					switch (ir.getStatus()) {
 					case GlobleVar.On:
-						// IR connect
-						// Disable pallet antenna
-						//gate.setDirection_EndTime(ir.getTimeStamp());
-						//ToolUtility.UpdateGateSetting(gate, "IR");
-						
-						RF_Antenna_Setting antenna = ToolUtility.GetAntSetting(ir.getFab(),
-								 ir.getArea(), ir.getGate(),"DN", "IR");
-						if(antenna.getActive()) {
-							antenna.setActive_Expire(System.currentTimeMillis()+3000);
+
+						RF_Antenna_Setting antenna = ToolUtility.GetAntSetting(ir.getFab(), ir.getArea(), ir.getGate(),
+								"DN", "IR");
+						if (antenna.getActive()) {
+							antenna.setActive_Expire(System.currentTimeMillis() + 3000);
 							ToolUtility.UpdateAntSetting(antenna, "IR");
 						}
-						// Wait for few seconds ,if not receive on signal then disable antenna.
-//						Thread t = new Thread(new Runnable() {
-//
-//							@Override
-//							public void run() {
-//
-//								try {
-//									// RF_Gate_Setting oldgate = ToolUtility.GetGateSetting(ir.getFab(),
-//									// ir.getArea(),
-//									// ir.getGate(), targetReaderIP);
-//									RF_Gate_Setting oldGate = gate;
-//									Thread.sleep(3000);
-//									RF_Gate_Setting newgate = ToolUtility.GetGateSetting(oldGate.getFab(),
-//											oldGate.getArea(), oldGate.getGate(), "IR");
-//									
-//									if (oldGate.getDirection_EndTime() == newgate.getDirection_EndTime()) {
-//										// antenna.setActive(false);
-//										// ToolUtility.UpdateAntSetting(antenna, targetReaderIP);
-//										// ReaderCmdService.SetAntennaSequence(targetReaderIP);
-//										ToolUtility.SetAntActive(ir.getFab(), ir.getArea(), ir.getGate(), "DN", false,
-//												"IR");
-//										// Reset gate direction time
-//										newgate.setDirection_StartTime(0);
-//										newgate.setDirection_EndTime(0);
-//										ToolUtility.UpdateGateSetting(newgate, "IR");
-//										logger.info("IR" + " IR timeout, reset antenna.");
-//									}
-//
-//								} catch (Exception e) {
-//
-//									logger.error("IR" + " Exception:" + ToolUtility.StackTrace2String(e));
-//
-//								}
-//
-//							}
-//						});
-//						t.setDaemon(false);
-//						t.start();
 
 						break;
 					case GlobleVar.Off:
@@ -164,10 +112,6 @@ public class IRHandle {
 					IRhis.setFab(gate.getFab());
 					IRhis.setArea(gate.getArea());
 					IRhis.setGate(gate.getGate());
-					// RF_Antenna_Setting antenna = ToolUtility.GetAntSetting(ir.getFab(),
-					// ir.getArea(), ir.getGate(),
-					// "DN", targetReaderIP);
-
 					switch (ir.getStatus()) {
 					case GlobleVar.On:
 						// IR connect
@@ -176,65 +120,9 @@ public class IRHandle {
 					case GlobleVar.Off:
 						// IR break
 						// Active pallet antenna
-//						if (gate.getDirection_StartTime() != 0) {
-//							if (ir.getTimeStamp() - gate.getDirection_StartTime() > 15000) {
-//								gate.setDirection_StartTime(0);
-//							}
-//						}
-//						if(System.currentTimeMillis()-gate.getDirection_StartTime()>30000) {
-//							gate.setDirection_StartTime(0);
-//						}
-//
-//						if (gate.getDirection_StartTime() == 0) {
-//							gate.setDirection_StartTime(ir.getTimeStamp());
-//							gate.setDirection_EndTime(0);
-//							ToolUtility.UpdateGateSetting(gate, targetReaderIP);
-							// antenna.setActive(true);
-							// ToolUtility.UpdateAntSetting(antenna, targetReaderIP);
-							// ReaderCmdService.SetAntennaSequence(targetReaderIP);
-							ToolUtility.SetAntActive(ir.getFab(), ir.getArea(), ir.getGate(), "DN", true, "IR");
 
-							// Wait for few seconds ,if not receive on signal then disable antenna.
-							
-//							Thread t = new Thread(new Runnable() {
-//
-//								@Override
-//								public void run() {
-//
-//									try {
-//										// RF_Gate_Setting oldgate = ToolUtility.GetGateSetting(ir.getFab(),
-//										// ir.getArea(),
-//										// ir.getGate(), targetReaderIP);
-//
-//										Thread.sleep(10000);
-//										RF_Gate_Setting newgate = ToolUtility.GetGateSetting(gate.getFab(),
-//												gate.getArea(), gate.getGate(), targetReaderIP);
-//
-//										if (gate.getDirection_StartTime() == newgate.getDirection_StartTime()
-//												&& newgate.getDirection_EndTime() == 0) {
-//											// antenna.setActive(false);
-//											// ToolUtility.UpdateAntSetting(antenna, targetReaderIP);
-//											// ReaderCmdService.SetAntennaSequence(targetReaderIP);
-//											ToolUtility.SetAntActive(ir.getFab(), ir.getArea(), ir.getGate(), "DN",
-//													false, "IR");
-//											// Reset gate direction time
-//											newgate.setDirection_StartTime(0);
-//											newgate.setDirection_EndTime(0);
-//											ToolUtility.UpdateGateSetting(newgate, targetReaderIP);
-//											logger.info(" IR timeout, reset antenna.");
-//										}
-//
-//									} catch (Exception e) {
-//
-//										logger.error("IR Exception:" + ToolUtility.StackTrace2String(e));
-//
-//									}
-//
-//								}
-//							});
-//							t.setDaemon(false);
-//							t.start();
-//						}
+						ToolUtility.SetAntActive(ir.getFab(), ir.getArea(), ir.getGate(), "DN", true, "IR");
+
 						break;
 					}
 					// }

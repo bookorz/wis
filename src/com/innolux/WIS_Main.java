@@ -38,7 +38,7 @@ public class WIS_Main {
 		SetAliveNotify();
 		GateErrorMonitor();
 		InitialReaders();
-		CheckAntActive();
+		
 		CustSubtileMonitor();
 		CylinderMonitor();
 
@@ -76,7 +76,8 @@ public class WIS_Main {
 			if (eachReader.getTest_Mode() == GlobleVar.TestMode && eachReader.getOn_Line()) {
 				switch (eachReader.getReader_Type()) {
 				case GlobleVar.AlienType:
-					new AlienReader(eachReader);
+					AlienReader Reader = new AlienReader(eachReader);
+					Reader.start();
 					break;
 				case GlobleVar.SocketType:
 					new AlienReaderBySocket(eachReader);
@@ -267,26 +268,5 @@ public class WIS_Main {
 		timer.scheduleAtFixedRate(task, new Date(), period);
 	}
 
-	private static void CheckAntActive() {
 
-		Thread t = new Thread(new Runnable() {
-
-			@Override
-			public void run() {
-				while (true) {
-					try {
-						Thread.sleep(10000);
-
-						long startTime = System.currentTimeMillis();
-						ToolUtility.InactiveAntenna();
-						logger.info("CheckAntActive process time:" + (System.currentTimeMillis() - startTime));
-					} catch (Exception e) {
-						logger.error("CheckAntActive " + "Exception:" + ToolUtility.StackTrace2String(e));
-					}
-				}
-			}
-		});
-		t.setDaemon(false);
-		t.start();
-	}
 }
