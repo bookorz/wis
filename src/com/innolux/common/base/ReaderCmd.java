@@ -35,50 +35,7 @@ public class ReaderCmd {
 		reader.setUsername("alien");
 		reader.setPassword("password");
 		
-//		Thread t = new Thread(new Runnable() {
-//
-//			@Override
-//			public void run() {
-//				try {
-//					Thread.sleep(_ReaderSet.getStart_Delay());
-//				} catch (InterruptedException e) {
-//
-//					logger.error(ReaderSet.getReader_IP() + " " + "Exception:" + ToolUtility.StackTrace2String(e));
-//				}
-//
-//				ReaderSet = _ReaderSet;
-//				reader.setConnection(ReaderSet.getReader_IP(), 23);
-//				reader.setUsername("alien");
-//				reader.setPassword("password");
-//				if (!InitialReader()) {
-//					logger.error(ReaderSet.getReader_IP() + " " + "InitialReader fail");
-//				}
-//				if (!SetAttenuation()) {
-//					logger.error(ReaderSet.getReader_IP() + " " + "SetAttenuation fail");
-//				}
-//
-//				Timer timer = new Timer();
-//
-//				// 60 sec
-//				long period = 60 * 1000;
-//				TimerTask task = new TimerTask() {
-//					@Override
-//					public void run() {
-//						long startTime = System.currentTimeMillis();
-//
-//						Reconnet();
-//
-//						logger.info(ReaderSet.getReader_IP() + " Reconnect Reader process time:"
-//								+ (System.currentTimeMillis() - startTime));
-//					}
-//				};
-//
-//				timer.scheduleAtFixedRate(task, new Date(), period);
-//
-//			}
-//		});
-//		t.setDaemon(false);
-//		t.start();
+
 
 	}
 

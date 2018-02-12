@@ -53,18 +53,22 @@ public class AlienReader extends Thread implements MessageListener {
 		long ReconnectLastCheckTime = System.currentTimeMillis();
 		long InactiveLastCheckTime = System.currentTimeMillis();
 		while (true) {
-
+			
 			try {
 				if (System.currentTimeMillis() - ReconnectLastCheckTime > 60000) {//Reconnect reader in each 60 sec.
+					logger.info("ReaderSelfCheckStart:"+setting.getReader_IP());
 					ReaderCmdService.Reconnet(setting.getReader_IP());
 					ReconnectLastCheckTime = System.currentTimeMillis();
+					logger.info("ReaderSelfCheckEnd:"+setting.getReader_IP());
 				}
 
 				if (System.currentTimeMillis() - InactiveLastCheckTime > 1000) {
+					logger.info("InactiveAntennaStart:"+setting.getReader_IP());
 					if(ToolUtility.InactiveAntenna(setting.getReader_IP())) {
 						ReaderCmdService.SetAntennaSequence(setting.getReader_IP());
 					}
 					InactiveLastCheckTime = System.currentTimeMillis();
+					logger.info("InactiveAntennaEnd:"+setting.getReader_IP());
 				}
 
 				Thread.sleep(50);

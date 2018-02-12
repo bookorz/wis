@@ -76,7 +76,8 @@ public class WIS_Main {
 			if (eachReader.getTest_Mode() == GlobleVar.TestMode && eachReader.getOn_Line()) {
 				switch (eachReader.getReader_Type()) {
 				case GlobleVar.AlienType:
-					new AlienReader(eachReader);
+					AlienReader Reader = new AlienReader(eachReader);
+					Reader.start();
 					break;
 				case GlobleVar.SocketType:
 					new AlienReaderBySocket(eachReader);

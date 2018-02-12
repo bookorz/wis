@@ -23,7 +23,7 @@ public class WMS_Message implements ITibcoRvListenService {
 		TibcoRvListen rv = new TibcoRvListen("172.20.8.13:8585", GlobleVar.ListenFromWMS, "8585", "");
 		rv.setRvListener(this);
 		rv.start();
-		
+
 	}
 
 	@Override
@@ -64,15 +64,17 @@ public class WMS_Message implements ITibcoRvListenService {
 				ToolUtility.Subtitle(fab, area, gate, ToolUtility.InitSubtitleStr(container, "RV"), "RV");
 
 				ToolUtility.SignalTower(fab, area, gate, GlobleVar.RedOff, "RV");
-
-				ToolUtility.MesDaemon.sendMessage(MessageFormat.ReplyRfidErrorReset(fab, area, gate, palletStr, empno,
-						container.getContainer_ID(), "RV"), GlobleVar.SendToWMS);
-				
-//				String readerIP = ToolUtility.GetReaderIP(fab, area, gate);
-//				if(!readerIP.equals("")) {
-//					ToolUtility.SetReaderError(readerIP, false);
-//				}
-				
+				if (container != null) {
+					ToolUtility.MesDaemon.sendMessage(MessageFormat.ReplyRfidErrorReset(fab, area, gate, palletStr,
+							empno, container.getContainer_ID(), "RV"), GlobleVar.SendToWMS);
+				} else {
+					ToolUtility.MesDaemon.sendMessage(MessageFormat.ReplyRfidErrorReset(fab, area, gate, palletStr,
+							empno, "Container is not exist", "RV"), GlobleVar.SendToWMS);
+				}
+				// String readerIP = ToolUtility.GetReaderIP(fab, area, gate);
+				// if(!readerIP.equals("")) {
+				// ToolUtility.SetReaderError(readerIP, false);
+				// }
 
 				break;
 			case "WmsRfidStatusChange":
