@@ -132,17 +132,46 @@ public class RF_Cylinder_Status {
         this.Status = Status;  
     }  
     
-    @Override  
-    public String toString() {  
-        return "Fab: " + Fab + 
-        		" Area: " + Area+
-        		" Tag_ID: " + Tag_ID+
-        		" Position: " + Position+
-        		" UpdateTime: " + UpdateTime+
-        		" Check_Times: " + Check_Times+
-        		" Cylinder_Type: " + Cylinder_Type+
-        		" New_Position: " + New_Position+
-        		" Status: " + Status;
-        		
-    }  
+    @Column("Part_No_Desc")
+    private String Part_No_Desc;
+    
+    @Column("Expire_Date")
+    private String Expire_Date;
+    
+    @Column("Batch")
+    private String Batch;
+
+	public String getPart_No_Desc() {
+		return Part_No_Desc;
+	}
+
+	public void setPart_No_Desc(String part_No_Desc) {
+		Part_No_Desc = part_No_Desc;
+	}
+
+	public String getExpire_Date() {
+		return Expire_Date;
+	}
+
+	public void setExpire_Date(String expire_Date) {
+		Expire_Date = expire_Date;
+	}
+
+	public String getBatch() {
+		return Batch;
+	}
+
+	public void setBatch(String batch) {
+		Batch = batch;
+	}
+
+	@Override
+	public String toString() {
+		return "RF_Cylinder_Status [Fab=" + Fab + ", Area=" + Area + ", Tag_ID=" + Tag_ID + ", Position=" + Position
+				+ ", UpdateTime=" + UpdateTime + ", Check_Times=" + Check_Times + ", Cylinder_Type=" + Cylinder_Type
+				+ ", New_Position=" + New_Position + ", Status=" + Status + ", Part_No_Desc=" + Part_No_Desc
+				+ ", Expire_Date=" + Expire_Date + ", Batch=" + Batch + "]";
+	}
+    
+    
 }

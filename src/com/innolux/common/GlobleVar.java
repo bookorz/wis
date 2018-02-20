@@ -138,6 +138,7 @@ public class GlobleVar {
 	public static final String Cylinder_Empty = "empty";
 	public static final String Cylinder_Destroy = "destroy";
 	public static final String Cylinder_Disappear = "disappear";
+	public static final String Cylinder_NoReply = "noreply";
 
 	// Error Type
 	public static final String FailureMode = "FailureMode";

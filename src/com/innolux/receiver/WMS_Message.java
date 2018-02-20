@@ -180,6 +180,30 @@ public class WMS_Message implements ITibcoRvListenService {
 					logger.debug("Container is not found.");
 				}
 				break;
+			case "WmsCylinderInfoXml":
+				String Pallet_ID = msg.substring(msg.indexOf("<PALLETID>") + 10, msg.indexOf("</PALLETID>"));
+				Status = msg.substring(msg.indexOf("<STATUS>") + 8, msg.indexOf("</STATUS>"));
+				String PART_NO_DESC = msg.substring(msg.indexOf("<PART_NO_DESC>") + 14, msg.indexOf("</PART_NO_DESC>"));
+				String EXPIRE_DATE = msg.substring(msg.indexOf("<EXPIRE_DATE>") + 13, msg.indexOf("</EXPIRE_DATE>"));
+				String BATCH = msg.substring(msg.indexOf("<BATCH>") + 7, msg.indexOf("</BATCH>"));
+				
+				RF_Cylinder_Status cylinderInfo = ToolUtility.GetCylinder(Pallet_ID, "RV");
+				if(cylinderInfo!=null) {
+					cylinderInfo.setPart_No_Desc(PART_NO_DESC);
+					cylinderInfo.setExpire_Date(EXPIRE_DATE);
+					cylinderInfo.setBatch(BATCH);
+					ToolUtility.SetCylinder(cylinderInfo, "RV");
+					ToolUtility.SetCylinderHistory(cylinderInfo, "RV");
+					ToolUtility.MesDaemon.sendMessage(MessageFormat.SendReply("OK", "Update successfully.", ToolUtility.getTxnID("WIS", "CylinderInfo"), "RV"),
+							rvMsg.ReplySubject);
+				}else {
+					ToolUtility.MesDaemon.sendMessage(MessageFormat.SendReply("ERROR", "The pallet is not exist.", ToolUtility.getTxnID("WIS", "CylinderInfo"), "RV"),
+							rvMsg.ReplySubject);
+				}
+				
+				//>>L WmsCylinderInfoXml USERID=\"WMS\" xml=\"<ZDIS01><HEADER><PALLETID>GS001</PALLETID><STATUS>create</STATUS>
+				//<PART_NO_DESC>XXXXXXX</PART_NO_DESC><EXPIRE_DATE>20180101</EXPIRE_DATE><BATCH>9527</BATCH>
+				//<TID>WIS_ReplyInfo_123500.734</TID></HEADER></ZDIS01>
 			}
 		} catch (Exception e) {
 			logger.error(ToolUtility.StackTrace2String(e));

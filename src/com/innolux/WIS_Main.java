@@ -209,15 +209,15 @@ public class WIS_Main {
 								ToolUtility.DeleteCylinder(eachCylinder, "CylinderMonitor");
 								eachCylinder.setStatus(GlobleVar.Cylinder_Destroy);
 								ToolUtility.SetCylinderHistory(eachCylinder, "CylinderMonitor");
-								ToolUtility.MesDaemon.sendMessage(
+								ToolUtility.MesDaemon.sendReplyMessage(
 										MessageFormat.SendCylinderStatus(eachCylinder, "CylinderMonitor"),
-										GlobleVar.SendToAMS);
+										GlobleVar.SendToWMS,2);
 							} else {
 								ToolUtility.DeleteCylinder(eachCylinder, "CylinderMonitor");
 								eachCylinder.setStatus(GlobleVar.Cylinder_Disappear);
-								ToolUtility.MesDaemon.sendMessage(
+								ToolUtility.MesDaemon.sendReplyMessage(
 										MessageFormat.SendCylinderStatus(eachCylinder, "CylinderMonitor"),
-										GlobleVar.SendToAMS);
+										GlobleVar.SendToWMS,2);
 								ToolUtility.SetCylinderHistory(eachCylinder, "CylinderMonitor");
 
 								String Text = "鋼瓶" + ToolUtility.AddSpace(eachCylinder.getTag_ID()) + "無讀取資料，請進行檢查";
@@ -238,9 +238,9 @@ public class WIS_Main {
 						case GlobleVar.ANT_Big_Use:
 							ToolUtility.DeleteCylinder(eachCylinder, "CylinderMonitor");
 							eachCylinder.setStatus(GlobleVar.Cylinder_Disappear);
-							ToolUtility.MesDaemon.sendMessage(
+							ToolUtility.MesDaemon.sendReplyMessage(
 									MessageFormat.SendCylinderStatus(eachCylinder, "CylinderMonitor"),
-									GlobleVar.SendToWMS);
+									GlobleVar.SendToWMS,2);
 							ToolUtility.SetCylinderHistory(eachCylinder, "CylinderMonitor");
 
 							String Text = "鋼瓶" + ToolUtility.AddSpace(eachCylinder.getTag_ID()) + "無讀取資料，請進行檢查";

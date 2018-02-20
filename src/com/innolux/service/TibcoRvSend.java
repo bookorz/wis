@@ -2,6 +2,9 @@ package com.innolux.service;
 
 import org.apache.log4j.Logger;
 
+import com.innolux.common.GlobleVar;
+import com.innolux.common.MessageFormat;
+import com.innolux.common.ToolUtility;
 import com.tibco.tibrv.*;
 
 public class TibcoRvSend {
@@ -85,10 +88,17 @@ public class TibcoRvSend {
 				replyMsg = transport.sendRequest(msg, 5);
 				tryCount--;
 			}
+			
 
 			logger.info(replyMsg);
 			transport.destroy();
 			Tibrv.close();
+			
+			if(replyMsg==null) {
+				ToolUtility.MesDaemon.sendMessage(MessageFormat.SendAms("T2",
+						GlobleVar.Cylinder_NoReply, "WISCylinders", "WMS沒有回覆訊息", data, "sendReplyMessage"),
+						GlobleVar.SendToAMS);
+			}
 		} catch (TibrvException e) {
 			logger.error(e.getMessage());
 		}

@@ -65,6 +65,15 @@ public class MessageFormat {
 		logger.info(readerIP + " " + "send to WMS:" + RvFormat);
 		return RvFormat;
 	}
+	
+	public static String SendCylinderCreate(RF_Cylinder_Status cylinder, String tid, String readerIP) {
+
+		String RvFormat = ">>L WmsCylinderInfoXml USERID=\"DIS\" xml=\"<ZDIS01><HEADER><TAG_ID>"+cylinder.getTag_ID()+"</TAG_ID><FAB>"+cylinder.getFab()+"</FAB>" + 
+				"<AREA>"+cylinder.getArea()+"</AREA><CYLINDER_TYPE>"+cylinder.getCylinder_Type()+"</CYLINDER_TYPE>" + 
+				"<TID>"+tid+"</TID></HEADER></ZDIS01>";
+		logger.info(readerIP + " " + "send to WMS:" + RvFormat);
+		return RvFormat;
+	}
 
 	public static String SendASNUnload(WMS_T1_ASN_Pallet pallet, RF_ContainerInfo container, String Action,
 			String readerIP) {
@@ -100,6 +109,14 @@ public class MessageFormat {
 				+ "</PALLET_ID><FAB>" + tag.getFab() + "</FAB><AREA>" + tag.getArea() + "</AREA><GATEID>"
 				+ tag.getGate() + "</GATEID><CONTAINERID>" + wmsPallet.getContainer_NO() + "</CONTAINERID><VEHICLE_NO>"
 				+ wmsPallet.getTruck_NO() + "</VEHICLE_NO><ACTION>" + Action + "</ACTION></HEADER></ZDIS01>\"";
+		logger.info(readerIP + " " + "send to WMS:" + RvFormat);
+		return RvFormat;
+	}
+	
+	public static String SendReply(String Status, String Msg, String tid, String readerIP) {
+		String RvFormat = ">>L WmsReplyInfoXml USERID=\"DIS\" xml=\"<ZDIS01><HEADER><STATUS>"
+				+ Status + "</STATUS><MSG>" + Msg + "</MSG><TID>" + tid
+				+ "</TID></HEADER></ZDIS01>\"";
 		logger.info(readerIP + " " + "send to WMS:" + RvFormat);
 		return RvFormat;
 	}

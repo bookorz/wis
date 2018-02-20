@@ -80,6 +80,9 @@ public class ToolUtility {
 
 	private static GenericDao<WMS_T2_ASN_Pallet> WMS_T2_ASN_Pallet_Dao = new JdbcGenericDaoImpl<WMS_T2_ASN_Pallet>(
 			GlobleVar.T2WMS_DB);
+	
+	private static GenericDao<WMS_T2_Cylinder_Status> WMS_T2_Cylinder_Status_Dao = new JdbcGenericDaoImpl<WMS_T2_Cylinder_Status>(
+			GlobleVar.T2WMS_DB);
 
 	public static void Initial() {
 		long startTime = System.currentTimeMillis();
@@ -2054,6 +2057,17 @@ public class ToolUtility {
 
 		}
 		result = "庫存" + stock + "、使用" + use + "、空瓶" + empty;
+		return result;
+	}
+	
+	public static WMS_T2_Cylinder_Status GetWMSCylinderStatus(String PalletID, String readerIP) {
+		WMS_T2_Cylinder_Status result = null;
+		try {
+		result = WMS_T2_Cylinder_Status_Dao.get(PalletID, WMS_T2_Cylinder_Status.class);
+		} catch (Exception e) {
+
+			logger.error(readerIP + " Exception:" + StackTrace2String(e));
+		}
 		return result;
 	}
 }

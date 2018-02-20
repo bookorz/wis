@@ -12,6 +12,7 @@ import com.innolux.model.RF_Pallet_Check;
 import com.innolux.model.RF_Tag_History;
 import com.innolux.model.WMS_T1_ASN_Pallet;
 import com.innolux.model.WMS_T1_Check_Pallet;
+import com.innolux.model.WMS_T2_Cylinder_Status;
 
 public class TagHandle {
 	public static Logger logger = Logger.getLogger(TagHandle.class);
@@ -93,136 +94,187 @@ public class TagHandle {
 
 		RF_Cylinder_Status cylinder = ToolUtility.GetCylinder(tag.getTag_ID(), tag.getReader_IP());
 		if (cylinder != null) {
+			cylinder.setUpdateTime(System.currentTimeMillis());
 
-			switch (tag.getAntenna_Type()) {
-			case GlobleVar.ANT_Big_Stock:
-				// Only from big use can trigger.
-				if (cylinder.getPosition().equals(GlobleVar.ANT_Big_Use)) {
-
-					if (cylinder.getNew_Position().equals(GlobleVar.ANT_Big_Stock)) {
-						if (cylinder.getCheck_Times() == 2) {
-							cylinder.setPosition(GlobleVar.ANT_Big_Stock);
-							cylinder.setNew_Position("");
-							cylinder.setCheck_Times(0);
-							cylinder.setStatus(GlobleVar.Cylinder_Empty);
-							ToolUtility.MesDaemon.sendMessage(
-									MessageFormat.SendCylinderStatus(cylinder, tag.getReader_IP()),
-									GlobleVar.SendToWMS);
-
-						} else {
-							cylinder.setCheck_Times(cylinder.getCheck_Times() + 1);
-						}
-					} else {
-						cylinder.setNew_Position(GlobleVar.ANT_Big_Stock);
-						cylinder.setCheck_Times(1);
-					}
-					ToolUtility.SetCylinderHistory(cylinder, tag.getReader_IP());
-				}
-
-				break;
-			case GlobleVar.ANT_Big_Use:
-
-				// Only from big stock can trigger.
-				if (cylinder.getPosition().equals(GlobleVar.ANT_Big_Stock)) {
-
-					if (cylinder.getNew_Position().equals(GlobleVar.ANT_Big_Use)) {
-						if (cylinder.getCheck_Times() == 2) {
-							cylinder.setPosition(GlobleVar.ANT_Big_Use);
-							cylinder.setNew_Position("");
-							cylinder.setCheck_Times(0);
-							cylinder.setStatus(GlobleVar.Cylinder_Used);
-							ToolUtility.MesDaemon.sendMessage(
-									MessageFormat.SendCylinderStatus(cylinder, tag.getReader_IP()),
-									GlobleVar.SendToWMS);
-						} else {
-							cylinder.setCheck_Times(cylinder.getCheck_Times() + 1);
-						}
-					} else {
-						cylinder.setNew_Position(GlobleVar.ANT_Big_Use);
-						cylinder.setCheck_Times(1);
-					}
-					ToolUtility.SetCylinderHistory(cylinder, tag.getReader_IP());
-				}
-
-				break;
-			case GlobleVar.ANT_Small_Stock:
-				// Only from small stock can trigger.
-				if (cylinder.getPosition().equals(GlobleVar.ANT_Small_Use)) {
-					if (cylinder.getNew_Position().equals(GlobleVar.ANT_Small_Stock)) {
-						if (cylinder.getCheck_Times() == 2) {
-							cylinder.setPosition(GlobleVar.ANT_Small_Stock);
-							cylinder.setNew_Position("");
-							cylinder.setCheck_Times(0);
-							cylinder.setStatus(GlobleVar.Cylinder_Empty);
-							ToolUtility.MesDaemon.sendMessage(
-									MessageFormat.SendCylinderStatus(cylinder, tag.getReader_IP()),
-									GlobleVar.SendToWMS);
-						} else {
-							cylinder.setCheck_Times(cylinder.getCheck_Times() + 1);
-						}
-					} else {
-						cylinder.setNew_Position(GlobleVar.ANT_Small_Stock);
-						cylinder.setCheck_Times(1);
-					}
-					ToolUtility.SetCylinderHistory(cylinder, tag.getReader_IP());
-				}
-				break;
-			case GlobleVar.ANT_Small_Use:
-				// Only from small stock can trigger.
-				if (cylinder.getPosition().equals(GlobleVar.ANT_Small_Stock)) {
-
-					if (cylinder.getNew_Position().equals(GlobleVar.ANT_Small_Use)) {
-						if (cylinder.getCheck_Times() == 2) {
-							cylinder.setPosition(GlobleVar.ANT_Small_Use);
-							cylinder.setNew_Position("");
-							cylinder.setCheck_Times(0);
-							cylinder.setStatus(GlobleVar.Cylinder_Used);
-							ToolUtility.MesDaemon.sendMessage(
-									MessageFormat.SendCylinderStatus(cylinder, tag.getReader_IP()),
-									GlobleVar.SendToWMS);
-						} else {
-							cylinder.setCheck_Times(cylinder.getCheck_Times() + 1);
-						}
-					} else {
-						cylinder.setNew_Position(GlobleVar.ANT_Small_Use);
-						cylinder.setCheck_Times(1);
-					}
-					ToolUtility.SetCylinderHistory(cylinder, tag.getReader_IP());
-				}
-
-				break;
-			}
+			ReaderAreaHandler(cylinder, tag.getAntenna_Type(), tag.getReader_IP());
 
 		} else {
 			// new tag found
-			if (tag.getTag_Type().equals(GlobleVar.PalletTag)) {
+			WMS_T2_Cylinder_Status WmsCylinderInfo = ToolUtility.GetWMSCylinderStatus(tag.getTag_ID(),
+					tag.getReader_IP());
+
+			if (WmsCylinderInfo != null) {
+				cylinder = new RF_Cylinder_Status();
+				cylinder.setFab(WmsCylinderInfo.getFab());
+				cylinder.setArea(WmsCylinderInfo.getArea());
+				cylinder.setTag_ID(WmsCylinderInfo.getTag_ID());
+				cylinder.setPosition(" ");
+				cylinder.setNew_Position(" ");
+				cylinder.setPart_No_Desc(WmsCylinderInfo.getPart_No_Desc());
+				cylinder.setExpire_Date(WmsCylinderInfo.getExpire_Date());
+				cylinder.setBatch(WmsCylinderInfo.getBatch());
+				cylinder.setUpdateTime(System.currentTimeMillis());
+
+				ReaderAreaHandler(cylinder, tag.getAntenna_Type(), tag.getReader_IP());
+			} else {
 				cylinder = new RF_Cylinder_Status();
 				cylinder.setFab(tag.getFab());
 				cylinder.setArea(tag.getArea());
 				cylinder.setTag_ID(tag.getTag_ID());
 				cylinder.setPosition(tag.getAntenna_Type());
-				cylinder.setNew_Position("");
-				switch (tag.getAntenna_Type()) {
-				case GlobleVar.ANT_Big_Stock:
-					cylinder.setStatus(GlobleVar.Cylinder_Create);
-					break;
-				case GlobleVar.ANT_Big_Use:
-					cylinder.setStatus(GlobleVar.Cylinder_Used);
-					break;
-				case GlobleVar.ANT_Small_Stock:
-					cylinder.setStatus(GlobleVar.Cylinder_Create);
-					break;
-				case GlobleVar.ANT_Small_Use:
-					cylinder.setStatus(GlobleVar.Cylinder_Used);
-					break;
-				}
-				ToolUtility.MesDaemon.sendMessage(MessageFormat.SendCylinderStatus(cylinder, tag.getReader_IP()),
-						GlobleVar.SendToWMS);
+				cylinder.setNew_Position(" ");
+				cylinder.setPart_No_Desc(" ");
+				cylinder.setExpire_Date(" ");
+				cylinder.setBatch(" ");
+				cylinder.setUpdateTime(System.currentTimeMillis());
+
+			
+				ToolUtility.MesDaemon.sendReplyMessage( MessageFormat.SendCylinderCreate(cylinder, ToolUtility.getTxnID("WIS", "CylinderInfo"),
+						"RV"), GlobleVar.SendToWMS, 2);
+
 				ToolUtility.SetCylinderHistory(cylinder, tag.getReader_IP());
 			}
 		}
-		cylinder.setUpdateTime(System.currentTimeMillis());
+
 		ToolUtility.SetCylinder(cylinder, tag.getReader_IP());
+	}
+
+	private static void ReaderAreaHandler(RF_Cylinder_Status cylinder, String Antenna_Type, String ReaderIP) {
+		WMS_T2_Cylinder_Status WmsCylinderInfo = null;
+	
+
+		switch (Antenna_Type) {
+		case GlobleVar.ANT_Big_Stock:
+			if (cylinder.getPosition().equals(GlobleVar.ANT_Big_Stock)) {
+				return;
+			}
+			if (!cylinder.getNew_Position().equals(GlobleVar.ANT_Big_Stock)) {
+				cylinder.setNew_Position(GlobleVar.ANT_Big_Stock);
+				cylinder.setCheck_Times(1);
+			} else {
+				if (cylinder.getCheck_Times() >= 2) {
+					cylinder.setPosition(GlobleVar.ANT_Big_Stock);
+					cylinder.setNew_Position(" ");
+					WmsCylinderInfo = ToolUtility.GetWMSCylinderStatus(cylinder.getTag_ID(), ReaderIP);
+					if (WmsCylinderInfo != null) {
+						if(WmsCylinderInfo.getStatus().equals(GlobleVar.Cylinder_Used)) {
+							cylinder.setStatus(GlobleVar.Cylinder_Empty);						
+							
+							ToolUtility.MesDaemon.sendReplyMessage(
+									MessageFormat.SendCylinderStatus(cylinder, ReaderIP),
+									GlobleVar.SendToWMS,2);
+						}else {
+							ToolUtility.MesDaemon.sendMessage(MessageFormat.SendAms("T2",
+									GlobleVar.Cylinder_NoReply, "WISCylinders", "WMS鋼瓶狀態不符", "此鋼瓶檢查到與WMS狀態不符，WMS狀態應為使用中，取消不發送空瓶訊息", "sendReplyMessage"),
+									GlobleVar.SendToAMS);
+						}
+					} else {
+						logger.info(ReaderIP + " WmsCylinderInfo is null.");
+					}
+				} else {
+					cylinder.setCheck_Times(cylinder.getCheck_Times() + 1);
+				}
+			}
+			break;
+		case GlobleVar.ANT_Small_Stock:
+			if (cylinder.getPosition().equals(GlobleVar.ANT_Small_Stock)) {
+				return;
+			}
+			if (!cylinder.getNew_Position().equals(GlobleVar.ANT_Small_Stock)) {
+				cylinder.setNew_Position(GlobleVar.ANT_Small_Stock);
+				cylinder.setCheck_Times(1);
+			} else {
+				if (cylinder.getCheck_Times() >= 2) {
+					cylinder.setPosition(GlobleVar.ANT_Small_Stock);
+					cylinder.setNew_Position(" ");
+					WmsCylinderInfo = ToolUtility.GetWMSCylinderStatus(cylinder.getTag_ID(), ReaderIP);
+					if (WmsCylinderInfo != null) {
+						if(WmsCylinderInfo.getStatus().equals(GlobleVar.Cylinder_Used)) {
+							cylinder.setStatus(GlobleVar.Cylinder_Empty);						
+							
+							ToolUtility.MesDaemon.sendReplyMessage(
+									MessageFormat.SendCylinderStatus(cylinder, ReaderIP),
+									GlobleVar.SendToWMS,2);
+						}else {
+							ToolUtility.MesDaemon.sendMessage(MessageFormat.SendAms("T2",
+									GlobleVar.Cylinder_NoReply, "WISCylinders", "WMS鋼瓶狀態不符", "此鋼瓶檢查到與WMS狀態不符，WMS狀態應為使用中，取消不發送空瓶訊息", "sendReplyMessage"),
+									GlobleVar.SendToAMS);
+						}
+					} else {
+						logger.info(ReaderIP + " WmsCylinderInfo is null.");
+					}
+				} else {
+					cylinder.setCheck_Times(cylinder.getCheck_Times() + 1);
+				}
+			}
+
+			break;
+		case GlobleVar.ANT_Big_Use:
+			if (cylinder.getPosition().equals(GlobleVar.ANT_Big_Use)) {
+				return;
+			}
+			if (!cylinder.getNew_Position().equals(GlobleVar.ANT_Big_Use)) {
+				cylinder.setNew_Position(GlobleVar.ANT_Big_Use);
+				cylinder.setCheck_Times(1);
+			} else {
+				if (cylinder.getCheck_Times() >= 2) {
+					cylinder.setPosition(GlobleVar.ANT_Big_Use);
+					cylinder.setNew_Position(" ");
+					WmsCylinderInfo = ToolUtility.GetWMSCylinderStatus(cylinder.getTag_ID(), ReaderIP);
+					if (WmsCylinderInfo != null) {
+						if(WmsCylinderInfo.getStatus().equals("庫存")) {
+							cylinder.setStatus(GlobleVar.Cylinder_Used);						
+							
+							ToolUtility.MesDaemon.sendReplyMessage(
+									MessageFormat.SendCylinderStatus(cylinder, ReaderIP),
+									GlobleVar.SendToWMS,2);
+						}else {
+							ToolUtility.MesDaemon.sendMessage(MessageFormat.SendAms("T2",
+									GlobleVar.Cylinder_NoReply, "WISCylinders", "WMS鋼瓶狀態不符", "此鋼瓶檢查到與WMS狀態不符，WMS狀態應為庫存，取消不發送使用中訊息", "sendReplyMessage"),
+									GlobleVar.SendToAMS);
+						}
+					} else {
+						logger.info(ReaderIP + " WmsCylinderInfo is null.");
+					}
+				} else {
+					cylinder.setCheck_Times(cylinder.getCheck_Times() + 1);
+				}
+			}
+			break;
+		case GlobleVar.ANT_Small_Use:
+			if (cylinder.getPosition().equals(GlobleVar.ANT_Small_Use)) {
+				return;
+			}
+			if (!cylinder.getNew_Position().equals(GlobleVar.ANT_Small_Use)) {
+				cylinder.setNew_Position(GlobleVar.ANT_Small_Use);
+				cylinder.setCheck_Times(1);
+			} else {
+				if (cylinder.getCheck_Times() >= 2) {
+					cylinder.setPosition(GlobleVar.ANT_Small_Use);
+					cylinder.setNew_Position(" ");
+					WmsCylinderInfo = ToolUtility.GetWMSCylinderStatus(cylinder.getTag_ID(), ReaderIP);
+					if (WmsCylinderInfo != null) {
+						if(WmsCylinderInfo.getStatus().equals("庫存")) {
+							cylinder.setStatus(GlobleVar.Cylinder_Used);						
+							
+							ToolUtility.MesDaemon.sendReplyMessage(
+									MessageFormat.SendCylinderStatus(cylinder, ReaderIP),
+									GlobleVar.SendToWMS,2);
+						}else {
+							ToolUtility.MesDaemon.sendMessage(MessageFormat.SendAms("T2",
+									GlobleVar.Cylinder_NoReply, "WISCylinders", "WMS鋼瓶狀態不符", "此鋼瓶檢查到與WMS狀態不符，WMS狀態應為庫存，取消不發送使用中訊息", "sendReplyMessage"),
+									GlobleVar.SendToAMS);
+						}
+					} else {
+						logger.info(ReaderIP + " WmsCylinderInfo is null.");
+					}
+				} else {
+					cylinder.setCheck_Times(cylinder.getCheck_Times() + 1);
+				}
+			}
+			break;
+		}
+
 	}
 
 	private static void CenterParkingHandler(RF_Tag_History tag) {
@@ -742,7 +794,6 @@ public class TagHandle {
 							String summary = ToolUtility.GetErrorPalletSummary(gate.getFab(), gate.getArea(),
 									gate.getGate(), GlobleVar.DeliveryLoad, tag.getReader_IP());
 
-							
 							int currentCunt = (ToolUtility.GetCompletePallet(container, tag.getReader_IP()).size() + 1);
 							int tatalCount = ToolUtility.GetAllPallet(container, tag.getReader_IP()).size();
 
