@@ -55,12 +55,11 @@ public class MessageFormat {
 	}
 
 	public static String SendCylinderStatus(RF_Cylinder_Status cylinder, String readerIP) {
-		DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		String reportDate = df.format(cylinder.getUpdateTime());
+		
 
 		String RvFormat = ">>L WmsCylinderStatusInfoXml USERID=\"DIS\" xml=\"<ZDIS01><HEADER><PALLET_ID>"
 				+ cylinder.getTag_ID() + "</PALLET_ID><TYPE>" + cylinder.getCylinder_Type() + "</TYPE><STATUS>"
-				+ cylinder.getStatus() + "</STATUS><UPDATE_TIME>" + reportDate
+				+ cylinder.getStatus() + "</STATUS><UPDATE_TIME>" + ToolUtility.GetNowTimeStr()
 				+ "</UPDATE_TIME><ERR_MSG></ERR_MSG></HEADER></ZDIS01>\"";
 		logger.info(readerIP + " " + "send to WMS:" + RvFormat);
 		return RvFormat;

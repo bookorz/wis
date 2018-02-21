@@ -183,15 +183,12 @@ public class WMS_Message implements ITibcoRvListenService {
 			case "WmsCylinderInfoXml":
 				String Pallet_ID = msg.substring(msg.indexOf("<PALLETID>") + 10, msg.indexOf("</PALLETID>"));
 				Status = msg.substring(msg.indexOf("<STATUS>") + 8, msg.indexOf("</STATUS>"));
-				String PART_NO_DESC = msg.substring(msg.indexOf("<PART_NO_DESC>") + 14, msg.indexOf("</PART_NO_DESC>"));
-				String EXPIRE_DATE = msg.substring(msg.indexOf("<EXPIRE_DATE>") + 13, msg.indexOf("</EXPIRE_DATE>"));
-				String BATCH = msg.substring(msg.indexOf("<BATCH>") + 7, msg.indexOf("</BATCH>"));
+				
 				
 				RF_Cylinder_Status cylinderInfo = ToolUtility.GetCylinder(Pallet_ID, "RV");
 				if(cylinderInfo!=null) {
-					cylinderInfo.setPart_No_Desc(PART_NO_DESC);
-					cylinderInfo.setExpire_Date(EXPIRE_DATE);
-					cylinderInfo.setBatch(BATCH);
+					cylinderInfo.setStatus(Status);
+					cylinderInfo.setStatus_ChangeTime(ToolUtility.GetNowTimeStr());
 					ToolUtility.SetCylinder(cylinderInfo, "RV");
 					ToolUtility.SetCylinderHistory(cylinderInfo, "RV");
 					ToolUtility.MesDaemon.sendMessage(MessageFormat.SendReply("OK", "Update successfully.", ToolUtility.getTxnID("WIS", "CylinderInfo"), "RV"),

@@ -62,11 +62,25 @@ public class WMS_T1_ASN_Pallet {
         this.RFID_Chk = RFID_Chk;  
     }  
     
-    @Override  
-    public String toString() {  
-        return " ASN_NO: " + ASN_NO+
-        		" Pallet_ID: " + Pallet_ID+
-        		" Car_NO: " + Car_NO+
-        		" RFID_Chk: " + RFID_Chk;   		
+    /** 
+     * Material
+     */  
+	@Column("material")  
+    private String Material; 
+	
+	public String getMaterial() {  
+        return Material;  
     }  
+  
+    public void setMaterial(String Material) {  
+        this.Material = Material;  
+    }
+
+	@Override
+	public String toString() {
+		return "WMS_T1_ASN_Pallet [ASN_NO=" + ASN_NO + ", Pallet_ID=" + Pallet_ID + ", Car_NO=" + Car_NO + ", RFID_Chk="
+				+ RFID_Chk + ", Material=" + Material + "]";
+	}
+    
+   
 }

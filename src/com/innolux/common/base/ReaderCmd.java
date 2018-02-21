@@ -215,7 +215,7 @@ public class ReaderCmd {
 					reader.setTagListAntennaCombine(AlienClass1Reader.ON);
 					reader.setAutoStartPause(45000); // 停止40秒
 					reader.setAutoStopTimer(15000); // 讀取20秒
-					reader.setNotifyTime(600);
+					reader.setNotifyTime(300);
 					reader.setNotifyHeader(AlienClass1Reader.OFF);
 					reader.setPersistTime(-1);
 					reader.setAutoMode(AlienClass1Reader.ON);

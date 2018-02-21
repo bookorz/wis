@@ -201,7 +201,7 @@ public class WIS_Main {
 				List<RF_Cylinder_Status> cylinderList = ToolUtility.GetAllCylinders("CylinderMonitor");
 
 				for (RF_Cylinder_Status eachCylinder : cylinderList) {
-					if (System.currentTimeMillis() - eachCylinder.getUpdateTime() > 2800000) {
+					if (System.currentTimeMillis() - eachCylinder.getUpdateTime() > 1260000) {//21 min
 						switch (eachCylinder.getPosition()) {
 						case GlobleVar.ANT_Small_Stock:
 						case GlobleVar.ANT_Big_Stock:
@@ -228,9 +228,9 @@ public class WIS_Main {
 
 									ToolUtility.VoiceSend(gate.getVoice_Path(), Text, "CylinderMonitor");
 								}
-								ToolUtility.MesDaemon.sendMessage(MessageFormat.SendAms(eachCylinder.getFab(),
+								ToolUtility.MesDaemon.sendReplyMessage(MessageFormat.SendAms(eachCylinder.getFab(),
 										GlobleVar.Cylinder_Disappear, "WISCylinders", "鋼瓶不見", Text, "CylinderMonitor"),
-										GlobleVar.SendToAMS);
+										GlobleVar.SendToAMS,2);
 
 							}
 							break;
@@ -252,10 +252,10 @@ public class WIS_Main {
 								ToolUtility.VoiceSend(gate.getVoice_Path(), Text, "CylinderMonitor");
 							}
 							ToolUtility.MesDaemon
-									.sendMessage(
+									.sendReplyMessage(
 											MessageFormat.SendAms(eachCylinder.getFab(), GlobleVar.Cylinder_Disappear,
 													"WISCylinders", "鋼瓶不見", Text, "CylinderMonitor"),
-											GlobleVar.SendToAMS);
+											GlobleVar.SendToAMS,2);
 							break;
 						}
 
