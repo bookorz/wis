@@ -222,7 +222,7 @@ public class TagHandle {
 					cylinder.setNew_Position(" ");
 					WmsCylinderInfo = ToolUtility.GetWMSCylinderStatus(cylinder.getTag_ID(), ReaderIP);
 					if (WmsCylinderInfo != null) {
-						if(WmsCylinderInfo.getStatus().equals("庫存")) {
+						if(WmsCylinderInfo.getStatus().equals(GlobleVar.Cylinder_Stock)) {
 							cylinder.setStatus(GlobleVar.Cylinder_Used);						
 							
 							ToolUtility.MesDaemon.sendReplyMessage(
@@ -254,7 +254,7 @@ public class TagHandle {
 					cylinder.setNew_Position(" ");
 					WmsCylinderInfo = ToolUtility.GetWMSCylinderStatus(cylinder.getTag_ID(), ReaderIP);
 					if (WmsCylinderInfo != null) {
-						if(WmsCylinderInfo.getStatus().equals("庫存")) {
+						if(WmsCylinderInfo.getStatus().equals(GlobleVar.Cylinder_Stock)) {
 							cylinder.setStatus(GlobleVar.Cylinder_Used);						
 							
 							ToolUtility.MesDaemon.sendReplyMessage(
